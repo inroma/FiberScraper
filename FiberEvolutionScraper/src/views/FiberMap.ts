@@ -4,9 +4,10 @@ import 'leaflet/dist/leaflet.css';
 import L, { LatLng } from "leaflet";
 import { LMap, LTileLayer, LMarker, LPopup, LControl, LControlLayers } from "vue2-leaflet";
 import Vue from 'vue';
-import { Mutation } from 'vuex-class';
+import { Action } from 'vuex-class';
 import { Component } from 'vue-property-decorator';
 import { ToastStoreMethods } from '@/store/ToastStore';
+import { Snackbar } from '@/models/SnackbarInterface';
 
 @Component({
     components: {
@@ -110,17 +111,12 @@ export default class FiberMapVue extends Vue {
         ]
     }
 
-    public created() {
-        // fetch the data when the view is created and the data is
-        // already being observed
-        // this.getFibers();
-        this.$store.commit(ToastStoreMethods.CREATE_TOAST_MESSAGE, {show: true, text:"test", color: "secondary", duration: 1000});
-    }
-
-    @Mutation(ToastStoreMethods.CREATE_TOAST_MESSAGE) private createToast!: () => void;
+    @Action(ToastStoreMethods.CREATE_TOAST_MESSAGE)
+    private createToast!: (params: Snackbar) => void;
 
     public refreshFibers() {
         this.loading = true;
+        this.openedMarker?.mapObject.closePopup();
         axios.get<FiberResponseModel>('https://localhost:5001/api/fiber/RefreshFibers',
             { headers: { 'Content-Type': 'application/json' },
             params: { coordX: this.mapCenter.lat, coordY: this.mapCenter.lng }})
@@ -138,6 +134,7 @@ export default class FiberMapVue extends Vue {
 
     public getFibers() {
         this.loading = true;
+        this.openedMarker?.mapObject.closePopup();
         axios.get<FiberResponseModel>('https://localhost:5001/api/fiber/GetLiveDataFibers',
             { headers: { 'Content-Type': 'application/json' },
             params: { coordX: this.mapCenter.lat, coordY: this.mapCenter.lng }})

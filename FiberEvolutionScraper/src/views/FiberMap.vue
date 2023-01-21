@@ -80,14 +80,18 @@
                     </v-row>
                 </l-control>
             </l-map>
-            <v-data-table class="mt-5 mb-10" :headers="headers" :items="fibers?.results" fixed-header height="600px"
-                :options="{ itemsPerPage: 30 }" :loading="loading" @click:row="centerMapOnPoint">
-                <template v-slot:[`item.eligibilitesFtth`]="{ item }">
-                    <td>
-                        {{ getEtapeDeploiement(item) }}
-                    </td>
-                </template>
-            </v-data-table>
+            <v-row justify="center">
+                <v-col md="6">
+                    <v-data-table class="mt-5 mb-10" :headers="headers" :items="fibers?.results" fixed-header height="600px"
+                        :options="{ itemsPerPage: 30 }" :loading="loading" @click:row="centerMapOnPoint">
+                        <template v-slot:[`item.eligibilitesFtth`]="{ item }">
+                            <td>
+                                {{ getEtapeDeploiement(item) }}
+                            </td>
+                        </template>
+                    </v-data-table>
+                </v-col>
+            </v-row>
         </div>
     </v-card>
 </template>

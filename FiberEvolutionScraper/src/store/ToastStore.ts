@@ -1,29 +1,38 @@
 import { ActionTree, GetterTree, Module, MutationTree } from "vuex";
-import VSnackbar from "vuetify";
 import { RootState } from "./RootState";
+import { Snackbar } from "@/models/SnackbarInterface";
 
 export enum ToastStoreMethods {
     CREATE_TOAST_MESSAGE = 'CREATE_TOAST_MESSAGE',
-    REMOVE_TOAST_MESSAGE = 'REMOVE_TOAST_MESSAGE'
+    GET_TOAST = 'GET_TOAST',
+    GET_TOAST_MESSAGE = 'GET_TOAST_MESSAGE'
 }
 
 export class ToastState {
-    public toast: VSnackbar = new VSnackbar();
+    public snackbar: Snackbar = {
+        show: false,
+        message: '',
+        color: "",
+        timeout: -1
+    }
 }
 
 const getters: GetterTree<ToastState, RootState> = {
+    [ToastStoreMethods.GET_TOAST](state) { return state.snackbar; }
 }
 
 const actions: ActionTree<ToastState, RootState> = {
+    [ToastStoreMethods.CREATE_TOAST_MESSAGE]: (state, params) => {
+        state.commit(ToastStoreMethods.CREATE_TOAST_MESSAGE, params);
+    }
 }
 
 const mutations: MutationTree<ToastState> = {
-    [ToastStoreMethods.CREATE_TOAST_MESSAGE]: (state, mutation) => {
-        state.toast = mutation.toast;
-        //
-    },
-    [ToastStoreMethods.REMOVE_TOAST_MESSAGE]: () => {
-        //
+    [ToastStoreMethods.CREATE_TOAST_MESSAGE](state, snackbar: Snackbar) {
+        state.snackbar.show = true;
+        state.snackbar.message = snackbar.message || '';
+        state.snackbar.timeout = snackbar.timeout || 4000;
+        state.snackbar.color = snackbar.color || "info";
     }
 }
 
