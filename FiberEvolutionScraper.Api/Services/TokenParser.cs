@@ -2,6 +2,9 @@
 {
     public class TokenParser
     {
+        internal string Token;
+        internal DateTime TokenAge = DateTime.Now;
+
         /// <summary>
         /// e.map(n=>(n >= "A" && n <= "Z" ? 
         /// n = String.fromCharCode("Z".charCodeAt(0) - (n.charCodeAt(0) - "A".charCodeAt(0))).toLowerCase() : 
@@ -51,9 +54,11 @@
 
             step2 = string.Concat(step2.ToCharArray().Reverse());
 
-            var step3 = step2.Substring(stringSplitIndex, step2.Length-stringSplitIndex) + step2.ToString().Substring(0, stringSplitIndex);
+            Token = step2.Substring(stringSplitIndex, step2.Length-stringSplitIndex) + step2.ToString().Substring(0, stringSplitIndex);
+            TokenAge = DateTime.Now;
+            Console.WriteLine("New Token set !");
 
-            return step3;
+            return Token;
         }
 
         ///  function aB(e, n, t) {

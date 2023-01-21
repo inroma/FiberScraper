@@ -15,9 +15,9 @@ public class Program
         builder.Services.AddEndpointsApiExplorer();
         builder.Services.AddSwaggerGen();
 
-        builder.Services.AddScoped<FiberApi>();
+        builder.Services.AddTransient<FiberApi>();
         builder.Services.AddScoped<HttpClient>();
-        builder.Services.AddScoped<TokenParser>();
+        builder.Services.AddSingleton<TokenParser>();
 
         var app = builder.Build();
 
