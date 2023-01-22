@@ -12,7 +12,7 @@
           </v-list-item-content>
         </v-list-item>
       </v-list>
-      <template v-slot:append>        
+      <template v-slot:append>
         <v-list-item class="pl-10 pr-10 pb-3">
           <v-list-item-content>
             <v-btn @click="$vuetify.theme.dark = !$vuetify.theme.dark" color="primary">
@@ -25,7 +25,7 @@
     </v-navigation-drawer>
     <v-main>
       <toast/>
-      <router-view class="mt-10 ml-10 mr-10"/>
+      <router-view class="mt-15 ml-10 mr-10"/>
     </v-main>
   </v-app>
 </template>
