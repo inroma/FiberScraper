@@ -1,17 +1,38 @@
-import { Component } from 'vue-property-decorator';
+import { Component, Watch } from 'vue-property-decorator';
 import Vue from 'vue';
 import { ToastStoreMethods } from '@/store/ToastStore';
-import { Getter } from 'vuex-class';
+import { Action, Getter } from 'vuex-class';
 import { Snackbar } from '@/models/SnackbarInterface';
 
 @Component({})
 export default class ToastComponent extends Vue {
     @Getter(ToastStoreMethods.GET_TOAST)
-    public snackbar!: Snackbar;
+    public snackbars!: Snackbar[];
 
-    public get icon() {
+    @Action(ToastStoreMethods.REMOVE_TOAST_MESSAGE)
+    private clearToast!: () => void;
+
+    @Watch('snackbars', { deep: true })
+    public showToast() {
+        this.$nextTick(() => {
+            if (this.snackbars.length > 0) {
+                this.snackbars.forEach(snack => {
+                    if (snack.show === null){
+                        snack.show = true;
+                    }
+                });
+                if (this.snackbars.filter(s => !s.show).length > 0) {
+                    setTimeout(() => this.clearToast(), 300);
+                }
+            }
+        });
+    }
+
+    public icon(snackbar: Snackbar) {
         let icon = "";
-        switch (this.snackbar?.color){
+        switch (snackbar?.color){
+            default:
+                break;
             case "success": 
                 icon = "mdi-check";
                 break;
@@ -26,5 +47,13 @@ export default class ToastComponent extends Vue {
                 break;
         }
         return icon;
+    }
+    
+    public calcMargin(i: number) {
+        return (i*60) + 'px'
+    }
+
+    public removeToast(snack: Snackbar) {
+        snack.show = false;
     }
 }

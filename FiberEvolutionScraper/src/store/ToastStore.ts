@@ -5,34 +5,40 @@ import { Snackbar } from "@/models/SnackbarInterface";
 export enum ToastStoreMethods {
     CREATE_TOAST_MESSAGE = 'CREATE_TOAST_MESSAGE',
     GET_TOAST = 'GET_TOAST',
-    GET_TOAST_MESSAGE = 'GET_TOAST_MESSAGE'
+    REMOVE_TOAST_MESSAGE = 'REMOVE_TOAST_MESSAGE'
 }
 
 export class ToastState {
-    public snackbar: Snackbar = {
-        show: false,
-        message: '',
-        color: "",
-        timeout: -1
-    }
+    public snackbars: Snackbar[] = [];
+    public index = 0;
 }
 
 const getters: GetterTree<ToastState, RootState> = {
-    [ToastStoreMethods.GET_TOAST](state) { return state.snackbar; }
+    [ToastStoreMethods.GET_TOAST](state) { return state.snackbars; }
 }
 
 const actions: ActionTree<ToastState, RootState> = {
     [ToastStoreMethods.CREATE_TOAST_MESSAGE]: (state, params) => {
         state.commit(ToastStoreMethods.CREATE_TOAST_MESSAGE, params);
-    }
+        state.state.index += 1;
+    },
+    [ToastStoreMethods.REMOVE_TOAST_MESSAGE]: (state) => {
+        state.commit(ToastStoreMethods.REMOVE_TOAST_MESSAGE);
+    },
 }
 
 const mutations: MutationTree<ToastState> = {
     [ToastStoreMethods.CREATE_TOAST_MESSAGE](state, snackbar: Snackbar) {
-        state.snackbar.show = true;
-        state.snackbar.message = snackbar.message || '';
-        state.snackbar.timeout = snackbar.timeout || 3500;
-        state.snackbar.color = snackbar.color || "info";
+        state.snackbars.push({
+            id: state.index,
+            show: null,
+            message: snackbar.message || '',
+            timeout: snackbar.timeout || 5000,
+            color: snackbar.color || "info"
+        });
+    },
+    [ToastStoreMethods.REMOVE_TOAST_MESSAGE](state) {
+        state.snackbars = state.snackbars.filter(s => s.show === null || s.show);
     }
 }
 

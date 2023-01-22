@@ -28,16 +28,25 @@
   margin: 0.3em;
   border: 1px solid #aaa;
   border-radius: 0.7em;
+  flex-direction: column !important;
+  display: flex;
+  align-items: flex-start;
 }
-
 .custom-control-dark {
   background: rgba(90, 90, 90, 0.785);
-  padding: 0.5em;
-  padding-bottom: 1em;
-  padding-top: 1em;
+  padding-bottom: 0.5em;
+  padding-top: 0.5em;
   margin: 0.3em;
   border: 1px solid #aaa;
   border-radius: 0.7em;
+  flex-direction: column !important;
+  display: flex;
+  align-items: flex-start;
+}
+#mapContainer {
+    z-index: 3;
+    height: 100%;
+    width: 100%;
 }
 </style>
 
@@ -53,36 +62,27 @@
                 <v-btn @click="clearData()" color="error" :loading="loading" :disabled="!fibers">Clear</v-btn>
             </v-col>
         </v-row>
-        <div class="content">
-            <l-map id="mapContainer" ref="map" style="z-index:0; height:900px;"
-                :center="userLocation" :zoom="zoom"
-                @update:center="centerUpdate">
-                <l-control-layers position="topright"></l-control-layers>
-                <l-tile-layer v-for="tileProvider in tileProviders"
-                :url="tileProvider.url" :attribution="tileProvider.attribution"
-                :key="tileProvider.name" :name="tileProvider.name" layer-type="base" :visible="tileProvider.visible"/>
+        <div class="mb-10">
+                <l-map id="mapContainer" ref="map" :center="userLocation" :zoom="zoom" @update:center="centerUpdate" style="height:900px;">
+                    <l-control-layers position="topright"/>
+                    <l-tile-layer v-for="tileProvider in tileProviders"
+                    :url="tileProvider.url" :attribution="tileProvider.attribution"
+                    :key="tileProvider.name" :name="tileProvider.name" layer-type="base" :visible="tileProvider.visible"/>
 
-                <l-marker v-for="fiber, i in fibers?.results" visible :ref="'marker_'+fiber.address.signature" :key="'marker_'+i" :icon="getIcon(fiber)"
-                    :lat-lng="[fiber.address.bestCoords.coord.y, fiber.address.bestCoords.coord.x]">
-                    <l-popup :content="fiber.address.libAdresse + '<br>FTTH: ' + getEtapeDeploiement(fiber)"/>
-                </l-marker>
-                <l-control position='bottomleft' :class="{ 'custom-control': !$vuetify.theme.dark, 'custom-control-dark': $vuetify.theme.dark }"
-                    @click.prevent>
-                    <v-row v-for="icon, i in icons" :key="i">
-                        <v-col align="start">
-                            <div>
-                                <v-btn x-small light text icon>
-                                    <v-img contain aspect-ratio="0.6" :src="icon.icon.options.iconUrl" :class="icon.icon.options.className"/>
-                                </v-btn>
-                                {{icon.title}}
-                            </div>
-                        </v-col>
-                    </v-row>
-                </l-control>
-            </l-map>
+                    <l-marker v-for="fiber, i in fibers?.results" visible :ref="'marker_'+fiber.address.signature" :key="'marker_'+i" :icon="getIcon(fiber)"
+                        :lat-lng="[fiber.address.bestCoords.coord.y, fiber.address.bestCoords.coord.x]">
+                        <l-popup :content="fiber.address.libAdresse + '<br>FTTH: ' + getEtapeDeploiement(fiber)"/>
+                    </l-marker>
+                    <l-control position='bottomleft' :class="{ 'custom-control': !$vuetify.theme.dark, 'custom-control-dark': $vuetify.theme.dark }">
+                        <v-btn style="z-index:2;" class="ma-2" x-small text v-for="icon, i in icons" :key="i" @click="layerSelected">
+                            <v-img contain height="27" width="20" :src="icon.icon.options.iconUrl" :class="icon.icon.options.className"/>
+                            <span class="pl-2">{{ icon.title }}</span>
+                        </v-btn>
+                    </l-control>
+                </l-map>
             <v-row justify="center">
-                <v-col md="6">
-                    <v-data-table class="mt-5 mb-10" :headers="headers" :items="fibers?.results" fixed-header height="600px"
+                <v-col md="8">
+                    <v-data-table class="mt-5 mb-10" :headers="headers" :items="fibers?.results" fixed-header height="650px"
                         :options="{ itemsPerPage: 30 }" :loading="loading" @click:row="centerMapOnPoint">
                         <template v-slot:[`item.eligibilitesFtth`]="{ item }">
                             <td>

@@ -116,6 +116,10 @@ export default class FiberMapVue extends Vue {
     @Action(ToastStoreMethods.CREATE_TOAST_MESSAGE)
     private createToast!: (params: Snackbar) => void;
 
+    public beforeMount() {
+        this.map?.mapObject.invalidateSize();
+    }
+
     public refreshFibers() {
         this.loading = true;
         this.openedMarker?.mapObject.closePopup();
@@ -189,6 +193,8 @@ export default class FiberMapVue extends Vue {
     }
 
     public layerSelected() {
-        this.createToast({ color:'success', message: "test" });
+        this.createToast({ color:'success', message: "test test testtesttesttest testtest testtesttesttestvv  test test testtesttest test testtesttest test testtesttesttest testtest " +
+        "testtesttesttestvv  test test testtesttest test testtest test test testtesttesttest testtest testtesttesttestvv  test test testtesttest test testtest test test testtesttesttest testtest "+
+        "testtesttesttestvv  test test testtesttest test testtest test test testtesttesttest testtest testtesttesttestvv  test test testtesttest test testtest" });
     }
 }
