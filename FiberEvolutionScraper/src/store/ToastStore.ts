@@ -31,7 +31,7 @@ const mutations: MutationTree<ToastState> = {
     [ToastStoreMethods.CREATE_TOAST_MESSAGE](state, snackbar: Snackbar) {
         state.snackbar.show = true;
         state.snackbar.message = snackbar.message || '';
-        state.snackbar.timeout = snackbar.timeout || 4000;
+        state.snackbar.timeout = snackbar.timeout || 3500;
         state.snackbar.color = snackbar.color || "info";
     }
 }
