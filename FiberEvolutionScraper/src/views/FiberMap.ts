@@ -20,6 +20,8 @@ import { Snackbar } from '@/models/SnackbarInterface';
     }
 })
 export default class FiberMapVue extends Vue {
+    public icon = require('leaflet/dist/images/marker-icon.png');
+    public iconx2 = require('leaflet/dist/images/marker-icon-2x.png');
     public loading = false;
     public map: null | LMap = null;
     public userLocation = new LatLng(45.76, 4.83);
@@ -53,43 +55,43 @@ export default class FiberMapVue extends Vue {
     private openedMarker: null | LMarker = null;
 
     public defaultIcon = new L.Icon.Default({
-        iconRetinaUrl: require('leaflet/dist/images/marker-icon-2x.png'),
-        iconUrl: require('leaflet/dist/images/marker-icon.png'),
+        iconRetinaUrl: this.iconx2,
+        iconUrl: this.icon,
         shadowUrl: ''
     });
     public redIcon = new L.Icon.Default({
-        iconRetinaUrl: require('leaflet/dist/images/marker-icon-2x.png'),
-        iconUrl: require('leaflet/dist/images/marker-icon.png'),
+        iconRetinaUrl: this.iconx2,
+        iconUrl: this.icon,
         shadowUrl: '',
         className: 'red-icon',
     });
     public greenIcon = new L.Icon.Default({
-        iconRetinaUrl: require('leaflet/dist/images/marker-icon-2x.png'),
-        iconUrl: require('leaflet/dist/images/marker-icon.png'),
+        iconRetinaUrl: this.iconx2,
+        iconUrl: this.icon,
         shadowUrl: '',
         className: 'green-icon'
     });
     public purpleIcon = new L.Icon.Default({
-        iconRetinaUrl: require('leaflet/dist/images/marker-icon-2x.png'),
-        iconUrl: require('leaflet/dist/images/marker-icon.png'),
+        iconRetinaUrl: this.iconx2,
+        iconUrl: this.icon,
         shadowUrl: '',
         className: 'purple-icon',
     });
     public brownIcon = new L.Icon.Default({
-        iconRetinaUrl: require('leaflet/dist/images/marker-icon-2x.png'),
-        iconUrl: require('leaflet/dist/images/marker-icon.png'),
+        iconRetinaUrl: this.iconx2,
+        iconUrl: this.icon,
         shadowUrl: '',
         className: 'brown-icon',
     });
     public blackIcon = new L.Icon.Default({
-        iconRetinaUrl: require('leaflet/dist/images/marker-icon-2x.png'),
-        iconUrl: require('leaflet/dist/images/marker-icon.png'),
+        iconRetinaUrl: this.iconx2,
+        iconUrl: this.icon,
         shadowUrl: '',
         className: 'black-icon',
     });
     public blueInvertedIcon = new L.Icon.Default({
-        iconRetinaUrl: require('leaflet/dist/images/marker-icon-2x.png'),
-        iconUrl: require('leaflet/dist/images/marker-icon.png'),
+        iconRetinaUrl: this.iconx2,
+        iconUrl: this.icon,
         shadowUrl: '',
         className: 'blue-inverted-icon',
     });
@@ -124,8 +126,7 @@ export default class FiberMapVue extends Vue {
             this.fibers = response.data;
         })
         .catch((errors) => {
-            //this.createToast();
-            console.log(errors);
+            this.createToast({ color:'error', message: errors });
         })
         .finally(() => {
             this.loading = false;
@@ -142,7 +143,7 @@ export default class FiberMapVue extends Vue {
             this.fibers = response.data;
         })
         .catch((errors) => {
-            console.log(errors);
+            this.createToast({ color:'error', message: errors });
         })
         .finally(() => {
             this.loading = false;
@@ -185,5 +186,9 @@ export default class FiberMapVue extends Vue {
             return item.eligibilitesFtth[0].etapeFtth;
         }
         return '';
+    }
+
+    public layerSelected() {
+        this.createToast({ color:'success', message: "test" });
     }
 }
