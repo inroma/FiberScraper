@@ -48,10 +48,6 @@ export default class ToastComponent extends Vue {
         }
         return icon;
     }
-    
-    public calcMargin(i: number) {
-        return (i*60) + 'px'
-    }
 
     public removeToast(snack: Snackbar) {
         snack.show = false;
