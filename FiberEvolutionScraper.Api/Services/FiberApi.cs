@@ -91,7 +91,7 @@ public class FiberApi
 
     private void setToken()
     {
-        if (tokenParser.Token == null || tokenParser.TokenAge < tokenParser.TokenAge.AddHours(-2))
+        if (tokenParser.Token == null || tokenParser.TokenAge < DateTime.Now.AddHours(-1))
         {
             tokenParser.GetToken(GetOrangeToken(tokenParser.GenerateAppId()));
         }
