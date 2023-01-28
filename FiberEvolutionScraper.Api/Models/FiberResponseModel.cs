@@ -14,7 +14,6 @@ public class FiberResponseModel
     [JsonPropertyName("results")]
     public List<FiberPoint> Results { get; set; } = new();
 
-
     public class Address
     {
         [JsonPropertyName("codeCommune")]
