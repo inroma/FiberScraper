@@ -35,7 +35,7 @@ const mutations: MutationTree<ToastState> = {
             message: snackbar.message || '',
             timeout: snackbar.timeout || 5000,
             color: snackbar.color || "info",
-            showtime: (snackbar.timeout || 5000) - 350
+            showtime: snackbar.timeout || 5000
         });
     },
     [ToastStoreMethods.REMOVE_TOAST_MESSAGE](state) {
