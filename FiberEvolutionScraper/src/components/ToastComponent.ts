@@ -19,6 +19,7 @@ export default class ToastComponent extends Vue {
                 this.snackbars.forEach(snack => {
                     if (snack.show === null){
                         snack.show = true;
+                        this.refreshProgressBar(snack);
                     }
                 });
                 if (this.snackbars.filter(s => !s.show).length > 0) {
@@ -26,6 +27,24 @@ export default class ToastComponent extends Vue {
                 }
             }
         });
+    }
+
+    private refreshProgressBar(snack: Snackbar) {
+        snack.funcTimeout = setTimeout(() => {
+            //Increment the time counter by 100
+            // eslint-disable-next-line
+            snack.showtime! -= 100;
+
+            if (snack.show) {
+                //Recursively update the progress bar
+                this.refreshProgressBar(snack);
+            }
+        }, 100);
+    }
+
+    private clearTimeout(snack : Snackbar) {
+        snack.showtime = snack.timeout;
+        clearTimeout(snack.funcTimeout); // TODO
     }
 
     public icon(snackbar: Snackbar) {

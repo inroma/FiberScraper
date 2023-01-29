@@ -24,7 +24,8 @@
 <template>
     <div class="snackbar-div">
         <v-snackbar v-for="snackbar in snackbars" :key="snackbar.id" :index="snackbar.id" transition="slide-y-transition"
-            class="snackbar-item" v-model="snackbar.show" :color="snackbar.color" :timeout="snackbar.timeout">
+            class="snackbar-item" v-model="snackbar.show" :color="snackbar.color" :timeout="snackbar.timeout"
+            @mouseleave.native="snackbar.showtime -= 350;refreshProgressBar(snackbar)" @mouseenter.native="clearTimeout(snackbar)">
             <v-icon class="pr-3">{{ icon(snackbar) }}</v-icon>
             <template v-slot:action>
                 <v-btn class="pl-5" small @click="removeToast(snackbar)" icon :absolute="snackbar.message.length > 300 ? true : false" top right>
@@ -32,6 +33,7 @@
                 </v-btn>
             </template>
             {{ snackbar.message }}
+            <v-progress-linear absolute color="white" bottom :value="Math.floor(100 * (snackbar.showtime / snackbar.timeout))" />
         </v-snackbar>
     </div>
 </template>

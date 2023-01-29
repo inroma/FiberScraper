@@ -1,7 +1,9 @@
 export interface Snackbar {
     id?: number,
     show?: null | boolean,
-    message?: string,
+    message: string,
     color?: string,
-    timeout?: number
+    timeout?: number,
+    showtime?: number,
+    funcTimeout?: number
 }
