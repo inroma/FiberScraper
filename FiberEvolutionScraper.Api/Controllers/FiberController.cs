@@ -9,34 +9,34 @@ namespace FiberEvolutionScraper.Api.Controllers;
 [Route("api/[controller]/[action]")]
 public class FiberController
 {
-    private FiberApi fiberApi;
+    private FiberService fiberService;
 
     public FiberController(IServiceProvider serviceProvider)
     {
-        fiberApi = serviceProvider.GetService<FiberApi>();
+        fiberService = serviceProvider.GetService<FiberService>();
     }
 
     [HttpGet()]
     [AllowAnonymous]
-    public FiberResponseModel GetFibers([FromQuery] FibersGetModel parameters)
+    public IList<FiberPointDTO> GetFibers([FromQuery] FibersGetModel parameters)
     {
-        var fibers = fiberApi.GetFibersForLoc(parameters.CoordX, parameters.CoordY);
+        var fibers = fiberService.GetDbFibersForLoc(parameters.CoordX, parameters.CoordY);
         return fibers;
     }
 
     [HttpGet()]
     [AllowAnonymous]
-    public FiberResponseModel RefreshFibers([FromQuery] FibersGetModel parameters)
+    public IList<FiberPointDTO> GetWideArea([FromQuery] FibersGetModel parameters)
     {
-        var fibers = fiberApi.GetFibersForLoc(parameters.CoordX, parameters.CoordY);
+        var fibers = fiberService.GetFibersForLoc(parameters.CoordY, parameters.CoordX);
         return fibers;
     }
 
     [HttpGet()]
     [AllowAnonymous]
-    public FiberResponseModel GetLiveDataFibers([FromQuery] FibersGetModel parameters)
+    public IList<FiberPointDTO> GetCloseArea([FromQuery] FibersGetModel parameters)
     {
-        var fibers = fiberApi.GetFibersForLoc(parameters.CoordX, parameters.CoordY);
+        var fibers = fiberService.GetFibersForLoc(parameters.CoordY, parameters.CoordX, 1);
         return fibers;
     }
 }
