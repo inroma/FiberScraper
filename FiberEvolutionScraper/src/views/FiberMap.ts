@@ -1,13 +1,13 @@
-import { FiberPoint, FiberResponseModel } from '@/models/FiberResponseModel';
 import axios from 'axios';
 import 'leaflet/dist/leaflet.css';
 import L, { LatLng } from "leaflet";
-import { LMap, LTileLayer, LMarker, LPopup, LControl, LControlLayers } from "vue2-leaflet";
+import { LMap, LTileLayer, LMarker, LLayerGroup, LPopup, LControl, LControlLayers } from "vue2-leaflet";
 import Vue from 'vue';
 import { Action } from 'vuex-class';
 import { Component } from 'vue-property-decorator';
 import { ToastStoreMethods } from '@/store/ToastStore';
-import { Snackbar } from '@/models/SnackbarInterface';
+import { ISnackbar } from '@/models/SnackbarInterface';
+import FiberPointDTO from '@/models/FiberPointDTO';
 
 @Component({
     components: {
@@ -16,17 +16,20 @@ import { Snackbar } from '@/models/SnackbarInterface';
         'l-marker': LMarker,
         'l-popup': LPopup,
         'l-control': LControl,
+        'l-layer-group': LLayerGroup,
         LControlLayers
     }
 })
 export default class FiberMapVue extends Vue {
+    //#region Public Properties
+
     public icon = require('leaflet/dist/images/marker-icon.png');
     public iconx2 = require('leaflet/dist/images/marker-icon-2x.png');
     public loading = false;
     public map: null | LMap = null;
     public userLocation = new LatLng(45.76, 4.83);
     public mapCenter: LatLng = this.userLocation;
-    public fibers: null | FiberResponseModel = null;
+    public fibers: FiberPointDTO[] = [];
     public zoom = 11;
     public tileProviders = [
         {
@@ -106,24 +109,22 @@ export default class FiberMapVue extends Vue {
 
     public get headers() {
         return [
-            { text: 'Adresse', value: 'address.libAdresse' },
-            { text: 'Éligibilité FTTH', value: 'eligibilitesFtth' },
-            { text: 'Coord Lat', value: 'address.bestCoords.coord.x' },
-            { text: 'Coord Long', value: 'address.bestCoords.coord.y' },
+            { text: 'Adresse', value: 'libAdresse' },
+            { text: 'Éligibilité FTTH', value: 'etapeFtth' },
+            { text: 'Coord Lat', value: 'x' },
+            { text: 'Coord Long', value: 'y' },
         ]
     }
 
+    //#endregion
+
     @Action(ToastStoreMethods.CREATE_TOAST_MESSAGE)
-    private createToast!: (params: Snackbar) => void;
+    private createToast!: (params: ISnackbar) => void;
 
-    public beforeMount() {
-        this.map?.mapObject.invalidateSize();
-    }
-
-    public refreshFibers() {
+    public getCloseAreaFibers() {
         this.loading = true;
         this.openedMarker?.mapObject.closePopup();
-        axios.get<FiberResponseModel>('https://localhost:5001/api/fiber/RefreshFibers',
+        axios.get<FiberPointDTO[]>('https://localhost:5001/api/fiber/GetCloseArea',
             { headers: { 'Content-Type': 'application/json' },
             params: { coordX: this.mapCenter.lat, coordY: this.mapCenter.lng }})
         .then((response) => {
@@ -140,7 +141,24 @@ export default class FiberMapVue extends Vue {
     public getFibers() {
         this.loading = true;
         this.openedMarker?.mapObject.closePopup();
-        axios.get<FiberResponseModel>('https://localhost:5001/api/fiber/GetLiveDataFibers',
+        axios.get<FiberPointDTO[]>('https://localhost:5001/api/fiber/GetWideArea',
+            { headers: { 'Content-Type': 'application/json' },
+            params: { coordX: this.mapCenter.lat, coordY: this.mapCenter.lng }})
+        .then((response) => {
+            this.fibers = response.data;
+        })
+        .catch((errors) => {
+            this.createToast({ color:'error', message: errors });
+        })
+        .finally(() => {
+            this.loading = false;
+        });
+    }
+    
+    public getDbFibers() {
+        this.loading = true;
+        this.openedMarker?.mapObject.closePopup();
+        axios.get<FiberPointDTO[]>('https://localhost:5001/api/fiber/GetFibers',
             { headers: { 'Content-Type': 'application/json' },
             params: { coordX: this.mapCenter.lat, coordY: this.mapCenter.lng }})
         .then((response) => {
@@ -159,20 +177,20 @@ export default class FiberMapVue extends Vue {
     }
 
     public clearData() {
-        this.fibers = null;
+        this.fibers = [];
         this.openedMarker?.mapObject.closePopup();
     }
 
-    public centerMapOnPoint(point: FiberPoint) {
-        this.userLocation = new LatLng(point.address.bestCoords.coord.y, point.address.bestCoords.coord.x);
-        const marker = this.$refs['marker_'+point.address.signature] as LMarker[];
+    public centerMapOnPoint(point: FiberPointDTO) {
+        this.userLocation = new LatLng(point.y, point.x);
+        const marker = this.$refs['marker_'+point.signature] as LMarker[];
         this.openedMarker = marker[0];
         this.openedMarker.mapObject.openPopup();
     }
 
-    public getIcon(fiber: FiberPoint): L.Icon.Default {
-        if (fiber.eligibilitesFtth.length > 0) {
-            const icon = this.icons.filter(a => a.code === fiber.eligibilitesFtth[0].etapeFtth)[0]?.icon;
+    public getIcon(fiber: FiberPointDTO): L.Icon.Default {
+        if (fiber.etapeFtth) {
+            const icon = this.icons.filter(a => a.code === fiber.etapeFtth)[0]?.icon;
             if (icon === undefined) {
                 return this.blackIcon;
             }
@@ -181,15 +199,8 @@ export default class FiberMapVue extends Vue {
         return this.redIcon;
     }
 
-    public isEligibleToFTTH(item: FiberPoint) {
-        return item.eligibilitesFtth?.some(a => a.etapeFtth === 'ELLIGIBLE') ? 'Oui' : 'Non';
-    }
-
-    public getEtapeDeploiement(item: FiberPoint) {
-        if (item.eligibilitesFtth.length > 0) {
-            return item.eligibilitesFtth[0].etapeFtth;
-        }
-        return '';
+    public isEligibleToFTTH(item: FiberPointDTO) {
+        return item.etapeFtth === 'ELLIGIBLE' ? 'Oui' : 'Non';
     }
 
     public layerSelected() {

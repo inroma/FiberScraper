@@ -48,30 +48,33 @@
     height: 100%;
     width: 100%;
 }
+.custom-layer-dark {
+    filter: saturate(0.7);
+}
 </style>
 
 <template>
     <v-card>
         <v-row ref="menu">
-            <v-col cols="4" :lg="6" :offset-lg="3" :md="7" :offset-md="2" :sm="6" :offset-sm="1" :xs="5" :offset-xs="2">
-                <v-btn class="mr-3 mb-3" @click="refreshFibers()" color="primary" :loading="loading">Get Live Data</v-btn>
-                <v-btn class="mr-3 mb-3" @click="refreshFibers()" color="primary" :loading="loading">Get Cached Fibers</v-btn>
-                <v-btn class="mr-3 mb-3" @click="refreshFibers()" color="primary" :loading="loading">Refresh</v-btn>
+            <v-col class="ml-3 mb-3" :cols="2" :lg="10" :md="10" :offset-md="2" :sm="9">
+                <v-btn class="mr-3" @click="getFibers()" color="primary" :loading="loading">Charger zone étendue</v-btn>
+                <v-btn class="mr-3" @click="getDbFibers()" color="primary" :loading="loading">Charger fibres en BDD</v-btn>
+                <v-btn @click="getCloseAreaFibers()" color="primary" :loading="loading">Charger zone proche</v-btn>
             </v-col>
-            <v-col class="mb-3" :xl="1" :offset-xl="2" :lg="2" :offset-lg="1" :offset-md="1" :md="2" :sm="1" :offset-sm="2" :xs="2" :offset-xs="2">
-                <v-btn @click="clearData()" color="error" :loading="loading" :disabled="!fibers">Clear</v-btn>
+            <v-col class="mb-3 mr-3 text-right">
+                <v-btn @click="clearData()" color="error" :loading="loading" :disabled="!fibers.length">Clear</v-btn>
             </v-col>
         </v-row>
         <div class="mb-10">
                 <l-map id="mapContainer" ref="map" :center="userLocation" :zoom="zoom" @update:center="centerUpdate" style="height:900px;">
                     <l-control-layers position="topright"/>
                     <l-tile-layer v-for="tileProvider in tileProviders"
-                    :url="tileProvider.url" :attribution="tileProvider.attribution"
-                    :key="tileProvider.name" :name="tileProvider.name" layer-type="base" :visible="tileProvider.visible"/>
-
-                    <l-marker v-for="fiber, i in fibers?.results" visible :ref="'marker_'+fiber.address.signature" :key="'marker_'+i" :icon="getIcon(fiber)"
-                        :lat-lng="[fiber.address.bestCoords.coord.y, fiber.address.bestCoords.coord.x]">
-                        <l-popup :content="fiber.address.libAdresse + '<br>FTTH: ' + getEtapeDeploiement(fiber)"/>
+                        :url="tileProvider.url" :attribution="tileProvider.attribution"
+                        :key="tileProvider.name" :name="tileProvider.name" layer-type="base" :visible="tileProvider.visible"/>
+                    <l-layer-group :class="{ 'custom-layer-dark': $vuetify.theme.dark }"></l-layer-group>
+                    <l-marker v-for="fiber, i in fibers" visible :ref="'marker_'+fiber.signature" :key="'marker_'+i" :icon="getIcon(fiber)"
+                        :lat-lng="[fiber.y, fiber.x]">
+                        <l-popup :content="fiber.libAdresse + '<br>FTTH: ' + fiber.etapeFtth"/>
                     </l-marker>
                     <l-control position='bottomleft' :class="{ 'custom-control': !$vuetify.theme.dark, 'custom-control-dark': $vuetify.theme.dark }">
                         <v-btn style="z-index:2;" class="ma-2" x-small text v-for="icon, i in icons" :key="i" @click="layerSelected">
@@ -82,13 +85,8 @@
                 </l-map>
             <v-row justify="center">
                 <v-col md="8">
-                    <v-data-table class="mt-5 mb-10" :headers="headers" :items="fibers?.results" fixed-header height="650px"
+                    <v-data-table class="mt-5 mb-10" :headers="headers" :items="fibers" fixed-header height="650px"
                         :options="{ itemsPerPage: 30 }" :loading="loading" @click:row="centerMapOnPoint">
-                        <template v-slot:[`item.eligibilitesFtth`]="{ item }">
-                            <td>
-                                {{ getEtapeDeploiement(item) }}
-                            </td>
-                        </template>
                     </v-data-table>
                 </v-col>
             </v-row>
