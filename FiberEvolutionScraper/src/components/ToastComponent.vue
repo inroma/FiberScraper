@@ -6,7 +6,7 @@
     }
     .snackbar-div {
         display: flex;
-        position: absolute;
+        position: fixed;
         flex-direction: column;
         z-index: 100;
         overflow-y: hidden;
