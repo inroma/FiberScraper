@@ -1,4 +1,8 @@
+using FiberEvolutionScraper.Api.Api;
+using FiberEvolutionScraper.Api.Data;
+using FiberEvolutionScraper.Api.Models;
 using FiberEvolutionScraper.Api.Services;
+using Microsoft.EntityFrameworkCore;
 
 namespace FiberEvolutionScraper.Api;
 
@@ -8,26 +12,44 @@ public class Program
     {
         var builder = WebApplication.CreateBuilder(args);
 
+        IConfigurationRoot configuration = new ConfigurationBuilder()
+            .SetBasePath(Directory.GetCurrentDirectory())
+            .AddJsonFile("appsettings.json")
+            .Build();
+        string dbConnectionString = configuration.GetConnectionString("Database");
         // Add services to the container.
 
         builder.Services.AddControllers();
         // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
         builder.Services.AddEndpointsApiExplorer();
-        builder.Services.AddSwaggerGen();
 
-        builder.Services.AddTransient<FiberApi>();
+        builder.Services.AddScoped<FiberApi>();
+        builder.Services.AddTransient<FiberService>();
         builder.Services.AddScoped<HttpClient>();
         builder.Services.AddSingleton<TokenParser>();
+        builder.Services.AddDbContext<ApplicationDbContext>(options => options.UseNpgsql(dbConnectionString));
+        builder.Services.AddAutoMapper(cfg => {
+            cfg.AllowNullCollections = true;
+            cfg.CreateMap<FiberPoint, FiberPointDTO>()
+                .ForMember(dest => dest.Signature, act => act.MapFrom(src => src.Address.Signature))
+                .ForMember(dest => dest.X, act => act.MapFrom(src => src.Address.BestCoords.Coord.X))
+                .ForMember(dest => dest.Y, act => act.MapFrom(src => src.Address.BestCoords.Coord.Y))
+                .ForMember(dest => dest.ExtVoie, act => act.MapFrom(src => src.Address.ExtVoie))
+                .ForMember(dest => dest.NumVoie, act => act.MapFrom(src => src.Address.NumVoie))
+                .ForMember(dest => dest.CodeVoie, act => act.MapFrom(src => src.Address.CodeVoie))
+                .ForMember(dest => dest.CodeCommune, act => act.MapFrom(src => src.Address.CodeCommune))
+                .ForMember(dest => dest.CodePostal, act => act.MapFrom(src => src.Address.CodePostal))
+                .ForMember(dest => dest.LibAdresse, act => act.MapFrom(src => src.Address.LibAdresse))
+                .ForMember(dest => dest.LibCommune, act => act.MapFrom(src => src.Address.LibCommune))
+                .ForMember(dest => dest.LibVoie, act => act.MapFrom(src => src.Address.LibVoie))
+                .ForMember(dest => dest.EtapeFtth, act => act.MapFrom(src => src.EligibilitesFtth.Any() ? src.EligibilitesFtth.First().EtapeFtth : "")).ReverseMap()
+            ;
+        });
 
         var app = builder.Build();
 
         // Configure the HTTP request pipeline.
-        if (app.Environment.IsDevelopment())
-        {
-            app.UseSwagger();
-            app.UseSwaggerUI();
-        }
-        else
+        if (!app.Environment.IsDevelopment())
         {
             app.UseDefaultFiles();
             app.UseStaticFiles();
