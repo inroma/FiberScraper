@@ -26,7 +26,7 @@
         <v-snackbar v-for="snackbar in snackbars" :key="snackbar.id" :index="snackbar.id" transition="slide-y-transition"
             class="snackbar-item" v-model="snackbar.show" :color="snackbar.color" :timeout="snackbar.timeout"
             @mouseleave.native="snackbar.mouseOver = false" @mouseenter.native="snackbar.showtime = snackbar.timeout; snackbar.mouseOver = true">
-            <v-icon class="pr-3">{{ icon(snackbar) }}</v-icon>
+            <v-icon class="pr-3">{{ getIcon(snackbar) }}</v-icon>
             <template v-slot:action>
                 <v-btn class="pl-5" small @click="hideToast(snackbar)" icon :absolute="snackbar.message.length > 300 ? true : false" top right>
                     <v-icon class="pr-3">mdi-window-close</v-icon>

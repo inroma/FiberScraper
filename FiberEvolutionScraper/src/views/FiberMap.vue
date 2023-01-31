@@ -73,7 +73,7 @@
                         :key="tileProvider.name" :name="tileProvider.name" layer-type="base" :visible="tileProvider.visible"/>
                     <l-layer-group :class="{ 'custom-layer-dark': $vuetify.theme.dark }"></l-layer-group>
                     <l-marker v-for="fiber, i in fibers" visible :ref="'marker_'+fiber.signature" :key="'marker_'+i" :icon="getIcon(fiber)"
-                        :lat-lng="[fiber.y, fiber.x]">
+                        :lat-lng="[fiber.y, fiber.x]" @click="getHistorique(fiber.signature)">
                         <l-popup :content="fiber.libAdresse + '<br>FTTH: ' + fiber.etapeFtth"/>
                     </l-marker>
                     <l-control position='bottomleft' :class="{ 'custom-control': !$vuetify.theme.dark, 'custom-control-dark': $vuetify.theme.dark }">

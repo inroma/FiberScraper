@@ -39,4 +39,12 @@ public class FiberController
         var fibers = fiberService.GetFibersForLoc(parameters.CoordY, parameters.CoordX, 1);
         return fibers;
     }
+
+    [HttpGet()]
+    [AllowAnonymous]
+    public IList<FiberPointDTO> GetSameSignaturePoints([FromQuery] string signature)
+    {
+        var fibers = fiberService.GetSameSignaturePoints(signature);
+        return fibers;
+    }
 }

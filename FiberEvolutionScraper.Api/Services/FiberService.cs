@@ -56,4 +56,11 @@ public class FiberService
 
         return result.ToList();
     }
+
+    internal IList<FiberPointDTO> GetSameSignaturePoints(string signature)
+    {
+        var result = context.FiberPoints.Where(s => s.Signature == signature).ToList();
+
+        return result.ToList();
+    }
 }

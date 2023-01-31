@@ -2,35 +2,35 @@ import { Component } from 'vue-property-decorator';
 import Vue from 'vue';
 import { ToastStoreMethods } from '@/store/ToastStore';
 import { Getter } from 'vuex-class';
-import { Snackbar } from '@/models/SnackbarInterface';
+import { ISnackbarColor, Snackbar } from '@/models/SnackbarInterface';
 
 @Component({})
 export default class ToastComponent extends Vue {
     @Getter(ToastStoreMethods.GET_TOAST)
     public snackbars!: Snackbar[];
 
-    public icon(snackbar: Snackbar) {
+    public hideToast(snack: Snackbar) {
+        snack.show = false;
+    }
+
+    public getIcon(snack: Snackbar) {
         let icon = "";
-        switch (snackbar?.color){
-            default:
-                break;
-            case "success": 
+        switch (snack.color) {
+            case ISnackbarColor.Success: 
                 icon = "mdi-check";
                 break;
-            case "info": 
+            case ISnackbarColor.Info: 
                 icon = "mdi-information-outline";
                 break;
-            case "warning": 
+            case ISnackbarColor.Warning: 
                 icon = "mdi-alert-circle-outline";
                 break;
-            case "error": 
+            case ISnackbarColor.Error: 
                 icon = "mdi-alert-outline";
+                break;
+            default:
                 break;
         }
         return icon;
-    }
-
-    public hideToast(snack: Snackbar) {
-        snack.show = false;
     }
 }

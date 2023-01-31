@@ -6,7 +6,7 @@ import Vue from 'vue';
 import { Action } from 'vuex-class';
 import { Component } from 'vue-property-decorator';
 import { ToastStoreMethods } from '@/store/ToastStore';
-import { ISnackbar } from '@/models/SnackbarInterface';
+import { ISnackbar, ISnackbarColor } from '@/models/SnackbarInterface';
 import FiberPointDTO from '@/models/FiberPointDTO';
 
 @Component({
@@ -26,6 +26,7 @@ export default class FiberMapVue extends Vue {
     public icon = require('leaflet/dist/images/marker-icon.png');
     public iconx2 = require('leaflet/dist/images/marker-icon-2x.png');
     public loading = false;
+    public loadingHistory = false;
     public map: null | LMap = null;
     public userLocation = new LatLng(45.76, 4.83);
     public mapCenter: LatLng = this.userLocation;
@@ -131,7 +132,7 @@ export default class FiberMapVue extends Vue {
             this.fibers = response.data;
         })
         .catch((errors) => {
-            this.createToast({ color:'error', message: errors });
+            this.createToast({ color: ISnackbarColor.Error, message: errors });
         })
         .finally(() => {
             this.loading = false;
@@ -148,7 +149,7 @@ export default class FiberMapVue extends Vue {
             this.fibers = response.data;
         })
         .catch((errors) => {
-            this.createToast({ color:'error', message: errors });
+            this.createToast({ color: ISnackbarColor.Error, message: errors });
         })
         .finally(() => {
             this.loading = false;
@@ -165,10 +166,27 @@ export default class FiberMapVue extends Vue {
             this.fibers = response.data;
         })
         .catch((errors) => {
-            this.createToast({ color:'error', message: errors });
+            this.createToast({ color: ISnackbarColor.Error, message: errors });
         })
         .finally(() => {
             this.loading = false;
+        });
+    }
+
+    public getHistorique(signature: string) {
+        this.loadingHistory = true;
+        this.openedMarker?.mapObject.closePopup();
+        axios.get<FiberPointDTO[]>('https://localhost:5001/api/fiber/GetSameSignaturePoints',
+            { headers: { 'Content-Type': 'application/json' },
+            params: { signature: signature }})
+        .then((response) => {
+            this.fibers = response.data;
+        })
+        .catch((errors) => {
+            this.createToast({ color:ISnackbarColor.Error, message: errors });
+        })
+        .finally(() => {
+            this.loadingHistory = false;
         });
     }
 
@@ -204,7 +222,7 @@ export default class FiberMapVue extends Vue {
     }
 
     public layerSelected() {
-        this.createToast({ color:'success', message: "test test testtesttesttest testtest testtesttesttestvv  test test testtesttest test testtesttest test testtesttesttest testtest " +
+        this.createToast({ color: ISnackbarColor.Info, message: "test test testtesttesttest testtest testtesttesttestvv  test test testtesttest test testtesttest test testtesttesttest testtest " +
         "testtesttesttestvv  test test testtesttest test testtest test test testtesttesttest testtest testtesttesttestvv  test test testtesttest test testtest test test testtesttesttest testtest "+
         "testtesttesttestvv  test test testtesttest test testtest test test testtesttesttest testtest testtesttesttestvv  test test testtesttest test testtest" });
     }

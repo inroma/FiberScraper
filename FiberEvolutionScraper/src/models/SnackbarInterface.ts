@@ -1,14 +1,21 @@
 export interface ISnackbar {
     message: string,
-    color?: string,
+    color?: string | ISnackbarColor,
     timeout?: number,
+}
+
+export const enum ISnackbarColor {
+    Success = 'success',
+    Info = 'info',
+    Warning = 'warning',
+    Error = 'error'
 }
 
 export class Snackbar implements ISnackbar {
     id: number;
     show?: boolean | null;
     message = "";
-    color: string;
+    color: string | ISnackbarColor;
     timeout: number;
 
     mouseOver = false;
@@ -17,7 +24,7 @@ export class Snackbar implements ISnackbar {
     /**
      * Constructeur d'un Snackbar
      */
-    constructor(id: number, show: boolean | null, message: string, color: string, timeout: number) {
+    constructor(id: number, show: boolean | null, message: string, color: string | ISnackbarColor, timeout: number) {
         this.id = id,
         this.show = show,
         this.message = message,

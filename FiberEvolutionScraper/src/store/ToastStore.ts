@@ -1,6 +1,6 @@
 import { ActionTree, GetterTree, Module, MutationTree } from "vuex";
 import { RootState } from "./RootState";
-import { ISnackbar, Snackbar } from "@/models/SnackbarInterface";
+import { ISnackbar, ISnackbarColor, Snackbar } from "@/models/SnackbarInterface";
 
 export enum ToastStoreMethods {
     CREATE_TOAST_MESSAGE = 'CREATE_TOAST_MESSAGE',
@@ -25,7 +25,7 @@ export class ToastState {
         }, 100);
 
     private refreshProgressBar(snack: Snackbar) {
-        if (!snack.mouseOver && snack.showtime! > 0) {
+        if (!snack.mouseOver && snack.showtime > 0) {
           snack.showtime -= 100;
         }
     }
@@ -61,7 +61,7 @@ const mutations: MutationTree<ToastState> = {
             // On insert des Snack avec show à null pour avoir l'animation d'apparition quand il passe à true
             null,
             snackbar.message || '',
-            snackbar.color || "info",
+            snackbar.color || ISnackbarColor.Info,
             snackbar.timeout || 8000
         ));
     },
