@@ -37,7 +37,7 @@ export class ToastState {
         if (this.snackbars.filter(s => !s.show).length > 0) {
             this.snackbars = this.snackbars.filter(s => s.show === null || s.show);
         }
-    }, 240);
+    }, 1000);
 }
 
 const getters: GetterTree<ToastState, RootState> = {
