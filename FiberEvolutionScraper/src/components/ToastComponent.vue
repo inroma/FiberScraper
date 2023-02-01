@@ -23,7 +23,7 @@
 </style>
 <template>
     <div class="snackbar-div">
-        <v-snackbar v-for="snackbar in snackbars" :key="snackbar.id" :index="snackbar.id" transition="slide-y-transition"
+        <v-snackbar v-for="snackbar in snackbars" :key="snackbar.id" :index="snackbar.id" transition="slide-x-reverse-transition"
             class="snackbar-item" v-model="snackbar.show" :color="snackbar.color" :timeout="snackbar.timeout"
             @mouseleave.native="snackbar.mouseOver = false" @mouseenter.native="snackbar.showtime = snackbar.timeout; snackbar.mouseOver = true">
             <v-icon class="pr-3">{{ getIcon(snackbar) }}</v-icon>
