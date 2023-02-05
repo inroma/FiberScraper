@@ -26,10 +26,9 @@ export default class FiberMapVue extends Vue {
     public icon = require('leaflet/dist/images/marker-icon.png');
     public iconx2 = require('leaflet/dist/images/marker-icon-2x.png');
     public loading = false;
-    public loadingHistory = false;
+    public loadingHistory = true;
     public map: null | LMap = null;
     public userLocation = new LatLng(45.76, 4.83);
-    public mapCenter: LatLng = this.userLocation;
     public fibers: FiberPointDTO[] = [];
     public fiberHistory: FiberPointDTO[] = [];
     public zoom = 11;
@@ -101,6 +100,7 @@ export default class FiberMapVue extends Vue {
         shadowUrl: '',
         className: 'blue-inverted-icon',
     });
+    public layers: { markers: FiberPointDTO[], visible: boolean, name: string }[] = [];
 
     public icons = [{code: EtapeFtth.ELLIGIBLE, title: "Élligible", icon: this.greenIcon},
         {code: EtapeFtth.EN_COURS_IMMEUBLE, title: "Déploiement Immeuble", icon: this.purpleIcon},
@@ -123,18 +123,17 @@ export default class FiberMapVue extends Vue {
 
     @Action(ToastStoreMethods.CREATE_TOAST_MESSAGE)
     private createToast!: (params: ISnackbar) => void;
-    public options = {
-        headers: {
-            'Access-Control-Expose-Headers': '*',
-            'Access-Control-Allow-Origin': '*'
-        }
+
+    public mounted() {
+        this.centerMapOnLocation();
     }
+
     public getCloseAreaFibers() {
         this.loading = true;
         this.openedMarker?.mapObject.closePopup();
         axios.get<FiberPointDTO[]>('https://localhost:5001/api/fiber/GetCloseArea',
             { headers: { 'Content-Type': 'application/json' },
-            params: { coordX: this.mapCenter.lat, coordY: this.mapCenter.lng }})
+            params: { coordX: this.userLocation.lat, coordY: this.userLocation.lng }})
         .then((response) => {
             this.fibers = response.data;
         })
@@ -151,9 +150,10 @@ export default class FiberMapVue extends Vue {
         this.openedMarker?.mapObject.closePopup();
         axios.get<FiberPointDTO[]>('https://localhost:5001/api/fiber/GetWideArea',
             { headers: { 'Content-Type': 'application/json' },
-            params: { coordX: this.mapCenter.lat, coordY: this.mapCenter.lng }})
+            params: { coordX: this.userLocation.lat, coordY: this.userLocation.lng }})
         .then((response) => {
             this.fibers = response.data;
+            this.mapFibersToLayer()
         })
         .catch((errors) => {
             this.createToast({ color: ISnackbarColor.Error, message: errors });
@@ -168,9 +168,10 @@ export default class FiberMapVue extends Vue {
         this.openedMarker?.mapObject.closePopup();
         axios.get<FiberPointDTO[]>('https://localhost:5001/api/fiber/GetFibers',
             { headers: { 'Content-Type': 'application/json' },
-            params: { coordX: this.mapCenter.lat, coordY: this.mapCenter.lng }})
+            params: { coordX: this.userLocation.lat, coordY: this.userLocation.lng }})
         .then((response) => {
             this.fibers = response.data;
+            this.mapFibersToLayer()
         })
         .catch((errors) => {
             this.createToast({ color: ISnackbarColor.Error, message: errors });
@@ -188,6 +189,7 @@ export default class FiberMapVue extends Vue {
             params: { data: this.bounds.toBBoxString() }})
         .then((response) => {
             this.fibers = response.data;
+            this.mapFibersToLayer();
         })
         .catch((errors) => {
             this.createToast({ color: ISnackbarColor.Error, message: errors });
@@ -214,7 +216,7 @@ export default class FiberMapVue extends Vue {
     }
 
     public centerUpdate(center: LatLng) {
-        this.mapCenter = center;
+        this.userLocation = center;
     }
 
     public clearData() {
@@ -223,8 +225,8 @@ export default class FiberMapVue extends Vue {
     }
 
     public centerMapOnPoint(point: FiberPointDTO) {
-        this.getHistorique(point);
         this.userLocation = new LatLng(point.y, point.x);
+        this.getHistorique(point);
         const marker = this.$refs['marker_'+point.signature] as LMarker[];
         this.openedMarker = marker[0];
         this.openedMarker.mapObject.openPopup();
@@ -246,13 +248,41 @@ export default class FiberMapVue extends Vue {
         return EtapeFtth[etapeFtth];
     }
 
-    public layerSelected() {
-        this.createToast({ color: ISnackbarColor.Info, message: "test test testtesttesttest testtest tes ttestte sttestvv  test te st testtesttest te st tes t tes tte st test testtestt esttest testtest " +
-        "test estte sttestvv  test test tes testtest test test test test test testte sttestt est testtest testtest testte stvv  test test testtesttest test testtest test test testtesttesttest testtest "+
-        "testtesttesttestvv  test test testtesttest test testtest test test testtesttesttest testtest testtesttesttestvv  test test testtesttest test testtest" });
+    public showHideLayer(code: EtapeFtth) {
+        const selectedLayer = this.layers.filter(l => l.name === EtapeFtth[code])[0];
+        selectedLayer.visible = !selectedLayer.visible;
+    }
+
+    public currentLayer(code: EtapeFtth) {
+        return this.layers.filter(l => l.name === EtapeFtth[code])[0];
     }
 
     public boundsUpdated (bounds: L.LatLngBounds) {
         this.bounds = bounds;
+    }
+
+    public mapFibersToLayer() {
+        this.layers.length = 0;
+        Object.values(EtapeFtth).forEach((value) => {
+            if (typeof(value) !== typeof(EtapeFtth)) {
+                this.layers.push(
+                    {
+                        markers: this.fibers.filter(f => EtapeFtth[f.etapeFtth] === value),
+                        name: value.toString(),
+                        visible: true,
+                    }
+                );
+            }
+        });
+    }
+
+    public centerMapOnLocation() {
+        navigator.geolocation.getCurrentPosition(
+            position => this.userLocation = new LatLng(position.coords.latitude, position.coords.longitude), 
+            error => this.createToast({ message: error.message, color: ISnackbarColor.Error }),
+            {
+                enableHighAccuracy: true,
+                timeout: 10000
+            });
     }
 }

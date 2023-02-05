@@ -1,4 +1,7 @@
 <style>
+.leaflet-popup-content {
+    min-width: 350px;
+}
 .red-icon {
     filter: hue-rotate(147deg) !important;
 }
@@ -56,6 +59,11 @@
 <template>
     <v-card>
         <v-row ref="menu">
+            <v-col class="mb-3 ml-3 text-left">
+                <v-btn icon @click="centerMapOnLocation()" color="primary">
+                    <v-icon>mdi-crosshairs-gps</v-icon>
+                </v-btn>
+            </v-col>
             <v-col class="ml-3 mb-3 justify-center" :cols="2" :lg="10" :md="10" :offset-md="2" :sm="9">
                 <v-btn class="mr-5" @click="getFibers()" color="primary" :loading="loading">Charger zone étendue</v-btn>
                 <v-btn class="mr-5" @click="getDbFibers()" color="primary" :loading="loading">Charger fibres en BDD</v-btn>
@@ -74,35 +82,41 @@
                         :url="tileProvider.url" :attribution="tileProvider.attribution"
                         :key="tileProvider.name" :name="tileProvider.name" layer-type="base" :visible="tileProvider.visible"/>
                     <l-layer-group :class="{ 'custom-layer-dark': $vuetify.theme.dark }"></l-layer-group>
-                    <l-marker v-for="fiber, i in fibers" visible :ref="'marker_'+fiber.signature" :key="'marker_'+i" :icon="getIcon(fiber)"
-                        :lat-lng="[fiber.y, fiber.x]" @click="getHistorique(fiber)">
-                        <!-- <l-popup :content="fiber.libAdresse + '<br>FTTH: ' + fiber.etapeFtth + '<br>Dernière MaJ: ' + new Date(fiber.lastUpdated).toLocaleString('fr-FR')"> -->
-                        <l-popup min-width="500" flex>
-                            <v-progress-circular v-if="loadingHistory"
-                                :active="loadingHistory"
-                                :indeterminate="loadingHistory"
-                                color="primary" style="display: block;"
-                            ></v-progress-circular>
-                            <v-list three-line light class="ma-0">
-                                <v-list-item v-for="history, i in fiberHistory" :key="i" min-width="300">
-                                    <v-list-item-content>
-                                        <v-list-item-title>{{ history.libAdresse }}</v-list-item-title>
-                                        <v-list-item-subtitle>
-                                            {{ 'FTTH: ' + getEtapeFtthValue(history.etapeFtth) }}
-                                        </v-list-item-subtitle>
-                                        <v-list-item-subtitle>
-                                            {{'Created: ' + new Date(history.created).toLocaleString('fr-FR')}}
-                                        </v-list-item-subtitle>
-                                        <v-list-item-subtitle>
-                                            {{'Dernière MaJ: ' + new Date(history.lastUpdated).toLocaleString('fr-FR')}}
-                                        </v-list-item-subtitle>
-                                    </v-list-item-content>
-                                </v-list-item>
-                            </v-list>
-                        </l-popup>
-                    </l-marker>
+                    <l-layer-group v-for="layer in layers" :visible="layer.visible" :key="'layer_'+layer.name">
+                        <l-marker
+                            v-for="fiber, i in layer.markers" :icon="getIcon(fiber)"
+                            :ref="'marker_'+fiber.signature" :key="'layer_'+layer.name+'marker_'+i"
+                            :lat-lng="[fiber.y, fiber.x]" @click="getHistorique(fiber)" >
+                            <l-popup>
+                                <v-progress-circular v-if="loadingHistory"
+                                    indeterminate
+                                    color="primary"
+                                ></v-progress-circular>
+                                <v-list light>
+                                    <v-list-item v-for="history, i in fiberHistory" :key="i">
+                                        <v-list-item-content>
+                                            <v-list-item-title>{{ history.libAdresse }}</v-list-item-title>
+                                            <v-list-item-subtitle>
+                                                <b>FTTH: </b> {{ getEtapeFtthValue(history.etapeFtth) }}
+                                            </v-list-item-subtitle>
+                                            <v-list-item-subtitle>
+                                                <b>Created: </b> {{ new Date(history.created).toLocaleString('fr-FR')}}
+                                            </v-list-item-subtitle>
+                                            <v-list-item-subtitle>
+                                                <b>Dernière MaJ: </b> {{ new Date(history.lastUpdated).toLocaleString('fr-FR')}}
+                                            </v-list-item-subtitle>
+                                        </v-list-item-content>
+                                    </v-list-item>
+                                </v-list>
+                            </l-popup>
+                        </l-marker>
+                    </l-layer-group>
                     <l-control position='bottomleft' :class="{ 'custom-control': !$vuetify.theme.dark, 'custom-control-dark': $vuetify.theme.dark }">
-                        <v-btn style="z-index:2;" class="ma-2" x-small text v-for="icon, i in icons" :key="i" @click="layerSelected">
+                        <v-btn style="z-index:2;" class="ma-2" x-small text
+                        v-for="icon, i in icons"
+                        :key="i" @click="showHideLayer(icon.code)" :ripple="false"
+                        :plain="!currentLayer(icon.code)?.visible"
+                        :disabled="!currentLayer(icon.code) || currentLayer(icon.code)?.markers?.length === 0">
                             <v-img contain height="27" width="20" :src="icon.icon.options.iconUrl" :class="icon.icon.options.className"/>
                             <span class="pl-2">{{ icon.title }}</span>
                         </v-btn>
@@ -111,7 +125,10 @@
             <v-row justify="center">
                 <v-col md="8">
                     <v-data-table class="mt-5 mb-10" :headers="headers" :items="fibers" fixed-header height="650px"
-                        :options="{ itemsPerPage: 30 }" :loading="loading" @click:row="centerMapOnPoint">
+                        :options="{ itemsPerPage: 100 }" :loading="loading" @click:row="centerMapOnPoint"
+                        :footer-props="{
+                            'items-per-page-options': [50, 100, 200, 500, 1000]
+                        }">
                         <template v-slot:[`item.eligibilitesFtth`]="{ item }">
                             <td>
                                 {{ getEtapeFtthValue(item.etapeFtth) }}

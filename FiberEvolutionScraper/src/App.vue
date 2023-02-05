@@ -25,7 +25,7 @@
     </v-navigation-drawer>
     <v-main>
       <toast/>
-      <router-view class="mt-15 ml-10 mr-10"/>
+      <router-view class="ma-15"/>
     </v-main>
   </v-app>
 </template>
