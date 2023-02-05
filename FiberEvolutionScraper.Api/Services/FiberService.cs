@@ -27,7 +27,7 @@ public class FiberService
 
         var count = fibers.Results.Count;
         mapped = mapped.GroupBy(f => f.Signature).Select(g => g.MinBy(d => d.EtapeFtth)).ToList();
-        Console.WriteLine("Delta: {0}", count - fibers.Results.Count);
+        Console.WriteLine("Delta: {0}", count - mapped.Count);
 
         try
         {
