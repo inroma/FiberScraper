@@ -15,21 +15,26 @@ export default class ToastComponent extends Vue {
 
     public getIcon(snack: Snackbar) {
         let icon = "";
-        switch (snack.color) {
-            case ISnackbarColor.Success: 
-                icon = "mdi-check";
-                break;
-            case ISnackbarColor.Info: 
-                icon = "mdi-information-outline";
-                break;
-            case ISnackbarColor.Warning: 
-                icon = "mdi-alert-circle-outline";
-                break;
-            case ISnackbarColor.Error: 
-                icon = "mdi-alert-outline";
-                break;
-            default:
-                break;
+        if (snack.icon !== undefined) {
+            icon = snack.icon;
+        } else {
+            switch (snack.color) {
+                case ISnackbarColor.Success: 
+                    icon = "mdi-check";
+                    break;
+                case ISnackbarColor.Info: 
+                    icon = "mdi-information-outline";
+                    break;
+                case ISnackbarColor.Warning: 
+                    icon = "mdi-alert-circle-outline";
+                    break;
+                case ISnackbarColor.Error: 
+                    icon = "mdi-alert-outline";
+                    break;
+                default:
+                    icon = "mdi-information-outline";
+                    break;
+            }
         }
         return icon;
     }

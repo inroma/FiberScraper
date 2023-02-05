@@ -1,28 +1,44 @@
 export default class FiberPointDTO
 {
-    codeCommune: string = "";
+    codeCommune = "";
 
-    codeVoie: string = "";
+    codeVoie = "";
 
-    numVoie: string = "";
+    numVoie = "";
 
-    extVoie: string = "";
+    extVoie = "";
 
-    signature: string = "";
+    signature = "";
 
-    codePostal: string = "";
+    codePostal = "";
 
-    libCommune: string = "";
+    libCommune = "";
 
-    libVoie: string = "";
+    libVoie = "";
 
-    libAdresse: string = "";
+    libAdresse = "";
 
-    x: number = 0.0;
+    x = 0.0;
 
-    y: number = 0.0;
+    y = 0.0;
 
-    ftthLoaded: boolean = false;
+    ftthLoaded = false;
 
-    etapeFtth: string = "";
+    etapeFtth = EtapeFtth._;
+
+    created = new Date();
+
+    lastUpdated = new Date();
+}
+
+export enum EtapeFtth
+{
+    ELLIGIBLE,
+    EN_COURS_IMMEUBLE,
+    TERMINE_QUARTIER,
+    EN_COURS_QUARTIER,
+    PREVU_QUARTIER,
+    _,
+    DEBUG,
+    UNKNOWN = 999
 }

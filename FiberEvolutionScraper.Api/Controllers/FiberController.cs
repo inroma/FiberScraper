@@ -20,7 +20,7 @@ public class FiberController
     [AllowAnonymous]
     public IList<FiberPointDTO> GetFibers([FromQuery] FibersGetModel parameters)
     {
-        var fibers = fiberService.GetDbFibersForLoc(parameters.CoordX, parameters.CoordY);
+        var fibers = fiberService.GetDbFibersForLoc(parameters.CoordY, parameters.CoordX);
         return fibers;
     }
 
@@ -41,10 +41,21 @@ public class FiberController
     }
 
     [HttpGet()]
-    [AllowAnonymous]
-    public IList<FiberPointDTO> GetSameSignaturePoints([FromQuery] string signature)
+    public IList<FiberPointDTO> GetNewestPoints([FromQuery] string data)
     {
-        var fibers = fiberService.GetSameSignaturePoints(signature);
+        var fibers = fiberService.GetNewestPoints(data);
         return fibers;
+    }
+
+    [HttpPost()]
+    [AllowAnonymous]
+    public IList<FiberPointDTO> GetSameSignaturePoints([FromBody] FiberPointDTO fiber)
+    {
+        if(fiber.EtapeFtth != EtapeFtth.DEBUG)
+        {
+            var fibers = fiberService.GetSameSignaturePoints(fiber);
+            return fibers;
+        }
+        return new List<FiberPointDTO>();
     }
 }

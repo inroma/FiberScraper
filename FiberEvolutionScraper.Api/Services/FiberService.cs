@@ -22,44 +22,69 @@ public class FiberService
     internal IList<FiberPointDTO> GetFibersForLoc(double coordX, double coordY, int squareSize = 5, bool canIterate = true)
     {
         var fibers = fiberApi.GetFibersForLoc(coordX, coordY, squareSize, canIterate);
+        var mapped = mapper.Map<IList<FiberPointDTO>>(fibers.Results).Where(x => x.EtapeFtth != EtapeFtth.DEBUG).ToList();
+        List<FiberPointDTO> resultFibers = new();
 
-        var mapped = mapper.Map<IList<FiberPointDTO>>(fibers.Results).Where(x => !x.EtapeFtth.StartsWith("DEBUG_"));
+        var count = fibers.Results.Count;
+        mapped = mapped.GroupBy(f => f.Signature).Select(g => g.MinBy(d => d.EtapeFtth)).ToList();
+        Console.WriteLine("Delta: {0}", count - fibers.Results.Count);
 
         try
         {
-            context.FiberPoints.AddRange(mapped.Where(m => !context.FiberPoints.Contains(m)));
-            context.FiberPoints.UpdateRange(mapped.Where(m => context.FiberPoints.Contains(m)));
+            var minX = mapped.Min(x => x.X - 0.5);
+            var maxX = mapped.Max(x => x.X + 0.5);
+            var minY = mapped.Min(x => x.Y - 0.5);
+            var maxY = mapped.Max(x => x.Y + 0.5);
+            var dbFibers = context.FiberPoints.Where(ctx => ctx.X >= minX && ctx.X <= maxX && ctx.Y >= minY && ctx.Y <= maxY).ToList();
+
+            mapped.ForEach(fiber => {
+                var dbFiber = dbFibers.FirstOrDefault(f => f.Signature == fiber.Signature && f.EtapeFtth == fiber.EtapeFtth);
+                if (dbFiber == null)
+                {
+                    fiber.Created = fiber.LastUpdated = DateTime.UtcNow;
+                    context.FiberPoints.Add(fiber);
+                    resultFibers.Add(fiber);
+                }
+                else
+                {
+                    dbFiber.LastUpdated = DateTime.UtcNow;
+                    context.FiberPoints.Update(dbFiber);
+                    resultFibers.Add(dbFiber);
+                }
+            });
             context.SaveChanges();
         }
-        catch (DbUpdateConcurrencyException ex)
+        catch (Exception ex)
         {
-            foreach (var entry in ex.Entries)
-            {
-                if (entry.Entity is FiberPointDTO)
-                {
-                    if (entry.GetDatabaseValues() == null)
-                    {
-                        context.FiberPoints.Add(entry.Entity as FiberPointDTO);
-                    }
-                }
-            }
-            context.SaveChanges();
+            Console.WriteLine(ex.InnerException?.Message ?? ex.Message);
         }
 
-        return mapper.Map<IList<FiberPointDTO>>(fibers.Results);
+        return resultFibers;
     }
 
     internal IList<FiberPointDTO> GetDbFibersForLoc(double coordX, double coordY)
     {
-        var result = context.FiberPoints.ToList().GroupBy(x => Math.Pow((coordY - x.X), 2) + Math.Pow((coordX - x.Y), 2))
-            .OrderBy(x => x.Key).Take(1700).SelectMany(a => a.Select(b => b)).ToList();
+        var result = context.FiberPoints.OrderByDescending(x => x.LastUpdated).GroupBy(x => x.Signature).Select(a => a.First()).ToList()
+            .GroupBy(x => Math.Pow((coordX - x.X), 2) + Math.Pow((coordY - x.Y), 2))
+            .OrderBy(x => x.Key).SelectMany(a => a.Select(b => b)).Take(900).ToList();
 
         return result.ToList();
     }
 
-    internal IList<FiberPointDTO> GetSameSignaturePoints(string signature)
+    internal IList<FiberPointDTO> GetSameSignaturePoints(FiberPointDTO fiber)
     {
-        var result = context.FiberPoints.Where(s => s.Signature == signature).ToList();
+        var result = context.FiberPoints.Where(s => s.Signature == fiber.Signature && s.EtapeFtth != fiber.EtapeFtth).ToList();
+        return result;
+    }
+
+    internal IList<FiberPointDTO> GetNewestPoints(string parameters)
+    {
+        var latlng = parameters.Split(",").Select(s => Convert.ToDouble(s.Replace('.', ','))).ToList();
+
+        var result = context.FiberPoints.Where(f => f.Created >= DateTime.UtcNow.AddDays(-2) 
+            && f.X >= latlng.First() && f.Y >= latlng[1]
+            && f.X <= latlng[2] && f.Y <= latlng[3])
+            .GroupBy(x => x.Signature).Select(a => a.First()).Take(900);
 
         return result.ToList();
     }

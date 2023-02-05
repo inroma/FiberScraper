@@ -42,7 +42,8 @@ public class Program
                 .ForMember(dest => dest.LibAdresse, act => act.MapFrom(src => src.Address.LibAdresse))
                 .ForMember(dest => dest.LibCommune, act => act.MapFrom(src => src.Address.LibCommune))
                 .ForMember(dest => dest.LibVoie, act => act.MapFrom(src => src.Address.LibVoie))
-                .ForMember(dest => dest.EtapeFtth, act => act.MapFrom(src => src.EligibilitesFtth.Any() ? src.EligibilitesFtth.First().EtapeFtth : "")).ReverseMap()
+                .ForMember(dest => dest.EtapeFtth, act => act.MapFrom(src => src.EligibilitesFtth.Any() ? ResolveEnum(src.EligibilitesFtth.First().EtapeFtth) : EtapeFtth._))
+                .ReverseMap()
             ;
         });
 
@@ -58,10 +59,33 @@ public class Program
         app.UseHttpsRedirection();
 
         app.UseAuthorization();
-        app.UseCors(builder => builder.AllowAnyOrigin());
+        app.UseCors(builder => builder.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod());
 
         app.MapControllers();
 
         app.Run();
+    }
+
+    private static EtapeFtth ResolveEnum(string etapeFtth)
+    {
+        if (etapeFtth.StartsWith("DEBUG_"))
+        {
+             return EtapeFtth.DEBUG;
+        }
+        switch (etapeFtth)
+        {
+            case "ELLIGIBLE":
+                return EtapeFtth.ELLIGIBLE;
+            case "EN_COURS_IMMEUBLE":
+                return EtapeFtth.EN_COURS_IMMEUBLE;
+            case "TERMINE_QUARTIER":
+                return EtapeFtth.TERMINE_QUARTIER;
+            case "EN_COURS_QUARTIER":
+                return EtapeFtth.EN_COURS_QUARTIER;
+            case "PREVU_QUARTIER":
+                return EtapeFtth.PREVU_QUARTIER;
+            default:
+                return EtapeFtth._;
+        }
     }
 }

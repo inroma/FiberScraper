@@ -7,7 +7,7 @@ import { Action } from 'vuex-class';
 import { Component } from 'vue-property-decorator';
 import { ToastStoreMethods } from '@/store/ToastStore';
 import { ISnackbar, ISnackbarColor } from '@/models/SnackbarInterface';
-import FiberPointDTO from '@/models/FiberPointDTO';
+import FiberPointDTO, { EtapeFtth } from '@/models/FiberPointDTO';
 
 @Component({
     components: {
@@ -31,6 +31,7 @@ export default class FiberMapVue extends Vue {
     public userLocation = new LatLng(45.76, 4.83);
     public mapCenter: LatLng = this.userLocation;
     public fibers: FiberPointDTO[] = [];
+    public fiberHistory: FiberPointDTO[] = [];
     public zoom = 11;
     public tileProviders = [
         {
@@ -56,6 +57,7 @@ export default class FiberMapVue extends Vue {
             'Map data: &copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>, <a href="http://viewfinderpanoramas.org">SRTM</a> | Map style: &copy; <a href="https://opentopomap.org">OpenTopoMap</a> (<a href="https://creativecommons.org/licenses/by-sa/3.0/">CC-BY-SA</a>)',
         }
     ];
+    public bounds!: L.LatLngBounds;
     private openedMarker: null | LMarker = null;
 
     public defaultIcon = new L.Icon.Default({
@@ -100,18 +102,18 @@ export default class FiberMapVue extends Vue {
         className: 'blue-inverted-icon',
     });
 
-    public icons = [{code: "ELLIGIBLE", title: "Élligible", icon: this.greenIcon},
-        {code: "EN_COURS_IMMEUBLE", title: "Déploiement Immeuble", icon: this.purpleIcon},
-        {code: "TERMINE_QUARTIER", title: "Quartier Terminé", icon: this.blueInvertedIcon},
-        {code: "EN_COURS_QUARTIER", title: "Déploiement Quartier", icon: this.defaultIcon},
-        {code: "PREVU_QUARTIER", title: "Quartier Programmé", icon: this.brownIcon},
-        {code: '', title: "Aucune donnée", icon: this.redIcon},
-        {code: "*", title: "Statut inconnu", icon: this.blackIcon}];
+    public icons = [{code: EtapeFtth.ELLIGIBLE, title: "Élligible", icon: this.greenIcon},
+        {code: EtapeFtth.EN_COURS_IMMEUBLE, title: "Déploiement Immeuble", icon: this.purpleIcon},
+        {code: EtapeFtth.TERMINE_QUARTIER, title: "Quartier Terminé", icon: this.blueInvertedIcon},
+        {code: EtapeFtth.EN_COURS_QUARTIER, title: "Déploiement Quartier", icon: this.defaultIcon},
+        {code: EtapeFtth.PREVU_QUARTIER, title: "Quartier Programmé", icon: this.brownIcon},
+        {code: EtapeFtth._, title: "Aucune donnée", icon: this.redIcon},
+        {code: EtapeFtth.UNKNOWN, title: "Statut inconnu", icon: this.blackIcon}];
 
     public get headers() {
         return [
             { text: 'Adresse', value: 'libAdresse' },
-            { text: 'Éligibilité FTTH', value: 'etapeFtth' },
+            { text: 'Éligibilité FTTH', value: 'eligibilitesFtth' },
             { text: 'Coord Lat', value: 'x' },
             { text: 'Coord Long', value: 'y' },
         ]
@@ -121,7 +123,12 @@ export default class FiberMapVue extends Vue {
 
     @Action(ToastStoreMethods.CREATE_TOAST_MESSAGE)
     private createToast!: (params: ISnackbar) => void;
-
+    public options = {
+        headers: {
+            'Access-Control-Expose-Headers': '*',
+            'Access-Control-Allow-Origin': '*'
+        }
+    }
     public getCloseAreaFibers() {
         this.loading = true;
         this.openedMarker?.mapObject.closePopup();
@@ -173,14 +180,30 @@ export default class FiberMapVue extends Vue {
         });
     }
 
-    public getHistorique(signature: string) {
-        this.loadingHistory = true;
+    public getNewestFibers() {
+        this.loading = true;
         this.openedMarker?.mapObject.closePopup();
-        axios.get<FiberPointDTO[]>('https://localhost:5001/api/fiber/GetSameSignaturePoints',
+        axios.get<FiberPointDTO[]>('https://localhost:5001/api/fiber/GetNewestPoints',
             { headers: { 'Content-Type': 'application/json' },
-            params: { signature: signature }})
+            params: { data: this.bounds.toBBoxString() }})
         .then((response) => {
             this.fibers = response.data;
+        })
+        .catch((errors) => {
+            this.createToast({ color: ISnackbarColor.Error, message: errors });
+        })
+        .finally(() => {
+            this.loading = false;
+        });
+    }
+
+    public getHistorique(fiber: FiberPointDTO) {
+        this.loadingHistory = true;
+        this.fiberHistory = [fiber];
+        axios.post<FiberPointDTO[]>('https://localhost:5001/api/fiber/GetSameSignaturePoints', fiber, 
+            { headers: { 'Content-Type': 'application/json' }})
+        .then((response) => {
+            this.fiberHistory.unshift(...response.data);
         })
         .catch((errors) => {
             this.createToast({ color:ISnackbarColor.Error, message: errors });
@@ -200,6 +223,7 @@ export default class FiberMapVue extends Vue {
     }
 
     public centerMapOnPoint(point: FiberPointDTO) {
+        this.getHistorique(point);
         this.userLocation = new LatLng(point.y, point.x);
         const marker = this.$refs['marker_'+point.signature] as LMarker[];
         this.openedMarker = marker[0];
@@ -207,23 +231,28 @@ export default class FiberMapVue extends Vue {
     }
 
     public getIcon(fiber: FiberPointDTO): L.Icon.Default {
-        if (fiber.etapeFtth) {
-            const icon = this.icons.filter(a => a.code === fiber.etapeFtth)[0]?.icon;
-            if (icon === undefined) {
-                return this.blackIcon;
-            }
-            return icon;
+        const icon = this.icons.filter(a => a.code === fiber.etapeFtth)[0]?.icon;
+        if (icon === undefined) {
+            return this.blackIcon;
         }
-        return this.redIcon;
+        return icon;
     }
 
     public isEligibleToFTTH(item: FiberPointDTO) {
-        return item.etapeFtth === 'ELLIGIBLE' ? 'Oui' : 'Non';
+        return item.etapeFtth === EtapeFtth.ELLIGIBLE ? 'Oui' : 'Non';
+    }
+
+    public getEtapeFtthValue(etapeFtth: EtapeFtth) {
+        return EtapeFtth[etapeFtth];
     }
 
     public layerSelected() {
-        this.createToast({ color: ISnackbarColor.Info, message: "test test testtesttesttest testtest testtesttesttestvv  test test testtesttest test testtesttest test testtesttesttest testtest " +
-        "testtesttesttestvv  test test testtesttest test testtest test test testtesttesttest testtest testtesttesttestvv  test test testtesttest test testtest test test testtesttesttest testtest "+
+        this.createToast({ color: ISnackbarColor.Info, message: "test test testtesttesttest testtest tes ttestte sttestvv  test te st testtesttest te st tes t tes tte st test testtestt esttest testtest " +
+        "test estte sttestvv  test test tes testtest test test test test test testte sttestt est testtest testtest testte stvv  test test testtesttest test testtest test test testtesttesttest testtest "+
         "testtesttesttestvv  test test testtesttest test testtest test test testtesttesttest testtest testtesttesttestvv  test test testtesttest test testtest" });
+    }
+
+    public boundsUpdated (bounds: L.LatLngBounds) {
+        this.bounds = bounds;
     }
 }

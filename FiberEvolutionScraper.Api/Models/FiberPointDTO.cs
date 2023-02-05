@@ -29,5 +29,17 @@ public class FiberPointDTO : BaseModelDTO
 
     public bool FtthLoaded { get; set; }
 
-    public string EtapeFtth { get; set; } = "";
+    public EtapeFtth EtapeFtth { get; set; }
+}
+
+public enum EtapeFtth
+{
+    ELLIGIBLE,
+    EN_COURS_IMMEUBLE,
+    TERMINE_QUARTIER,
+    EN_COURS_QUARTIER,
+    PREVU_QUARTIER,
+    _,
+    DEBUG,
+    UNKNOWN = 999
 }

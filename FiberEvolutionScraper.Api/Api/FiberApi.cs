@@ -60,13 +60,9 @@ public class FiberApi
                 {
                     fibers.Results.AddRange(GetFibersForLoc(startPoint.Item1 + k * currentOffsetX, startPoint.Item2 + j * currentOffsetY, 2, false).Results);
                 }
-                AddDebugMarker(fibers, startPoint, j, k, currentOffsetY, currentOffsetX, squareSize, modul, tempResult.ZoneSize);
+                //AddDebugMarker(fibers, startPoint, j, k, currentOffsetY, currentOffsetX, squareSize, modul, tempResult.ZoneSize);
             });
         });
-
-        var count = fibers.Results.Count;
-        fibers.Results = fibers.Results.Where(f => f != null).GroupBy(f => f.Address.Signature).Select(g => g.MaxBy(d => d.EligibilitesFtth.Count)).ToList();
-        Console.WriteLine("Delta: {0}", count - fibers.Results.Count);
 
         return fibers;
     }
@@ -97,7 +93,7 @@ public class FiberApi
 
     private void setToken()
     {
-        if (tokenParser.Token == null || tokenParser.TokenAge < DateTime.Now.AddHours(-2))
+        if (tokenParser.Token == null || tokenParser.TokenAge < DateTime.Now.AddHours(-1.5))
         {
             tokenParser.GetToken(GetOrangeToken(tokenParser.GenerateAppId()));
             client.DefaultRequestHeaders.Add("AppAuthorization", $"Bearer {tokenParser.Token}");
