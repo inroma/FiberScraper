@@ -34,6 +34,7 @@
   flex-direction: column !important;
   display: flex;
   align-items: flex-start;
+  pointer-events: auto;
 }
 .custom-control-dark {
   background: rgba(90, 90, 90, 0.785);
@@ -45,43 +46,40 @@
   flex-direction: column !important;
   display: flex;
   align-items: flex-start;
+  pointer-events: auto;
 }
 #mapContainer {
     z-index: 3;
-    height: 100%;
-    width: 100%;
-}
-.custom-layer-dark {
-    filter: saturate(0.7);
+    height:900px;
 }
 </style>
 
 <template>
     <v-card>
-        <v-row ref="menu">
-            <v-col class="mb-3 ml-3 text-left">
+        <v-row ref="menu" class="mb-3">
+            <v-col class="ml-3 text-left">
                 <v-btn icon @click="centerMapOnLocation()" color="primary">
                     <v-icon>mdi-crosshairs-gps</v-icon>
                 </v-btn>
             </v-col>
-            <v-col class="ml-3 mb-3 justify-center" :cols="2" :lg="10" :md="10" :offset-md="2" :sm="9">
+            <v-col class="ml-3 justify-center" :cols="2" :lg="10" :md="10" :offset-md="2" :sm="9">
                 <v-btn class="mr-5" @click="getFibers()" color="primary" :loading="loading">Charger zone étendue</v-btn>
                 <v-btn class="mr-5" @click="getDbFibers()" color="primary" :loading="loading">Charger fibres en BDD</v-btn>
                 <v-btn class="mr-5" @click="getCloseAreaFibers()" color="primary" :loading="loading">Charger zone proche</v-btn>
                 <v-btn @click="getNewestFibers()" color="primary" :loading="loading">Charger nouveaux points</v-btn>
             </v-col>
-            <v-col class="mb-3 mr-3 text-right">
+            <v-col class="mr-3 text-right">
                 <v-btn @click="clearData()" color="error" :loading="loading" :disabled="!fibers.length">Clear</v-btn>
             </v-col>
         </v-row>
-        <div class="mb-10">
-                <l-map id="mapContainer" ref="map" :center="userLocation" :zoom="zoom" 
-                @update:center="centerUpdate" style="height:900px;" @update:bounds="boundsUpdated">
+        <div class="mb-10 ml-10 mr-10">
+                <l-map id="mapContainer" ref="map" :center="userLocation" :zoom="zoom"
+                @update:center="centerUpdate" @update:bounds="boundsUpdated">
                     <l-control-layers position="topright"/>
                     <l-tile-layer v-for="tileProvider in tileProviders"
                         :url="tileProvider.url" :attribution="tileProvider.attribution"
-                        :key="tileProvider.name" :name="tileProvider.name" layer-type="base" :visible="tileProvider.visible"/>
-                    <l-layer-group :class="{ 'custom-layer-dark': $vuetify.theme.dark }"></l-layer-group>
+                        :key="tileProvider.name" :name="tileProvider.name" layer-type="base" :visible="tileProvider.visible"
+                    />
                     <l-layer-group v-for="layer in layers" :visible="layer.visible" :key="'layer_'+layer.name">
                         <l-marker
                             v-for="fiber, i in layer.markers" :icon="getIcon(fiber)"
@@ -91,7 +89,7 @@
                                 <v-progress-circular v-if="loadingHistory"
                                     indeterminate
                                     color="primary"
-                                ></v-progress-circular>
+                                />
                                 <v-list light>
                                     <v-list-item v-for="history, i in fiberHistory" :key="i">
                                         <v-list-item-content>
