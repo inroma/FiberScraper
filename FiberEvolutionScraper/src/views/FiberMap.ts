@@ -220,8 +220,9 @@ export default class FiberMapVue extends Vue {
     }
 
     public clearData() {
-        this.fibers = [];
         this.openedMarker?.mapObject.closePopup();
+        this.fibers = [];
+        this.layers = [];
     }
 
     public centerMapOnPoint(point: FiberPointDTO) {
