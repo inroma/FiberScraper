@@ -2,24 +2,6 @@
 .leaflet-popup-content {
     min-width: 350px;
 }
-.red-icon {
-    filter: hue-rotate(147deg) !important;
-}
-.green-icon {
-    filter: hue-rotate(257deg) !important;
-}
-.purple-icon {
-    filter: hue-rotate(50deg) !important;
-}
-.brown-icon {
-    filter: hue-rotate(199deg) !important;
-}
-.black-icon {
-    filter: brightness(0) !important;
-}
-.blue-inverted-icon {
-    filter: invert() hue-rotate(185deg) !important;
-}
 .leaflet-dark-tile {
     filter: hue-rotate(180deg) invert(100%) !important;
 }
@@ -47,6 +29,30 @@
   display: flex;
   align-items: flex-start;
   pointer-events: auto;
+}
+.leaflet-marker-icon {
+    margin-left: -12px;
+    margin-top: -41px;
+    width: 25px;
+    height: 41px;
+}
+.opacity-90 {
+    filter:opacity(0.9) !important
+}
+.opacity-80 {
+    filter:opacity(0.8) !important
+}
+.opacity-70 {
+    filter:opacity(0.7) !important
+}
+.opacity-60 {
+    filter:opacity(0.6) !important
+}
+.opacity-50 {
+    filter:opacity(0.5) !important
+}
+.opacity-40 {
+    filter:opacity(0.4) !important
 }
 #mapContainer {
     z-index: 3;
@@ -82,9 +88,10 @@
                     />
                     <l-layer-group v-for="layer in layers" :visible="layer.visible" :key="'layer_'+layer.name">
                         <l-marker
-                            v-for="fiber, i in layer.markers" :icon="getIcon(fiber)"
+                            v-for="fiber, i in layer.markers"
                             :ref="'marker_'+fiber.signature" :key="'layer_'+layer.name+'marker_'+i"
-                            :lat-lng="[fiber.y, fiber.x]" @click="getHistorique(fiber)" >
+                            :lat-lng="[fiber.y, fiber.x]" @click="getHistorique(fiber)">
+                            <l-icon :icon-url="getIcon(fiber).options.iconUrl" class="leaflet-marker-icon" :class-name="recentResult ? opacityWithElderness(fiber) : null"/>
                             <l-popup>
                                 <v-progress-circular v-if="loadingHistory"
                                     indeterminate

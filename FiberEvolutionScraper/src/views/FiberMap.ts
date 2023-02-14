@@ -1,7 +1,7 @@
 import axios from 'axios';
 import 'leaflet/dist/leaflet.css';
 import L, { LatLng } from "leaflet";
-import { LMap, LTileLayer, LMarker, LLayerGroup, LPopup, LControl, LControlLayers } from "vue2-leaflet";
+import { LMap, LTileLayer, LMarker, LLayerGroup, LPopup, LControl, LControlLayers, LIcon } from "vue2-leaflet";
 import Vue from 'vue';
 import { Action } from 'vuex-class';
 import { Component } from 'vue-property-decorator';
@@ -17,14 +17,12 @@ import FiberPointDTO, { EtapeFtth } from '@/models/FiberPointDTO';
         'l-popup': LPopup,
         'l-control': LControl,
         'l-layer-group': LLayerGroup,
+        'l-icon': LIcon,
         LControlLayers
     }
 })
 export default class FiberMapVue extends Vue {
     //#region Public Properties
-
-    public icon = require('leaflet/dist/images/marker-icon.png');
-    public iconx2 = require('leaflet/dist/images/marker-icon-2x.png');
     public loading = false;
     public loadingHistory = true;
     public map: null | LMap = null;
@@ -58,47 +56,35 @@ export default class FiberMapVue extends Vue {
     ];
     public bounds!: L.LatLngBounds;
     private openedMarker: null | LMarker = null;
-
+    private date = new Date();
+    public recentResult = false;
     public defaultIcon = new L.Icon.Default({
-        iconRetinaUrl: this.iconx2,
-        iconUrl: this.icon,
+        iconUrl: '/icons/marker-blue.png',
         shadowUrl: ''
     });
     public redIcon = new L.Icon.Default({
-        iconRetinaUrl: this.iconx2,
-        iconUrl: this.icon,
+        iconUrl: '/icons/marker-red.png',
         shadowUrl: '',
-        className: 'red-icon',
     });
     public greenIcon = new L.Icon.Default({
-        iconRetinaUrl: this.iconx2,
-        iconUrl: this.icon,
+        iconUrl: '/icons/marker-green.png',
         shadowUrl: '',
-        className: 'green-icon'
     });
     public purpleIcon = new L.Icon.Default({
-        iconRetinaUrl: this.iconx2,
-        iconUrl: this.icon,
+        iconUrl: '/icons/marker-purple.png',
         shadowUrl: '',
-        className: 'purple-icon',
     });
     public brownIcon = new L.Icon.Default({
-        iconRetinaUrl: this.iconx2,
-        iconUrl: this.icon,
+        iconUrl: '/icons/marker-orange.png',
         shadowUrl: '',
-        className: 'brown-icon',
     });
     public blackIcon = new L.Icon.Default({
-        iconRetinaUrl: this.iconx2,
-        iconUrl: this.icon,
+        iconUrl: '/icons/marker-black.png',
         shadowUrl: '',
-        className: 'black-icon',
     });
     public blueInvertedIcon = new L.Icon.Default({
-        iconRetinaUrl: this.iconx2,
-        iconUrl: this.icon,
+        iconUrl: '/icons/marker-white.png',
         shadowUrl: '',
-        className: 'blue-inverted-icon',
     });
     public layers: { markers: FiberPointDTO[], visible: boolean, name: string }[] = [];
 
@@ -129,13 +115,16 @@ export default class FiberMapVue extends Vue {
     }
 
     public getCloseAreaFibers() {
+        this.recentResult = false;
         this.loading = true;
         this.openedMarker?.mapObject.closePopup();
+        this.layers = [];
         axios.get<FiberPointDTO[]>('https://localhost:5001/api/fiber/GetCloseArea',
             { headers: { 'Content-Type': 'application/json' },
             params: { coordX: this.userLocation.lat, coordY: this.userLocation.lng }})
         .then((response) => {
             this.fibers = response.data;
+            this.mapFibersToLayer();
         })
         .catch((errors) => {
             this.createToast({ color: ISnackbarColor.Error, message: errors });
@@ -146,14 +135,16 @@ export default class FiberMapVue extends Vue {
     }
 
     public getFibers() {
+        this.recentResult = false;
         this.loading = true;
         this.openedMarker?.mapObject.closePopup();
+        this.layers = [];
         axios.get<FiberPointDTO[]>('https://localhost:5001/api/fiber/GetWideArea',
             { headers: { 'Content-Type': 'application/json' },
             params: { coordX: this.userLocation.lat, coordY: this.userLocation.lng }})
         .then((response) => {
             this.fibers = response.data;
-            this.mapFibersToLayer()
+            this.mapFibersToLayer();
         })
         .catch((errors) => {
             this.createToast({ color: ISnackbarColor.Error, message: errors });
@@ -164,14 +155,16 @@ export default class FiberMapVue extends Vue {
     }
     
     public getDbFibers() {
+        this.recentResult = false;
         this.loading = true;
         this.openedMarker?.mapObject.closePopup();
+        this.layers = [];
         axios.get<FiberPointDTO[]>('https://localhost:5001/api/fiber/GetFibers',
             { headers: { 'Content-Type': 'application/json' },
             params: { coordX: this.userLocation.lat, coordY: this.userLocation.lng }})
         .then((response) => {
             this.fibers = response.data;
-            this.mapFibersToLayer()
+            this.mapFibersToLayer();
         })
         .catch((errors) => {
             this.createToast({ color: ISnackbarColor.Error, message: errors });
@@ -182,8 +175,10 @@ export default class FiberMapVue extends Vue {
     }
 
     public getNewestFibers() {
+        this.recentResult = true;
         this.loading = true;
         this.openedMarker?.mapObject.closePopup();
+        this.layers = [];
         axios.get<FiberPointDTO[]>('https://localhost:5001/api/fiber/GetNewestPoints',
             { headers: { 'Content-Type': 'application/json' },
             params: { data: this.bounds.toBBoxString() }})
@@ -196,6 +191,7 @@ export default class FiberMapVue extends Vue {
         })
         .finally(() => {
             this.loading = false;
+            this.recentResult = true;
         });
     }
 
@@ -263,7 +259,7 @@ export default class FiberMapVue extends Vue {
     }
 
     public mapFibersToLayer() {
-        this.layers.length = 0;
+        this.layers = [];
         Object.values(EtapeFtth).forEach((value) => {
             if (typeof(value) !== typeof(EtapeFtth)) {
                 this.layers.push(
@@ -279,11 +275,42 @@ export default class FiberMapVue extends Vue {
 
     public centerMapOnLocation() {
         navigator.geolocation.getCurrentPosition(
-            position => this.userLocation = new LatLng(position.coords.latitude, position.coords.longitude), 
+            position => {
+                this.userLocation = new LatLng(position.coords.latitude, position.coords.longitude);
+            }, 
             error => this.createToast({ message: error.message, color: ISnackbarColor.Error }),
             {
                 enableHighAccuracy: true,
                 timeout: 10000
             });
+    }
+
+    public opacityWithElderness(fiber: FiberPointDTO) {
+        const ratio = (new Date(fiber.created).getDay()) / this.date.getDay() * 100;
+        let result = 100;
+        switch (true) {
+            case 100 >= ratio && ratio > 90:
+                result = 100
+                break;
+            case 90 >= ratio && ratio > 80:
+                result = 90
+                break;
+            case 80 >= ratio && ratio > 70:
+                result = 80
+                break;
+            case 70 >= ratio && ratio > 60:
+                result = 70
+                break;
+            case 60 >= ratio && ratio > 50:
+                result = 60
+                break;  
+            case 50 >= ratio && ratio > 40:
+                result = 50
+                break;
+            default:
+                result = 40
+                break;
+        }
+        return 'opacity-' + result;
     }
 }
