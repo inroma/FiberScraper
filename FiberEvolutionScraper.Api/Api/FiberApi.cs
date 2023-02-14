@@ -48,17 +48,20 @@ public class FiberApi
             {
                 httpResponse = client.GetAsync($"api/eligibilite/zoneAdresse?x={(startPoint.Item1 + k * currentOffsetX).ToString(CultureInfo.InvariantCulture)}&y={(startPoint.Item2 + j * currentOffsetY).ToString(CultureInfo.InvariantCulture)}&extendedZone=false").Result;
                 var tempResult = JsonSerializer.Deserialize<FiberResponseModel>(httpResponse.Content.ReadAsStringAsync().Result);
-                if (tempResult.Results.Count > 1)
+                lock (fibers.Results)
                 {
-                    fibers.Results.AddRange(tempResult.Results);
-                }
-                else if (tempResult.Results.Count == 1)
-                {
-                    fibers.Results.Add(tempResult.Results.First());
-                }
-                if (tempResult.Results.Any() && tempResult.ZoneSize != "GTC" && canIterate)
-                {
-                    fibers.Results.AddRange(GetFibersForLoc(startPoint.Item1 + k * currentOffsetX, startPoint.Item2 + j * currentOffsetY, 2, false).Results);
+                    if (tempResult.Results.Count > 1)
+                    {
+                        fibers.Results.AddRange(tempResult.Results);
+                    }
+                    else if (tempResult.Results.Count == 1)
+                    {
+                        fibers.Results.Add(tempResult.Results.First());
+                    }
+                    if (tempResult.Results.Any() && tempResult.ZoneSize != "GTC" && canIterate)
+                    {
+                        fibers.Results.AddRange(GetFibersForLoc(startPoint.Item1 + k * currentOffsetX, startPoint.Item2 + j * currentOffsetY, 2, false).Results);
+                    }
                 }
                 //AddDebugMarker(fibers, startPoint, j, k, currentOffsetY, currentOffsetX, squareSize, modul, tempResult.ZoneSize);
             });
