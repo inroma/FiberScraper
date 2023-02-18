@@ -58,10 +58,10 @@ public class FiberApi
                     {
                         fibers.Results.Add(tempResult.Results.First());
                     }
-                    if (tempResult.Results.Any() && tempResult.ZoneSize != "GTC" && canIterate)
-                    {
-                        fibers.Results.AddRange(GetFibersForLoc(startPoint.Item1 + k * currentOffsetX, startPoint.Item2 + j * currentOffsetY, 2, false).Results);
-                    }
+                }
+                if (tempResult.Results.Any() && tempResult.ZoneSize != "GTC" && canIterate)
+                {
+                    fibers.Results.AddRange(GetFibersForLoc(startPoint.Item1 + k * currentOffsetX, startPoint.Item2 + j * currentOffsetY, 2, false).Results);
                 }
                 //AddDebugMarker(fibers, startPoint, j, k, currentOffsetY, currentOffsetX, squareSize, modul, tempResult.ZoneSize);
             });
