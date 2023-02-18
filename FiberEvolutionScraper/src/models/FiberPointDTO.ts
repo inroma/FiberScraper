@@ -18,6 +18,10 @@ export default class FiberPointDTO
 
     libAdresse = "";
 
+    batiment = "";
+
+    codeImb = "";
+
     x = 0.0;
 
     y = 0.0;

@@ -99,6 +99,8 @@ export default class FiberMapVue extends Vue {
     public get headers() {
         return [
             { text: 'Adresse', value: 'libAdresse' },
+            { text: 'Batiment', value: 'batiment' },
+            { text: 'Code IMB', value: 'codeImb' },
             { text: 'Éligibilité FTTH', value: 'eligibilitesFtth' },
             { text: 'Coord Lat', value: 'x' },
             { text: 'Coord Long', value: 'y' },

@@ -95,13 +95,12 @@
                                     <v-list-item v-for="history, i in fiberHistory" :key="i">
                                         <v-list-item-content>
                                             <v-list-item-title>{{ history.libAdresse }}</v-list-item-title>
-                                            <v-list-item-subtitle>
-                                                <b>FTTH: </b> {{ getEtapeFtthValue(history.etapeFtth) }}
+                                            <v-list-item-subtitle v-if="history.batiment">
+                                                <b>Batiment: </b> {{ history.batiment }}<br>
                                             </v-list-item-subtitle>
                                             <v-list-item-subtitle>
-                                                <b>Created: </b> {{ new Date(history.created).toLocaleString('fr-FR')}}
-                                            </v-list-item-subtitle>
-                                            <v-list-item-subtitle>
+                                                <b>FTTH: </b> {{ getEtapeFtthValue(history.etapeFtth) }}<br>
+                                                <b>Created: </b> {{ new Date(history.created).toLocaleString('fr-FR')}}<br>
                                                 <b>Dernière MaJ: </b> {{ new Date(history.lastUpdated).toLocaleString('fr-FR')}}
                                             </v-list-item-subtitle>
                                         </v-list-item-content>
