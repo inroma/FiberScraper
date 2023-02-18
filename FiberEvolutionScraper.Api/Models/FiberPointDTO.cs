@@ -30,6 +30,10 @@ public class FiberPointDTO : BaseModelDTO
     public bool FtthLoaded { get; set; }
 
     public EtapeFtth EtapeFtth { get; set; }
+
+    public string Batiment { get; set; }
+
+    public string CodeImb { get; set; }
 }
 
 public enum EtapeFtth

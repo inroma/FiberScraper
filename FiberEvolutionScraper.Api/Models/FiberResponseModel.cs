@@ -79,6 +79,9 @@ public class EligibilitesFtth
     [JsonPropertyName("batiment")]
     public string Batiment { get; set; }
 
+    [JsonPropertyName("codeImb")]
+    public string CodeImb { get; set; }
+
     [JsonPropertyName("coord")]
     public Coord Coord { get; set; }
 
