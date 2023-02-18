@@ -286,30 +286,18 @@ export default class FiberMapVue extends Vue {
     }
 
     public opacityWithElderness(fiber: FiberPointDTO) {
-        const ratio = (new Date(fiber.created).getDay()) / this.date.getDay() * 100;
+        const fiberDate = new Date(fiber.created).getTime();
         let result = 100;
-        switch (true) {
-            case 100 >= ratio && ratio > 90:
-                result = 100
-                break;
-            case 90 >= ratio && ratio > 80:
-                result = 90
-                break;
-            case 80 >= ratio && ratio > 70:
-                result = 80
-                break;
-            case 70 >= ratio && ratio > 60:
-                result = 70
-                break;
-            case 60 >= ratio && ratio > 50:
-                result = 60
-                break;  
-            case 50 >= ratio && ratio > 40:
-                result = 50
-                break;
-            default:
-                result = 40
-                break;
+        if (fiberDate >= this.date.getTime() - 1 * 86400000) {
+            result = 100;
+        } else if (fiberDate >= this.date.getTime() - 3 * 86400000) {
+            result = 80;
+        } else if (fiberDate >= this.date.getTime() - 5 * 86400000) {
+            result = 60;
+        } else if (fiberDate >= this.date.getTime() - 6 * 86400000) {
+            result = 50;
+        } else {
+            result = 15;
         }
         return 'opacity-' + result;
     }

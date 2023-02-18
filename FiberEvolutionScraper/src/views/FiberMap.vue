@@ -36,14 +36,8 @@
     width: 25px;
     height: 41px;
 }
-.opacity-90 {
-    filter:opacity(0.9) !important
-}
 .opacity-80 {
     filter:opacity(0.8) !important
-}
-.opacity-70 {
-    filter:opacity(0.7) !important
 }
 .opacity-60 {
     filter:opacity(0.6) !important
@@ -51,8 +45,8 @@
 .opacity-50 {
     filter:opacity(0.5) !important
 }
-.opacity-40 {
-    filter:opacity(0.4) !important
+.opacity-15 {
+    filter:opacity(0.15) !important
 }
 #mapContainer {
     z-index: 3;
