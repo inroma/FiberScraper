@@ -2,7 +2,7 @@
 using FiberEvolutionScraper.Api.Api;
 using FiberEvolutionScraper.Api.Data;
 using FiberEvolutionScraper.Api.Models;
-using Microsoft.EntityFrameworkCore;
+using System.Globalization;
 
 namespace FiberEvolutionScraper.Api.Services;
 
@@ -26,15 +26,15 @@ public class FiberService
         List<FiberPointDTO> resultFibers = new();
 
         var count = fibers.Results.Count;
-        mapped = mapped.GroupBy(f => f.Signature).Select(g => g.MinBy(d => d.EtapeFtth)).ToList();
+        mapped = mapped.GroupBy(f => new { f.Signature, f.EtapeFtth }).Select(g => g.MinBy(d => d.EtapeFtth)).ToList();
         Console.WriteLine("Delta: {0}", count - mapped.Count);
 
         try
         {
-            var minX = mapped.Min(x => x.X - 0.5);
-            var maxX = mapped.Max(x => x.X + 0.5);
-            var minY = mapped.Min(x => x.Y - 0.5);
-            var maxY = mapped.Max(x => x.Y + 0.5);
+            var minX = mapped.Min(x => x.X - 1);
+            var maxX = mapped.Max(x => x.X + 1);
+            var minY = mapped.Min(x => x.Y - 1);
+            var maxY = mapped.Max(x => x.Y + 1);
             var dbFibers = context.FiberPoints.Where(ctx => ctx.X >= minX && ctx.X <= maxX && ctx.Y >= minY && ctx.Y <= maxY).ToList();
 
             mapped.ForEach(fiber => {
@@ -66,7 +66,7 @@ public class FiberService
     {
         var result = context.FiberPoints.OrderByDescending(x => x.LastUpdated).GroupBy(x => x.Signature).Select(a => a.First()).ToList()
             .GroupBy(x => Math.Pow((coordX - x.X), 2) + Math.Pow((coordY - x.Y), 2))
-            .OrderBy(x => x.Key).SelectMany(a => a.Select(b => b)).Take(900).ToList();
+            .OrderBy(x => x.Key).SelectMany(a => a.Select(b => b)).ToList().Take(900).ToList();
 
         return result.ToList();
     }
@@ -79,13 +79,13 @@ public class FiberService
 
     internal IList<FiberPointDTO> GetNewestPoints(string parameters)
     {
-        var latlng = parameters.Split(",").Select(s => Convert.ToDouble(s.Replace('.', ','))).ToList();
+        var latlng = parameters.Split(",").Select(s => double.Parse(s, CultureInfo.InvariantCulture)).ToList();
 
-        var result = context.FiberPoints.Where(f => f.Created >= DateTime.UtcNow.AddDays(-2) 
-            && f.X >= latlng.First() && f.Y >= latlng[1]
-            && f.X <= latlng[2] && f.Y <= latlng[3])
-            .GroupBy(x => x.Signature).Select(a => a.First()).Take(900);
+        var result = context.FiberPoints
+            .Where(f => f.LastUpdated >= DateTime.UtcNow.AddDays(-7) && f.X >= latlng[0] && f.Y >= latlng[1] && f.X <= latlng[2] && f.Y <= latlng[3])
+            .ToList();
 
-        return result.ToList();
+        return result
+            .GroupBy(x => x.Signature).Select(a => a.OrderByDescending(a => a.LastUpdated).First()).Take(900).ToList();
     }
 }
