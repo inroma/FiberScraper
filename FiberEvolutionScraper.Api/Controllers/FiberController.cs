@@ -17,7 +17,6 @@ public class FiberController
     }
 
     [HttpGet()]
-    [AllowAnonymous]
     public IList<FiberPointDTO> GetFibers([FromQuery] FibersGetModel parameters)
     {
         var fibers = fiberService.GetDbFibersForLoc(parameters.CoordY, parameters.CoordX);
@@ -25,7 +24,6 @@ public class FiberController
     }
 
     [HttpGet()]
-    [AllowAnonymous]
     public IList<FiberPointDTO> GetWideArea([FromQuery] FibersGetModel parameters)
     {
         var fibers = fiberService.GetFibersForLoc(parameters.CoordY, parameters.CoordX);
@@ -33,7 +31,6 @@ public class FiberController
     }
 
     [HttpGet()]
-    [AllowAnonymous]
     public IList<FiberPointDTO> GetCloseArea([FromQuery] FibersGetModel parameters)
     {
         var fibers = fiberService.GetFibersForLoc(parameters.CoordY, parameters.CoordX, 1);
@@ -47,15 +44,17 @@ public class FiberController
         return fibers;
     }
 
-    [HttpPost()]
-    [AllowAnonymous]
-    public IList<FiberPointDTO> GetSameSignaturePoints([FromBody] FiberPointDTO fiber)
+    [HttpGet()]
+    public FiberPointDTO GetSameSignaturePoints([FromQuery] string signature)
     {
-        if(fiber.EtapeFtth != EtapeFtth.DEBUG)
-        {
-            var fibers = fiberService.GetSameSignaturePoints(fiber);
-            return fibers;
-        }
-        return new List<FiberPointDTO>();
+        var fibers = fiberService.GetSameSignaturePoints(signature);
+        return fibers;
+    }
+
+    [HttpGet]
+    public int UpdateWideArea([FromQuery] FibersGetModel parameters)
+    {
+        var result = fiberService.UpdateDbFibers(parameters.CoordY, parameters.CoordX);
+        return result;
     }
 }

@@ -55,7 +55,7 @@
 </style>
 
 <template>
-    <v-card>
+    <v-card key="main-card">
         <v-row ref="menu" class="mb-3">
             <v-col class="ml-3 text-left">
                 <v-btn icon @click="centerMapOnLocation()" color="primary">
@@ -63,73 +63,87 @@
                 </v-btn>
             </v-col>
             <v-col class="ml-3 justify-center" :cols="2" :lg="10" :md="10" :offset-md="2" :sm="9">
+                <v-btn class="mr-5" @click="updateFibers()" color="green lighten-1" :loading="loading">Actualiser zone étendue</v-btn>
+                <v-btn class="mr-5" @click="getDbFibers()" :loading="loading">Charger fibres en BDD</v-btn>
                 <v-btn class="mr-5" @click="getFibers()" color="primary" :loading="loading">Charger zone étendue</v-btn>
-                <v-btn class="mr-5" @click="getDbFibers()" color="primary" :loading="loading">Charger fibres en BDD</v-btn>
                 <v-btn class="mr-5" @click="getCloseAreaFibers()" color="primary" :loading="loading">Charger zone proche</v-btn>
-                <v-btn @click="getNewestFibers()" color="primary" :loading="loading">Charger nouveaux points</v-btn>
+                <v-btn @click="getNewestFibers()" color="blue accent-4" :loading="loading">Charger nouveaux points</v-btn>
             </v-col>
             <v-col class="mr-3 text-right">
                 <v-btn @click="clearData()" color="error" :loading="loading" :disabled="!fibers.length">Clear</v-btn>
             </v-col>
         </v-row>
         <div class="mb-10 ml-10 mr-10">
-                <l-map id="mapContainer" ref="map" :center="userLocation" :zoom="zoom"
-                @update:center="centerUpdate" @update:bounds="boundsUpdated">
-                    <l-control-layers position="topright"/>
-                    <l-tile-layer v-for="tileProvider in tileProviders"
-                        :url="tileProvider.url" :attribution="tileProvider.attribution"
-                        :key="tileProvider.name" :name="tileProvider.name" layer-type="base" :visible="tileProvider.visible"
-                    />
-                    <l-layer-group v-for="layer in layers" :visible="layer.visible" :key="'layer_'+layer.name">
-                        <l-marker
-                            v-for="fiber, i in layer.markers"
-                            :ref="'marker_'+fiber.signature" :key="'layer_'+layer.name+'marker_'+i"
-                            :lat-lng="[fiber.y, fiber.x]" @click="getHistorique(fiber)">
-                            <l-icon :icon-url="getIcon(fiber).options.iconUrl" class="leaflet-marker-icon" :class-name="recentResult ? opacityWithElderness(fiber) : null"/>
-                            <l-popup>
-                                <v-progress-circular v-if="loadingHistory"
-                                    indeterminate
-                                    color="primary"
-                                />
-                                <v-list light>
-                                    <v-list-item v-for="history, i in fiberHistory" :key="i">
-                                        <v-list-item-content>
-                                            <v-list-item-title>{{ history.libAdresse }}</v-list-item-title>
-                                            <v-list-item-subtitle v-if="history.batiment">
-                                                <b>Batiment: </b> {{ history.batiment }}<br>
-                                            </v-list-item-subtitle>
-                                            <v-list-item-subtitle>
-                                                <b>FTTH: </b> {{ getEtapeFtthValue(history.etapeFtth) }}<br>
-                                                <b>Created: </b> {{ new Date(history.created).toLocaleString('fr-FR')}}<br>
-                                                <b>Dernière MaJ: </b> {{ new Date(history.lastUpdated).toLocaleString('fr-FR')}}
-                                            </v-list-item-subtitle>
-                                        </v-list-item-content>
-                                    </v-list-item>
-                                </v-list>
-                            </l-popup>
-                        </l-marker>
-                    </l-layer-group>
-                    <l-control position='bottomleft' :class="{ 'custom-control': !$vuetify.theme.dark, 'custom-control-dark': $vuetify.theme.dark }">
-                        <v-btn style="z-index:2;" class="ma-2" x-small text
-                        v-for="icon, i in icons"
-                        :key="i" @click="showHideLayer(icon.code)" :ripple="false"
-                        :plain="!currentLayer(icon.code)?.visible"
-                        :disabled="!currentLayer(icon.code) || currentLayer(icon.code)?.markers?.length === 0">
-                            <v-img contain height="27" width="20" :src="icon.icon.options.iconUrl" :class="icon.icon.options.className"/>
-                            <span class="pl-2">{{ icon.title }}</span>
-                        </v-btn>
-                    </l-control>
-                </l-map>
-            <v-row justify="center">
-                <v-col md="8">
-                    <v-data-table class="mt-5 mb-10" :headers="headers" :items="fibers" fixed-header height="650px"
+            <l-map id="mapContainer" ref="map" :center="userLocation" :zoom="zoom"
+            @update:center="centerUpdate" @update:bounds="boundsUpdated">
+                <l-control-layers key="control-layers" position="topright"/>
+                <l-tile-layer v-for="tileProvider in tileProviders"
+                    :url="tileProvider.url" :attribution="tileProvider.attribution"
+                    :key="tileProvider.name" :name="tileProvider.name" layer-type="base" :visible="tileProvider.visible"
+                />
+                <l-layer-group v-for="layer in layers" :visible="layer.visible" :key="'layer_'+layer.name">
+                    <l-marker
+                        v-for="fiber in layer.markers"
+                        :ref="'marker_'+fiber.signature" :key="'marker_'+layer.name+'marker_'+fiber.signature"
+                        :lat-lng="[fiber.y, fiber.x]" @click="getHistorique(fiber)">
+                        <l-icon :icon-url="fiber?.iconUrl" class="leaflet-marker-icon" :class-name="recentResult ? fiber?.iconClassName : 'opacity-100'"/>
+                        <l-popup :visible="false" key="popup">
+                            <v-progress-circular v-if="loadingHistory"
+                                indeterminate key="popup-loader"
+                                color="primary"
+                            />
+                            <v-list v-else key="list-popup" light max-height="400px" class="overflow-y-auto">
+                                <v-list-item v-if="fiber.eligibilitesFtth.length === 0" :key="'popup-list-'+fiber.signature">
+                                    <v-list-item-content key="popup-list-content-no-data">
+                                        <v-list-item-title key="'popup-list-content-title-no-data'">{{ fiber.libAdresse }}</v-list-item-title>
+                                        <v-list-item-subtitle key="popup-list-content-subtitle-0">
+                                            <b>Created: </b> {{ new Date(fiber.created).toLocaleString('fr-FR')}}<br>
+                                            <b>Dernière MaJ: </b> {{ new Date(fiber.lastUpdated).toLocaleString('fr-FR')}}
+                                        </v-list-item-subtitle>
+                                    </v-list-item-content>
+                                </v-list-item>
+                                <v-list-item v-else v-for="item in fiber.eligibilitesFtth" :key="'popup-list-'+item.codeImb">
+                                    <v-list-item-content key="popup-list-content">
+                                        <v-list-item-title :key="'popup-list-content-title'+item.codeImb">{{ fiber.libAdresse }}</v-list-item-title>
+                                        <v-list-item-subtitle v-if="!!item.batiment" key="popup-list-content-subtitle-1">
+                                            <b>Batiment: </b> {{ item.batiment }}<br>
+                                        </v-list-item-subtitle>
+                                        <v-list-item-subtitle key="popup-list-content-subtitle-2">
+                                            <b>FTTH: </b> {{ item.strEtapeFtth }}<br>
+                                            <b>Created: </b> {{ new Date(item.created).toLocaleString('fr-FR')}}<br>
+                                            <b>Dernière MaJ: </b> {{ new Date(item.lastUpdated).toLocaleString('fr-FR')}}
+                                        </v-list-item-subtitle>
+                                    </v-list-item-content>
+                                </v-list-item>
+                            </v-list>
+                        </l-popup>
+                    </l-marker>
+                </l-layer-group>
+                <l-control key="control-custom" position='bottomleft' :class="{ 'custom-control': !$vuetify.theme.dark, 'custom-control-dark': $vuetify.theme.dark }">
+                    <v-btn style="z-index:2;" class="ma-2" x-small text
+                    v-for="icon, i in icons"
+                    :key="'control-custom-btn-'+i" @click="showHideLayer(icon.code)" :ripple="false"
+                    :plain="!layers[i]?.visible"
+                    :disabled="!layers[i] || layers[i]?.markers?.length === 0">
+                        <v-img :key="'control-custom-btn-img-'+i" contain height="27" width="20" :src="icon.icon"/>
+                        <span :key="'control-custom-btn-span-'+i" class="pl-2">{{ icon.title }}</span>
+                    </v-btn>
+                </l-control>
+            </l-map>
+            <v-row key="main-card-content" justify="center">
+                <v-col md="10">
+                    <v-data-table class="mt-5 mb-10" :headers="headers" key="list-details" :items="fibers" fixed-header height="650px"
                         :options="{ itemsPerPage: 100 }" :loading="loading" @click:row="centerMapOnPoint"
-                        :footer-props="{
-                            'items-per-page-options': [50, 100, 200, 500, 1000]
-                        }">
+                        :footer-props="{ 'items-per-page-options': [50, 100, 200, 500, 1000] }"
+                    >
                         <template v-slot:[`item.eligibilitesFtth`]="{ item }">
-                            <td>
-                                {{ getEtapeFtthValue(item.etapeFtth) }}
+                            <td key="list-eligibilite">
+                                {{ item.eligibilitesFtth[0]?.strEtapeFtth }}
+                            </td>
+                        </template>
+                        <template v-slot:[`item.batiment`]="{ item }">
+                            <td key="list-batiment">
+                                {{ item.eligibilitesFtth[0]?.batiment }}
                             </td>
                         </template>
                     </v-data-table>

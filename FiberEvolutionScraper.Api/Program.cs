@@ -42,11 +42,10 @@ public class Program
                 .ForMember(dest => dest.LibAdresse, act => act.MapFrom(src => src.Address.LibAdresse))
                 .ForMember(dest => dest.LibCommune, act => act.MapFrom(src => src.Address.LibCommune))
                 .ForMember(dest => dest.LibVoie, act => act.MapFrom(src => src.Address.LibVoie))
-                .ForMember(dest => dest.EtapeFtth, act => act.MapFrom(src => src.EligibilitesFtth.Any() ? ResolveEnum(src.EligibilitesFtth.First().EtapeFtth) : EtapeFtth._))
-                .ForMember(dest => dest.Batiment, act => act.MapFrom(src => src.EligibilitesFtth.Any() ? src.EligibilitesFtth.First().Batiment : null))
-                .ForMember(dest => dest.CodeImb, act => act.MapFrom(src => src.EligibilitesFtth.Any() ? src.EligibilitesFtth.First().CodeImb : null))
+                .ForMember(dest => dest.EligibilitesFtth, act => act.MapFrom(src => src.EligibilitesFtth))
                 .ReverseMap()
             ;
+            cfg.CreateMap<EligibilitesFtth, EligibiliteFtthDTO>().ReverseMap();
         });
 
         var app = builder.Build();

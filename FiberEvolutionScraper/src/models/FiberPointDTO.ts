@@ -1,5 +1,14 @@
-export default class FiberPointDTO
+import BaseModelDTO from "./BaseModelDTO";
+import EligibiliteFtthDTO from "./EligibiliteFtthDTO";
+
+export default class FiberPointDTO implements BaseModelDTO
 {
+    created = new Date();
+
+    lastUpdated = new Date();
+
+    eligibilitesFtth: EligibiliteFtthDTO[] = [];
+
     codeCommune = "";
 
     codeVoie = "";
@@ -18,31 +27,11 @@ export default class FiberPointDTO
 
     libAdresse = "";
 
-    batiment = "";
-
-    codeImb = "";
-
     x = 0.0;
 
     y = 0.0;
 
-    ftthLoaded = false;
+    iconUrl = "";
 
-    etapeFtth = EtapeFtth._;
-
-    created = new Date();
-
-    lastUpdated = new Date();
-}
-
-export enum EtapeFtth
-{
-    ELLIGIBLE,
-    EN_COURS_IMMEUBLE,
-    TERMINE_QUARTIER,
-    EN_COURS_QUARTIER,
-    PREVU_QUARTIER,
-    _,
-    DEBUG,
-    UNKNOWN = 999
+    iconClassName = "";
 }

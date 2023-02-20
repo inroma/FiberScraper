@@ -89,5 +89,5 @@ public class EligibilitesFtth
     public string EtapeFtth { get; set; }
 
     [JsonPropertyName("dateDebutEligibilite")]
-    public object DateDebutEligibilite { get; set; }
+    public DateTime? DateDebutEligibilite { get; set; }
 }

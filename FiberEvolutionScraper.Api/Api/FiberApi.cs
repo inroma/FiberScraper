@@ -12,8 +12,8 @@ public class FiberApi
     TokenParser tokenParser;
     double offsetX = 0.006929;
     double offsetY = 0.004457;
-    double offsetCityX = 0.006929 * .6;
-    double offsetCityY = 0.004457 * .6;
+    double offsetCityX = 0.006929 * .25;
+    double offsetCityY = 0.004457 * .25;
 
     public FiberApi(IServiceProvider serviceProvider)
     {
@@ -29,7 +29,7 @@ public class FiberApi
     public FiberResponseModel GetFibersForLoc(double x, double y, int squareSize = 5, bool canIterate = true)
     {
         setToken();
-        if(!client.DefaultRequestHeaders.Any(h => h.Key == "AppAuthorization"))
+        if (!client.DefaultRequestHeaders.Any(h => h.Key == "AppAuthorization"))
         {
             client.DefaultRequestHeaders.Add("AppAuthorization", $"Bearer {tokenParser.Token}");
         }
@@ -61,7 +61,7 @@ public class FiberApi
                 }
                 if (tempResult.Results.Any() && tempResult.ZoneSize != "GTC" && canIterate)
                 {
-                    fibers.Results.AddRange(GetFibersForLoc(startPoint.Item1 + k * currentOffsetX, startPoint.Item2 + j * currentOffsetY, 2, false).Results);
+                    fibers.Results.AddRange(GetFibersForLoc(startPoint.Item1 + k * currentOffsetX, startPoint.Item2 + j * currentOffsetY, 3, false).Results);
                 }
                 //AddDebugMarker(fibers, startPoint, j, k, currentOffsetY, currentOffsetX, squareSize, modul, tempResult.ZoneSize);
             });
@@ -87,9 +87,9 @@ public class FiberApi
                         }
                     },
                     Signature = $"{startPoint.Item1 + k * currentOffsetX + startPoint.Item2 + j * currentOffsetY + modul + squareSize + j + k}",
-                    LibAdresse = $"{startPoint.Item1}, {startPoint.Item2}, {modul}, {j} + {k}"
+                    LibAdresse = "DEBUG_" + zoneSize
                 },
-                EligibilitesFtth = new() { new() { EtapeFtth = "DEBUG_" + zoneSize } }
+                EligibilitesFtth = new() { new() { EtapeFtth = EtapeFtth.DEBUG.ToString() } }
             });
         }
     }

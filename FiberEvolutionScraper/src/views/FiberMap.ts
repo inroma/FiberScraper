@@ -7,7 +7,9 @@ import { Action } from 'vuex-class';
 import { Component } from 'vue-property-decorator';
 import { ToastStoreMethods } from '@/store/ToastStore';
 import { ISnackbar, ISnackbarColor } from '@/models/SnackbarInterface';
-import FiberPointDTO, { EtapeFtth } from '@/models/FiberPointDTO';
+import FiberPointDTO from '@/models/FiberPointDTO';
+import { EtapeFtth } from '@/models/Enums';
+import EligibiliteFtth from '@/models/EligibiliteFtthDTO';
 
 @Component({
     components: {
@@ -28,7 +30,6 @@ export default class FiberMapVue extends Vue {
     public map: null | LMap = null;
     public userLocation = new LatLng(45.76, 4.83);
     public fibers: FiberPointDTO[] = [];
-    public fiberHistory: FiberPointDTO[] = [];
     public zoom = 11;
     public tileProviders = [
         {
@@ -36,15 +37,14 @@ export default class FiberMapVue extends Vue {
           visible: true,
           attribution:
             '&copy; <a target="_blank" href="http://osm.org/copyright">OpenStreetMap</a> contributors',
-          url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+          url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
         },
         {
             name: 'CartoDBDark',
             visible: false,
             url: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
             attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
-            subdomains: 'abcd',
-            maxZoom: 20
+            subdomains: 'abcd'
         },
         {
           name: 'OpenTopoMap',
@@ -58,34 +58,13 @@ export default class FiberMapVue extends Vue {
     private openedMarker: null | LMarker = null;
     private date = new Date();
     public recentResult = false;
-    public defaultIcon = new L.Icon.Default({
-        iconUrl: '/icons/marker-blue.png',
-        shadowUrl: ''
-    });
-    public redIcon = new L.Icon.Default({
-        iconUrl: '/icons/marker-red.png',
-        shadowUrl: '',
-    });
-    public greenIcon = new L.Icon.Default({
-        iconUrl: '/icons/marker-green.png',
-        shadowUrl: '',
-    });
-    public purpleIcon = new L.Icon.Default({
-        iconUrl: '/icons/marker-purple.png',
-        shadowUrl: '',
-    });
-    public brownIcon = new L.Icon.Default({
-        iconUrl: '/icons/marker-orange.png',
-        shadowUrl: '',
-    });
-    public blackIcon = new L.Icon.Default({
-        iconUrl: '/icons/marker-black.png',
-        shadowUrl: '',
-    });
-    public blueInvertedIcon = new L.Icon.Default({
-        iconUrl: '/icons/marker-white.png',
-        shadowUrl: '',
-    });
+    public defaultIcon = '/icons/marker-blue.png';
+    public redIcon = '/icons/marker-red.png';
+    public greenIcon = '/icons/marker-green.png';
+    public purpleIcon = '/icons/marker-purple.png';
+    public brownIcon = '/icons/marker-orange.png';
+    public blackIcon = '/icons/marker-black.png';
+    public blueInvertedIcon = '/icons/marker-white.png';
     public layers: { markers: FiberPointDTO[], visible: boolean, name: string }[] = [];
 
     public icons = [{code: EtapeFtth.ELLIGIBLE, title: "Élligible", icon: this.greenIcon},
@@ -94,13 +73,14 @@ export default class FiberMapVue extends Vue {
         {code: EtapeFtth.EN_COURS_QUARTIER, title: "Déploiement Quartier", icon: this.defaultIcon},
         {code: EtapeFtth.PREVU_QUARTIER, title: "Quartier Programmé", icon: this.brownIcon},
         {code: EtapeFtth._, title: "Aucune donnée", icon: this.redIcon},
-        {code: EtapeFtth.UNKNOWN, title: "Statut inconnu", icon: this.blackIcon}];
+        {code: EtapeFtth.UNKNOWN, title: "Statut inconnu", icon: this.blackIcon}
+    ];
+    EtapeFtth = EtapeFtth;
 
     public get headers() {
         return [
             { text: 'Adresse', value: 'libAdresse' },
-            { text: 'Batiment', value: 'batiment' },
-            { text: 'Code IMB', value: 'codeImb' },
+            { text: 'Batiment', value: 'batiment', width: '250px' },
             { text: 'Éligibilité FTTH', value: 'eligibilitesFtth' },
             { text: 'Coord Lat', value: 'x' },
             { text: 'Coord Long', value: 'y' },
@@ -133,6 +113,19 @@ export default class FiberMapVue extends Vue {
         })
         .finally(() => {
             this.loading = false;
+        });
+    }
+
+    public updateFibers() {
+        this.recentResult = false;
+        axios.get<number>('https://localhost:5001/api/fiber/UpdateWideArea',
+            { headers: { 'Content-Type': 'application/json' },
+            params: { coordX: this.userLocation.lat, coordY: this.userLocation.lng }})
+        .then((response) => {
+            this.createToast({ message: response.data + " points créés / mis à jour." });
+        })
+        .catch((errors) => {
+            this.createToast({ color: ISnackbarColor.Error, message: errors });
         });
     }
 
@@ -199,11 +192,11 @@ export default class FiberMapVue extends Vue {
 
     public getHistorique(fiber: FiberPointDTO) {
         this.loadingHistory = true;
-        this.fiberHistory = [fiber];
-        axios.post<FiberPointDTO[]>('https://localhost:5001/api/fiber/GetSameSignaturePoints', fiber, 
-            { headers: { 'Content-Type': 'application/json' }})
+        axios.get<FiberPointDTO>('https://localhost:5001/api/fiber/GetSameSignaturePoints', 
+            { headers: { 'Content-Type': 'application/json' }, params: { signature: fiber.signature }})
         .then((response) => {
-            this.fiberHistory.unshift(...response.data);
+            fiber.eligibilitesFtth = response.data.eligibilitesFtth.sort((a, b) => (a.batiment < b.batiment && a.etapeFtth < b.etapeFtth ? -1 : 1));
+            fiber.eligibilitesFtth.forEach(f => f.strEtapeFtth = EtapeFtth[f.etapeFtth]);
         })
         .catch((errors) => {
             this.createToast({ color:ISnackbarColor.Error, message: errors });
@@ -231,24 +224,31 @@ export default class FiberMapVue extends Vue {
         this.openedMarker.mapObject.openPopup();
     }
 
-    public getIcon(fiber: FiberPointDTO): L.Icon.Default {
-        const icon = this.icons.filter(a => a.code === fiber.etapeFtth)[0]?.icon;
-        if (icon === undefined) {
-            return this.blackIcon;
+    public setIcon(fiber: FiberPointDTO) {
+        if (fiber.eligibilitesFtth.length > 0) {
+            const icon = this.icons.filter(a => a.code === Math.min(...fiber.eligibilitesFtth?.map(x => x.etapeFtth)))[0]?.icon;
+            if (icon === undefined) {
+                fiber.iconUrl = this.blackIcon;
+                fiber.iconClassName = this.opacityWithElderness(fiber);
+            }
+            fiber.iconUrl = icon;
+            fiber.iconClassName = this.opacityWithElderness(fiber);
+        } else {
+            fiber.iconUrl = this.redIcon;
+            fiber.iconClassName = this.opacityWithElderness(fiber);
         }
-        return icon;
     }
 
-    public isEligibleToFTTH(item: FiberPointDTO) {
-        return item.etapeFtth === EtapeFtth.ELLIGIBLE ? 'Oui' : 'Non';
-    }
-
-    public getEtapeFtthValue(etapeFtth: EtapeFtth) {
-        return EtapeFtth[etapeFtth];
+    public getEtapeFtthValue(eligibiliteFtth: EligibiliteFtth) {
+        if (eligibiliteFtth !== null){
+            return EtapeFtth[eligibiliteFtth.etapeFtth];
+        } else {
+            return EtapeFtth._;
+        }
     }
 
     public showHideLayer(code: EtapeFtth) {
-        const selectedLayer = this.layers.filter(l => l.name === EtapeFtth[code])[0];
+        const selectedLayer = this.layers.filter(l => l.name === code.toString())[0];
         selectedLayer.visible = !selectedLayer.visible;
     }
 
@@ -261,18 +261,26 @@ export default class FiberMapVue extends Vue {
     }
 
     public mapFibersToLayer() {
+        this.fibers.forEach(f => this.setIcon(f));
+        this.fibers.forEach(fiber => fiber.eligibilitesFtth.forEach(f => f.strEtapeFtth = EtapeFtth[f.etapeFtth]));
         this.layers = [];
-        Object.values(EtapeFtth).forEach((value) => {
-            if (typeof(value) !== typeof(EtapeFtth)) {
-                this.layers.push(
-                    {
-                        markers: this.fibers.filter(f => EtapeFtth[f.etapeFtth] === value),
-                        name: value.toString(),
-                        visible: true,
-                    }
-                );
-            }
+        Object.keys(EtapeFtth).forEach((value) => {
+            this.layers.push(
+                {
+                    markers: this.fibers.filter(f => Math.min(...f.eligibilitesFtth?.map(x => x.etapeFtth)) === Number(value)),
+                    name: value.toString(),
+                    visible: true,
+                }
+            );
         });
+        const noDataLayer = this.layers.filter(l => l.name === EtapeFtth._.toString())[0];
+        noDataLayer.markers = noDataLayer.markers.concat(
+            this.fibers.filter(f => f.eligibilitesFtth.length === 0)
+        );
+        const debugLayer = this.layers.filter(l => l.name === EtapeFtth.UNKNOWN.toString())[0];
+        debugLayer.markers = debugLayer.markers.concat(
+            this.fibers.filter(f => Math.min(...f.eligibilitesFtth?.map(x => x.etapeFtth)) === EtapeFtth.DEBUG)
+        );
     }
 
     public centerMapOnLocation() {
@@ -288,15 +296,15 @@ export default class FiberMapVue extends Vue {
     }
 
     public opacityWithElderness(fiber: FiberPointDTO) {
-        const fiberDate = new Date(fiber.created).getTime();
+        const mostRecentDate = Math.max(...fiber.eligibilitesFtth.map(f => new Date(f.created).getTime()));
         let result = 100;
-        if (fiberDate >= this.date.getTime() - 1 * 86400000) {
+        if (mostRecentDate >= this.date.getTime() - 1 * 86400000) {
             result = 100;
-        } else if (fiberDate >= this.date.getTime() - 3 * 86400000) {
+        } else if (mostRecentDate >= this.date.getTime() - 3 * 86400000) {
             result = 80;
-        } else if (fiberDate >= this.date.getTime() - 5 * 86400000) {
+        } else if (mostRecentDate >= this.date.getTime() - 5 * 86400000) {
             result = 60;
-        } else if (fiberDate >= this.date.getTime() - 6 * 86400000) {
+        } else if (mostRecentDate >= this.date.getTime() - 6 * 86400000) {
             result = 50;
         } else {
             result = 15;
