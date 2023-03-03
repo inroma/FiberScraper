@@ -55,7 +55,9 @@ public class FiberService
         var latlng = parameters.Split(",").Select(s => double.Parse(s, CultureInfo.InvariantCulture)).ToList();
 
         var result = context.FiberPoints
-            .Where(f => f.EligibilitesFtth.Any(e => e.Created >= DateTime.UtcNow.AddDays(-7)) && f.X >= latlng[0] && f.Y >= latlng[1] && f.X <= latlng[2] && f.Y <= latlng[3])
+            .Where(f => f.X >= latlng[0] && f.Y >= latlng[1] && f.X <= latlng[2] && f.Y <= latlng[3])
+            .Where(f => (f.EligibilitesFtth.Any(e => e.Created >= DateTime.UtcNow.AddDays(-5) || e.LastUpdated >= DateTime.UtcNow.AddDays(-1))
+                    || (!f.EligibilitesFtth.Any() && f.Created >= DateTime.UtcNow.AddDays(-5)) || f.LastUpdated >= DateTime.UtcNow.AddDays(-1)))
             .ToList();
 
         return result
@@ -77,10 +79,10 @@ public class FiberService
         try
         {
             var scopedDbContext = serviceProvider.CreateScope().ServiceProvider.GetRequiredService<ApplicationDbContext>();
-            var minX = fiberPoints.Min(x => x.X - 1);
-            var maxX = fiberPoints.Max(x => x.X + 1);
-            var minY = fiberPoints.Min(x => x.Y - 1);
-            var maxY = fiberPoints.Max(x => x.Y + 1);
+            var minX = fiberPoints.Min(x => x.X - 0.2);
+            var maxX = fiberPoints.Max(x => x.X + 0.2);
+            var minY = fiberPoints.Min(x => x.Y - 0.2);
+            var maxY = fiberPoints.Max(x => x.Y + 0.2);
             var dbFibers = scopedDbContext.FiberPoints.Where(ctx => ctx.X >= minX && ctx.X <= maxX && ctx.Y >= minY && ctx.Y <= maxY).ToList();
 
             fiberPoints.ForEach(fiber =>
@@ -88,12 +90,19 @@ public class FiberService
                 var dbFiber = dbFibers.FirstOrDefault(f => f.Signature == fiber.Signature);
                 if (dbFiber == null)
                 {
-                    fiber.Created = fiber.LastUpdated = DateTime.UtcNow;
+                    fiber.LastUpdated = DateTime.UtcNow;
                     scopedDbContext.FiberPoints.Add(fiber);
                 }
                 else
                 {
-                    dbFiber.LastUpdated = DateTime.UtcNow;
+                    AddOrUpdateEligibiliteFtth(scopedDbContext, dbFiber, fiber);
+                    if (fiber.X != dbFiber.X || fiber.Y != dbFiber.Y || fiber.LibAdresse != dbFiber.LibAdresse)
+                    {
+                        fiber.LastUpdated = DateTime.UtcNow;
+                    }
+                    dbFiber.X = fiber.X;
+                    dbFiber.Y = fiber.Y;
+                    dbFiber.LibAdresse = fiber.LibAdresse;
                     scopedDbContext.FiberPoints.Update(dbFiber);
                 }
             });
@@ -105,5 +114,29 @@ public class FiberService
             Console.WriteLine(ex.InnerException?.Message ?? ex.Message);
             return -1;
         }
+    }
+
+    private static void AddOrUpdateEligibiliteFtth(ApplicationDbContext dbContext, FiberPointDTO dbFiber, FiberPointDTO fiberPoint)
+    {
+        fiberPoint.EligibilitesFtth.ForEach(e =>
+        {
+            var dbE = dbFiber.EligibilitesFtth.FirstOrDefault(dbE => dbE.CodeImb == e.CodeImb && dbE.EtapeFtth == e.EtapeFtth);
+            if (dbE != null)
+            {
+                if (dbE.Batiment != e.Batiment || dbE.DateDebutEligibilite != e.DateDebutEligibilite)
+                {
+                    dbE.LastUpdated = DateTime.UtcNow;
+                }
+                dbE.DateDebutEligibilite = e.DateDebutEligibilite;
+                dbE.Batiment = e.Batiment;
+                dbContext.EligibiliteFtth.Update(dbE);
+            }
+            else
+            {
+                e.LastUpdated = DateTime.UtcNow;
+                dbFiber.EligibilitesFtth.Add(e);
+            }
+        });
+
     }
 }
