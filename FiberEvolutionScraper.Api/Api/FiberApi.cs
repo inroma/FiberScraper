@@ -47,23 +47,26 @@ public class FiberApi
             Parallel.For(0, squareSize, (k) =>
             {
                 httpResponse = client.GetAsync($"api/eligibilite/zoneAdresse?x={(startPoint.Item1 + k * currentOffsetX).ToString(CultureInfo.InvariantCulture)}&y={(startPoint.Item2 + j * currentOffsetY).ToString(CultureInfo.InvariantCulture)}&extendedZone=false").Result;
-                var tempResult = JsonSerializer.Deserialize<FiberResponseModel>(httpResponse.Content.ReadAsStringAsync().Result);
-                lock (fibers.Results)
+                if (httpResponse.IsSuccessStatusCode)
                 {
-                    if (tempResult.Results.Count > 1)
+                    var tempResult = JsonSerializer.Deserialize<FiberResponseModel>(httpResponse.Content.ReadAsStringAsync().Result);
+                    lock (fibers.Results)
                     {
-                        fibers.Results.AddRange(tempResult.Results);
+                        if (tempResult.Results.Count > 1)
+                        {
+                            fibers.Results.AddRange(tempResult.Results);
+                        }
+                        else if (tempResult.Results.Count == 1)
+                        {
+                            fibers.Results.Add(tempResult.Results.First());
+                        }
                     }
-                    else if (tempResult.Results.Count == 1)
+                    if (tempResult.Results.Any() && tempResult.ZoneSize != "GTC" && canIterate)
                     {
-                        fibers.Results.Add(tempResult.Results.First());
+                        fibers.Results.AddRange(GetFibersForLoc(startPoint.Item1 + k * currentOffsetX, startPoint.Item2 + j * currentOffsetY, 3, false).Results);
                     }
+                    //AddDebugMarker(fibers, startPoint, j, k, currentOffsetY, currentOffsetX, squareSize, modul, tempResult.ZoneSize);
                 }
-                if (tempResult.Results.Any() && tempResult.ZoneSize != "GTC" && canIterate)
-                {
-                    fibers.Results.AddRange(GetFibersForLoc(startPoint.Item1 + k * currentOffsetX, startPoint.Item2 + j * currentOffsetY, 3, false).Results);
-                }
-                //AddDebugMarker(fibers, startPoint, j, k, currentOffsetY, currentOffsetX, squareSize, modul, tempResult.ZoneSize);
             });
         });
 
@@ -96,7 +99,7 @@ public class FiberApi
 
     private void setToken()
     {
-        if (tokenParser.Token == null || tokenParser.TokenAge < DateTime.Now.AddHours(-1.5))
+        if (tokenParser.Token == null || tokenParser.TokenAge < DateTime.Now.AddHours(-1))
         {
             tokenParser.GetToken(GetOrangeToken(tokenParser.GenerateAppId()));
             client.DefaultRequestHeaders.Add("AppAuthorization", $"Bearer {tokenParser.Token}");
