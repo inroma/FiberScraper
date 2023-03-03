@@ -70,7 +70,7 @@
                 <v-btn @click="getNewestFibers()" color="blue accent-4" :loading="loading">Charger nouveaux points</v-btn>
             </v-col>
             <v-col class="mr-3 text-right">
-                <v-btn @click="clearData()" color="error" :loading="loading" :disabled="!fibers.length">Clear</v-btn>
+                <v-btn @click="clearData()" color="error" :disabled="!fibers.length">Clear</v-btn>
             </v-col>
         </v-row>
         <div class="mb-10 ml-10 mr-10">
@@ -144,6 +144,11 @@
                         <template v-slot:[`item.batiment`]="{ item }">
                             <td key="list-batiment">
                                 {{ item.eligibilitesFtth[0]?.batiment }}
+                            </td>
+                        </template>
+                        <template v-slot:[`item.created`]="{ item }">
+                            <td key="list-batiment">
+                                {{ new Date(item.eligibilitesFtth[0]?.created).toDateString() }}
                             </td>
                         </template>
                     </v-data-table>

@@ -80,6 +80,7 @@ export default class FiberMapVue extends Vue {
     public get headers() {
         return [
             { text: 'Adresse', value: 'libAdresse' },
+            { text: 'Création', value: 'created' },
             { text: 'Batiment', value: 'batiment', width: '250px' },
             { text: 'Éligibilité FTTH', value: 'eligibilitesFtth' },
             { text: 'Coord Lat', value: 'x' },
@@ -117,7 +118,6 @@ export default class FiberMapVue extends Vue {
     }
 
     public updateFibers() {
-        this.recentResult = false;
         axios.get<number>('https://localhost:5001/api/fiber/UpdateWideArea',
             { headers: { 'Content-Type': 'application/json' },
             params: { coordX: this.userLocation.lat, coordY: this.userLocation.lng }})
@@ -229,14 +229,12 @@ export default class FiberMapVue extends Vue {
             const icon = this.icons.filter(a => a.code === Math.min(...fiber.eligibilitesFtth?.map(x => x.etapeFtth)))[0]?.icon;
             if (icon === undefined) {
                 fiber.iconUrl = this.blackIcon;
-                fiber.iconClassName = this.opacityWithElderness(fiber);
             }
             fiber.iconUrl = icon;
-            fiber.iconClassName = this.opacityWithElderness(fiber);
         } else {
             fiber.iconUrl = this.redIcon;
-            fiber.iconClassName = this.opacityWithElderness(fiber);
         }
+        fiber.iconClassName = this.opacityWithElderness(fiber);
     }
 
     public getEtapeFtthValue(eligibiliteFtth: EligibiliteFtth) {
@@ -296,13 +294,14 @@ export default class FiberMapVue extends Vue {
     }
 
     public opacityWithElderness(fiber: FiberPointDTO) {
-        const mostRecentDate = Math.max(...fiber.eligibilitesFtth.map(f => new Date(f.created).getTime()));
+        let mostRecentDate = Math.max(...fiber.eligibilitesFtth.map(f => new Date(f.created).getTime()));
+        if (fiber.eligibilitesFtth.length === 0) {
+            mostRecentDate = new Date(fiber.created).getTime();
+        }
         let result = 100;
         if (mostRecentDate >= this.date.getTime() - 1 * 86400000) {
             result = 100;
         } else if (mostRecentDate >= this.date.getTime() - 3 * 86400000) {
-            result = 80;
-        } else if (mostRecentDate >= this.date.getTime() - 5 * 86400000) {
             result = 60;
         } else if (mostRecentDate >= this.date.getTime() - 6 * 86400000) {
             result = 50;

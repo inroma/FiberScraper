@@ -9,21 +9,7 @@ export default class FiberPointDTO implements BaseModelDTO
 
     eligibilitesFtth: EligibiliteFtthDTO[] = [];
 
-    codeCommune = "";
-
-    codeVoie = "";
-
-    numVoie = "";
-
-    extVoie = "";
-
     signature = "";
-
-    codePostal = "";
-
-    libCommune = "";
-
-    libVoie = "";
 
     libAdresse = "";
 
