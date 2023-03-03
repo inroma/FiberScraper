@@ -7,16 +7,17 @@ public class ApplicationDbContext : DbContext
 {
     public DbSet<FiberPointDTO> FiberPoints { get; set; }
 
+    public DbSet<EligibiliteFtthDTO> EligibiliteFtth { get; set; }
+
     public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
     : base(options)
     {
         Database.EnsureCreated();
+        ChangeTracker.LazyLoadingEnabled = false;
     }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.Entity<FiberPointDTO>()
-            .HasKey(p => p.Signature);
         modelBuilder.Entity<FiberPointDTO>()
             .HasIndex(p => p.Signature)
             .IsUnique(true);
@@ -26,28 +27,10 @@ public class ApplicationDbContext : DbContext
             .OnDelete(DeleteBehavior.SetNull);
         modelBuilder.Entity<FiberPointDTO>().Navigation(e => e.EligibilitesFtth).AutoInclude();
 
-        modelBuilder.Entity<FiberPointDTO>()
-            .Property(b => b.Created)
-            .IsRequired();
-
-        modelBuilder.Entity<FiberPointDTO>()
-            .Property(b => b.LastUpdated)
-            .IsRequired();
-
-
         modelBuilder.Entity<EligibiliteFtthDTO>()
-            .HasKey(p => new { p.CodeImb, p.EtapeFtth });
-        modelBuilder.Entity<EligibiliteFtthDTO>()
-            .HasIndex(p => new { p.CodeImb, p.EtapeFtth })
-            .IsUnique(true);
-
-        modelBuilder.Entity<EligibiliteFtthDTO>()
-            .Property(b => b.Created)
-            .IsRequired();
-
-        modelBuilder.Entity<EligibiliteFtthDTO>()
-            .Property(b => b.LastUpdated)
-            .IsRequired();
+            .HasOne(e => e.FiberPoint)
+            .WithMany(b => b.EligibilitesFtth)
+            .HasForeignKey(e => e.FiberPointDTOSignature);
     }
 
     public override int SaveChanges()
@@ -55,17 +38,11 @@ public class ApplicationDbContext : DbContext
         var entries = ChangeTracker
             .Entries()
             .Where(e => e.Entity is BaseModelDTO && (
-                    e.State == EntityState.Added
-                    || e.State == EntityState.Modified));
+                    e.State == EntityState.Added));
 
         foreach (var entityEntry in entries)
         {
-            ((BaseModelDTO)entityEntry.Entity).LastUpdated = DateTime.UtcNow;
-
-            if (entityEntry.State == EntityState.Added)
-            {
-                ((BaseModelDTO)entityEntry.Entity).Created = DateTime.UtcNow;
-            }
+            ((BaseModelDTO)entityEntry.Entity).Created = DateTime.UtcNow;
         }
 
         return base.SaveChanges();
