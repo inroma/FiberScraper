@@ -102,7 +102,7 @@
                                         </v-list-item-subtitle>
                                     </v-list-item-content>
                                 </v-list-item>
-                                <v-list-item v-else v-for="item in fiber.eligibilitesFtth" :key="'popup-list-'+item.codeImb">
+                                <v-list-item v-else v-for="item in fiber.eligibilitesFtth" :key="'popup-list-'+item.codeImb+'-'+item.etapeFtth">
                                     <v-list-item-content key="popup-list-content">
                                         <v-list-item-title :key="'popup-list-content-title'+item.codeImb">{{ fiber.libAdresse }}</v-list-item-title>
                                         <v-list-item-subtitle v-if="!!item.batiment" key="popup-list-content-subtitle-1">
@@ -137,18 +137,18 @@
                         :footer-props="{ 'items-per-page-options': [50, 100, 200, 500, 1000] }"
                     >
                         <template v-slot:[`item.eligibilitesFtth`]="{ item }">
-                            <td key="list-eligibilite">
+                            <td key="list-item-eligibilite">
                                 {{ item.eligibilitesFtth[0]?.strEtapeFtth }}
                             </td>
                         </template>
                         <template v-slot:[`item.batiment`]="{ item }">
-                            <td key="list-batiment">
+                            <td key="list-item-batiment">
                                 {{ item.eligibilitesFtth[0]?.batiment }}
                             </td>
                         </template>
                         <template v-slot:[`item.created`]="{ item }">
-                            <td key="list-batiment">
-                                {{ new Date(item.eligibilitesFtth[0]?.created).toDateString() }}
+                            <td key="list-item-created">
+                                {{ new Date(item.eligibilitesFtth[0]?.created).toLocaleString() }}
                             </td>
                         </template>
                     </v-data-table>
