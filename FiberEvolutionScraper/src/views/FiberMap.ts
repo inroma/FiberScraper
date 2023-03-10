@@ -226,7 +226,7 @@ export default class FiberMapVue extends Vue {
 
     public setIcon(fiber: FiberPointDTO) {
         if (fiber.eligibilitesFtth.length > 0) {
-            const icon = this.icons.filter(a => a.code === Math.min(...fiber.eligibilitesFtth?.map(x => x.etapeFtth)))[0]?.icon;
+            const icon = this.icons.filter(a => a.code === fiber.eligibilitesFtth[0].etapeFtth)[0]?.icon;
             if (icon === undefined) {
                 fiber.iconUrl = this.blackIcon;
             }
