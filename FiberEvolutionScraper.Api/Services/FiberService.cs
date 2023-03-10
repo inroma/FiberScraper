@@ -2,6 +2,7 @@
 using FiberEvolutionScraper.Api.Api;
 using FiberEvolutionScraper.Api.Data;
 using FiberEvolutionScraper.Api.Models;
+using Microsoft.EntityFrameworkCore;
 using System.Globalization;
 
 namespace FiberEvolutionScraper.Api.Services;
@@ -37,7 +38,8 @@ public class FiberService
 
     internal IList<FiberPointDTO> GetDbFibersForLoc(double coordX, double coordY)
     {
-        var result = context.FiberPoints.OrderByDescending(x => x.LastUpdated).GroupBy(x => x.Signature).Select(a => a.First()).ToList()
+        var result = context.FiberPoints.Include(f => f.EligibilitesFtth.OrderByDescending(e => e.LastUpdated))
+            .GroupBy(x => x.Signature).Select(a => a.First()).ToList()
             .GroupBy(x => Math.Pow((coordX - x.X), 2) + Math.Pow((coordY - x.Y), 2))
             .OrderBy(x => x.Key).SelectMany(a => a.Select(b => b)).ToList().Take(1300).ToList();
 
@@ -54,7 +56,7 @@ public class FiberService
     {
         var latlng = parameters.Split(",").Select(s => double.Parse(s, CultureInfo.InvariantCulture)).ToList();
 
-        var result = context.FiberPoints
+        var result = context.FiberPoints.Include(f => f.EligibilitesFtth.OrderByDescending(e => e.LastUpdated))
             .Where(f => f.X >= latlng[0] && f.Y >= latlng[1] && f.X <= latlng[2] && f.Y <= latlng[3])
             .Where(f => (f.EligibilitesFtth.Any(e => e.Created >= DateTime.UtcNow.AddDays(-5) || e.LastUpdated >= DateTime.UtcNow.AddDays(-1))
                     || (!f.EligibilitesFtth.Any() && f.Created >= DateTime.UtcNow.AddDays(-5)) || f.LastUpdated >= DateTime.UtcNow.AddDays(-1)))
@@ -79,10 +81,12 @@ public class FiberService
         try
         {
             var scopedDbContext = serviceProvider.CreateScope().ServiceProvider.GetRequiredService<ApplicationDbContext>();
-            var minX = fiberPoints.Min(x => x.X - 0.2);
-            var maxX = fiberPoints.Max(x => x.X + 0.2);
-            var minY = fiberPoints.Min(x => x.Y - 0.2);
-            var maxY = fiberPoints.Max(x => x.Y + 0.2);
+            var xOffset = 0.8;
+            var yOffset = 0.8;
+            var minX = fiberPoints.Min(x => x.X - xOffset);
+            var maxX = fiberPoints.Max(x => x.X + xOffset);
+            var minY = fiberPoints.Min(x => x.Y - yOffset);
+            var maxY = fiberPoints.Max(x => x.Y + yOffset);
             var dbFibers = scopedDbContext.FiberPoints.Where(ctx => ctx.X >= minX && ctx.X <= maxX && ctx.Y >= minY && ctx.Y <= maxY).ToList();
 
             fiberPoints.ForEach(fiber =>
