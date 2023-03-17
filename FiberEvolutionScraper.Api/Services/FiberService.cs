@@ -48,7 +48,7 @@ public class FiberService
 
     internal FiberPointDTO GetSameSignaturePoints(string signature)
     {
-        var result = context.FiberPoints.First(s => s.Signature == signature);
+        var result = context.FiberPoints.Include(f => f.EligibilitesFtth.OrderByDescending(e => e.LastUpdated)).First(s => s.Signature == signature);
         return result;
     }
 
