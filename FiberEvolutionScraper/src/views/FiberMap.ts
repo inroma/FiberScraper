@@ -197,6 +197,8 @@ export default class FiberMapVue extends Vue {
         axios.get<FiberPointDTO>('https://localhost:5001/api/fiber/GetSameSignaturePoints', 
             { headers: { 'Content-Type': 'application/json' }, params: { signature: fiber.signature }})
         .then((response) => {
+            fiber.created = response.data.created;
+            fiber.lastUpdated = response.data.lastUpdated;
             fiber.eligibilitesFtth = response.data.eligibilitesFtth.sort((a, b) => (a.batiment < b.batiment && a.etapeFtth < b.etapeFtth ? -1 : 1));
             fiber.eligibilitesFtth.forEach(f => f.strEtapeFtth = EtapeFtth[f.etapeFtth]);
         })
