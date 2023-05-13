@@ -64,10 +64,10 @@
             </v-col>
             <v-col class="ml-3 justify-center" :cols="2" :lg="10" :md="10" :offset-md="2" :sm="9">
                 <v-btn class="mr-5" @click="updateFibers()" color="green lighten-1" :loading="loading">Actualiser zone étendue</v-btn>
-                <v-btn class="mr-5" @click="getDbFibers()" :loading="loading">Charger fibres en BDD</v-btn>
+                <v-btn class="mr-5" @click="getDbFibers()">Charger fibres en BDD</v-btn>
                 <v-btn class="mr-5" @click="getFibers()" color="primary" :loading="loading">Charger zone étendue</v-btn>
                 <v-btn class="mr-5" @click="getCloseAreaFibers()" color="primary" :loading="loading">Charger zone proche</v-btn>
-                <v-btn @click="getNewestFibers()" color="blue accent-4" :loading="loading">Charger nouveaux points</v-btn>
+                <v-btn @click="getNewestFibers()" color="blue accent-4">Charger nouveaux points</v-btn>
             </v-col>
             <v-col class="mr-3 text-right">
                 <v-btn @click="clearData()" color="error" :disabled="!fibers.length">Clear</v-btn>
@@ -110,8 +110,8 @@
                                         </v-list-item-subtitle>
                                         <v-list-item-subtitle key="popup-list-content-subtitle-2">
                                             <b>FTTH: </b> {{ item.strEtapeFtth }}<br>
-                                            <b>Created: </b> {{ new Date(item.created).toLocaleString('fr-FR')}}<br>
-                                            <b>Dernière MaJ: </b> {{ new Date(item.lastUpdated).toLocaleString('fr-FR')}}
+                                            <b>Created: </b> {{ new Date(item.created).toLocaleString()}}<br>
+                                            <b>Dernière MaJ: </b> {{ new Date(item.lastUpdated).toLocaleString()}}
                                         </v-list-item-subtitle>
                                     </v-list-item-content>
                                 </v-list-item>
@@ -148,7 +148,7 @@
                         </template>
                         <template v-slot:[`item.created`]="{ item }">
                             <td key="list-item-created">
-                                {{ new Date(item.eligibilitesFtth[0]?.created).toLocaleString() }}
+                                {{ new Date(item.eligibilitesFtth[0]?.created ?? item.created).toLocaleString() }}
                             </td>
                         </template>
                     </v-data-table>
