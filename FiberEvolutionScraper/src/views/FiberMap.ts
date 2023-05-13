@@ -118,6 +118,7 @@ export default class FiberMapVue extends Vue {
     }
 
     public updateFibers() {
+        this.loading = true;
         axios.get<number>('https://localhost:5001/api/fiber/UpdateWideArea',
             { headers: { 'Content-Type': 'application/json' },
             params: { coordX: this.userLocation.lat, coordY: this.userLocation.lng }})
@@ -126,7 +127,8 @@ export default class FiberMapVue extends Vue {
         })
         .catch((errors) => {
             this.createToast({ color: ISnackbarColor.Error, message: errors });
-        });
+        })
+        .finally(() => this.loading = false);
     }
 
     public getFibers() {
