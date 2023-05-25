@@ -9,5 +9,6 @@ public enum EtapeFtth
     PREVU_QUARTIER,
     _,
     DEBUG,
+    PROCHE_CLIENT,
     UNKNOWN = 999
 }

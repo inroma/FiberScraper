@@ -121,12 +121,12 @@
                 </l-layer-group>
                 <l-control key="control-custom" position='bottomleft' :class="{ 'custom-control': !$vuetify.theme.dark, 'custom-control-dark': $vuetify.theme.dark }">
                     <v-btn style="z-index:2;" class="ma-2" x-small text
-                    v-for="icon, i in icons"
-                    :key="'control-custom-btn-'+i" @click="showHideLayer(icon.code)" :ripple="false"
-                    :plain="!layers[i]?.visible"
-                    :disabled="!layers[i] || layers[i]?.markers?.length === 0">
-                        <v-img :key="'control-custom-btn-img-'+i" contain height="27" width="20" :src="icon.icon"/>
-                        <span :key="'control-custom-btn-span-'+i" class="pl-2">{{ icon.title }}</span>
+                    v-for="icon in orderedIcons"
+                    :key="'control-custom-btn-'+icon.code" @click="showHideLayer(icon.code)" :ripple="false"
+                    :plain="!layers[icon.code]?.visible"
+                    :disabled="!layers[icon.code] || layers[icon.code]?.markers?.length === 0">
+                        <v-img :key="'control-custom-btn-img-'+icon.code" contain height="27" width="20" :src="icon.icon"/>
+                        <span :key="'control-custom-btn-span-'+icon.code" class="pl-2">{{ icon.title }}</span>
                     </v-btn>
                 </l-control>
             </l-map>

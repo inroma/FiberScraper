@@ -61,21 +61,22 @@ export default class FiberMapVue extends Vue {
     public defaultIcon = '/icons/marker-blue.png';
     public redIcon = '/icons/marker-red.png';
     public greenIcon = '/icons/marker-green.png';
+    public yellowIcon = '/icons/marker-yellow.png';
     public purpleIcon = '/icons/marker-purple.png';
     public brownIcon = '/icons/marker-orange.png';
     public blackIcon = '/icons/marker-black.png';
     public blueInvertedIcon = '/icons/marker-white.png';
     public layers: { markers: FiberPointDTO[], visible: boolean, name: string }[] = [];
 
-    public icons = [{code: EtapeFtth.ELLIGIBLE, title: "Élligible", icon: this.greenIcon},
-        {code: EtapeFtth.EN_COURS_IMMEUBLE, title: "Déploiement Immeuble", icon: this.purpleIcon},
-        {code: EtapeFtth.TERMINE_QUARTIER, title: "Quartier Terminé", icon: this.blueInvertedIcon},
-        {code: EtapeFtth.EN_COURS_QUARTIER, title: "Déploiement Quartier", icon: this.defaultIcon},
-        {code: EtapeFtth.PREVU_QUARTIER, title: "Quartier Programmé", icon: this.brownIcon},
-        {code: EtapeFtth._, title: "Aucune donnée", icon: this.redIcon},
-        {code: EtapeFtth.UNKNOWN, title: "Statut inconnu", icon: this.blackIcon}
+    public icons = [{code: EtapeFtth.ELLIGIBLE, title: "Élligible", icon: this.greenIcon, order: 0},
+        {code: EtapeFtth.EN_COURS_IMMEUBLE, title: "Déploiement Immeuble", icon: this.purpleIcon, order: 2},
+        {code: EtapeFtth.TERMINE_QUARTIER, title: "Quartier Terminé", icon: this.blueInvertedIcon, order: 3},
+        {code: EtapeFtth.EN_COURS_QUARTIER, title: "Déploiement Quartier", icon: this.defaultIcon, order: 4},
+        {code: EtapeFtth.PREVU_QUARTIER, title: "Quartier Programmé", icon: this.brownIcon, order: 5},
+        {code: EtapeFtth._, title: "Aucune donnée", icon: this.redIcon, order: 6},
+        {code: EtapeFtth.PROCHE_CLIENT, title: "Proche Client", icon: this.yellowIcon, order: 1},
+        {code: EtapeFtth.UNKNOWN, title: "Statut inconnu", icon: this.blackIcon, order: 7}
     ];
-    EtapeFtth = EtapeFtth;
 
     public get headers() {
         return [
@@ -254,22 +255,20 @@ export default class FiberMapVue extends Vue {
         selectedLayer.visible = !selectedLayer.visible;
     }
 
-    public currentLayer(code: EtapeFtth) {
-        return this.layers.filter(l => l.name === EtapeFtth[code])[0];
-    }
-
     public boundsUpdated (bounds: L.LatLngBounds) {
         this.bounds = bounds;
     }
 
     public mapFibersToLayer() {
-        this.fibers.forEach(f => this.setIcon(f));
-        this.fibers.forEach(fiber => fiber.eligibilitesFtth.forEach(f => f.strEtapeFtth = EtapeFtth[f.etapeFtth]));
+        this.fibers.forEach(fiber => {
+            this.setIcon(fiber);
+            fiber.eligibilitesFtth.forEach(f => f.strEtapeFtth = EtapeFtth[f.etapeFtth]);
+        });
         this.layers = [];
         Object.keys(EtapeFtth).forEach((value) => {
             this.layers.push(
                 {
-                    markers: this.fibers.filter(f => Math.min(...f.eligibilitesFtth?.map(x => x.etapeFtth)) === Number(value)),
+                    markers: this.fibers.filter(f => f.eligibilitesFtth[0]?.etapeFtth === Number(value)),
                     name: value.toString(),
                     visible: true,
                 }
@@ -281,7 +280,7 @@ export default class FiberMapVue extends Vue {
         );
         const debugLayer = this.layers.filter(l => l.name === EtapeFtth.UNKNOWN.toString())[0];
         debugLayer.markers = debugLayer.markers.concat(
-            this.fibers.filter(f => Math.min(...f.eligibilitesFtth?.map(x => x.etapeFtth)) === EtapeFtth.DEBUG)
+            this.fibers.filter(f => f.eligibilitesFtth?.some(x => x.etapeFtth === EtapeFtth.DEBUG))
         );
     }
 
@@ -313,5 +312,9 @@ export default class FiberMapVue extends Vue {
             result = 15;
         }
         return 'opacity-' + result;
+    }
+
+    public get orderedIcons() {
+        return this.icons.sort((a, b) => a.order - b.order);
     }
 }

@@ -24,7 +24,7 @@ public class Program
         builder.Services.AddEndpointsApiExplorer();
 
         builder.Services.AddScoped<FiberApi>();
-        builder.Services.AddTransient<FiberService>();
+        builder.Services.AddScoped<FiberService>();
         builder.Services.AddScoped<HttpClient>();
         builder.Services.AddSingleton<TokenParser>();
         builder.Services.AddDbContext<ApplicationDbContext>(options => options.UseNpgsql(dbConnectionString));
@@ -58,28 +58,5 @@ public class Program
         app.MapControllers();
 
         app.Run();
-    }
-
-    private static EtapeFtth ResolveEnum(string etapeFtth)
-    {
-        if (etapeFtth.StartsWith("DEBUG_"))
-        {
-             return EtapeFtth.DEBUG;
-        }
-        switch (etapeFtth)
-        {
-            case "ELLIGIBLE":
-                return EtapeFtth.ELLIGIBLE;
-            case "EN_COURS_IMMEUBLE":
-                return EtapeFtth.EN_COURS_IMMEUBLE;
-            case "TERMINE_QUARTIER":
-                return EtapeFtth.TERMINE_QUARTIER;
-            case "EN_COURS_QUARTIER":
-                return EtapeFtth.EN_COURS_QUARTIER;
-            case "PREVU_QUARTIER":
-                return EtapeFtth.PREVU_QUARTIER;
-            default:
-                return EtapeFtth._;
-        }
     }
 }

@@ -9,29 +9,22 @@ namespace FiberEvolutionScraper.Api.Services;
 
 public class FiberService
 {
-    ApplicationDbContext context;
-    FiberApi fiberApi;
-    IMapper mapper;
-    IServiceProvider Services;
+    readonly ApplicationDbContext context;
+    readonly FiberApi fiberApi;
+    readonly IMapper mapper;
 
     public FiberService(IServiceProvider serviceProvider)
     {
         context = serviceProvider.GetRequiredService<ApplicationDbContext>();
         fiberApi = serviceProvider.GetRequiredService<FiberApi>();
         mapper = serviceProvider.GetRequiredService<IMapper>();
-        Services = serviceProvider;
     }
 
     internal IList<FiberPointDTO> GetFibersForLoc(double coordX, double coordY, int squareSize = 5, bool canIterate = true)
     {
         var fibers = fiberApi.GetFibersForLoc(coordX, coordY, squareSize, canIterate);
         var mapped = mapper.Map<IList<FiberPointDTO>>(fibers.Results).ToList();
-
-        var count = fibers.Results.Count;
         mapped = mapped.DistinctBy(m => m.Signature).ToList();
-        Console.WriteLine("Delta: {0}", count - mapped.Count);
-
-        Task.Run(() => SaveToDB(mapped.Where(x => x.EligibilitesFtth.All(e => e.EtapeFtth != EtapeFtth.DEBUG)).ToList(), Services));
 
         return mapped;
     }
@@ -41,7 +34,7 @@ public class FiberService
         var result = context.FiberPoints.Include(f => f.EligibilitesFtth.OrderByDescending(e => e.LastUpdated))
             .GroupBy(x => x.Signature).Select(a => a.First()).ToList()
             .GroupBy(x => Math.Pow((coordX - x.X), 2) + Math.Pow((coordY - x.Y), 2))
-            .OrderBy(x => x.Key).SelectMany(a => a.Select(b => b)).ToList().Take(1300).ToList();
+            .OrderBy(x => x.Key).SelectMany(a => a.Select(b => b)).ToList().Take(500).ToList();
 
         return result.ToList();
     }
@@ -59,47 +52,44 @@ public class FiberService
         var result = context.FiberPoints.Include(f => f.EligibilitesFtth.OrderByDescending(e => e.LastUpdated))
             .Where(f => f.X >= latlng[0] && f.Y >= latlng[1] && f.X <= latlng[2] && f.Y <= latlng[3])
             .Where(f => (f.EligibilitesFtth.Any(e => e.Created >= DateTime.UtcNow.AddDays(-5) || e.LastUpdated >= DateTime.UtcNow.AddDays(-1))
-                    || (!f.EligibilitesFtth.Any() && f.Created >= DateTime.UtcNow.AddDays(-5)) || f.LastUpdated >= DateTime.UtcNow.AddDays(-1)))
+                    || !f.EligibilitesFtth.Any() && f.Created >= DateTime.UtcNow.AddDays(-5) || f.LastUpdated >= DateTime.UtcNow.AddDays(-1)))
             .ToList();
 
         return result
-            .GroupBy(x => x.Signature).Select(a => a.OrderByDescending(a => a.LastUpdated).First()).Take(1300).ToList();
+            .GroupBy(x => x.Signature).Select(a => a.OrderBy(a => a.LastUpdated).First()).Take(800).ToList();
     }
 
-    internal int UpdateDbFibers(double coordX, double coordY)
+    internal async Task<int> UpdateDbFibers(double coordX, double coordY)
     {
-        var fibers = fiberApi.GetFibersForLoc(coordX, coordY, 5, true);
-        var mapped = mapper.Map<IList<FiberPointDTO>>(fibers.Results).ToList();
-        mapped = mapped.DistinctBy(m => m.Signature).ToList();
-        var entitySaved = SaveToDB(mapped, Services);
+        var fibers = GetFibersForLoc(coordX, coordY, 5, true);
 
-        return entitySaved;
+        return await SaveToDB(fibers.ToList());
     }
 
-    private static int SaveToDB(List<FiberPointDTO> fiberPoints, IServiceProvider serviceProvider)
+    public async Task<int> SaveToDB(List<FiberPointDTO> fiberPoints)
     {
         try
         {
-            var scopedDbContext = serviceProvider.CreateScope().ServiceProvider.GetRequiredService<ApplicationDbContext>();
             var xOffset = 0.8;
             var yOffset = 0.8;
             var minX = fiberPoints.Min(x => x.X - xOffset);
             var maxX = fiberPoints.Max(x => x.X + xOffset);
             var minY = fiberPoints.Min(x => x.Y - yOffset);
             var maxY = fiberPoints.Max(x => x.Y + yOffset);
-            var dbFibers = scopedDbContext.FiberPoints.Where(ctx => ctx.X >= minX && ctx.X <= maxX && ctx.Y >= minY && ctx.Y <= maxY).ToList();
+            var dbFibers = context.FiberPoints.Where(ctx => ctx.X >= minX && ctx.X <= maxX && ctx.Y >= minY && ctx.Y <= maxY).ToList();
 
             fiberPoints.ForEach(fiber =>
             {
                 var dbFiber = dbFibers.FirstOrDefault(f => f.Signature == fiber.Signature);
                 if (dbFiber == null)
                 {
+                    fiber.Created = DateTime.UtcNow;
                     fiber.LastUpdated = DateTime.UtcNow;
-                    scopedDbContext.FiberPoints.Add(fiber);
+                    context.FiberPoints.Add(fiber);
                 }
                 else
                 {
-                    AddOrUpdateEligibiliteFtth(scopedDbContext, dbFiber, fiber);
+                    AddOrUpdateEligibiliteFtth(context, dbFiber, fiber);
                     if (fiber.X != dbFiber.X || fiber.Y != dbFiber.Y || fiber.LibAdresse != dbFiber.LibAdresse)
                     {
                         fiber.LastUpdated = DateTime.UtcNow;
@@ -107,11 +97,10 @@ public class FiberService
                     dbFiber.X = fiber.X;
                     dbFiber.Y = fiber.Y;
                     dbFiber.LibAdresse = fiber.LibAdresse;
-                    scopedDbContext.FiberPoints.Update(dbFiber);
+                    context.FiberPoints.Update(dbFiber);
                 }
             });
-            var result = scopedDbContext.SaveChanges();
-            return result;
+            return await context.SaveChangesAsync();
         }
         catch (Exception ex)
         {
@@ -137,6 +126,7 @@ public class FiberService
             }
             else
             {
+                e.Created = DateTime.UtcNow;
                 e.LastUpdated = DateTime.UtcNow;
                 dbFiber.EligibilitesFtth.Add(e);
             }

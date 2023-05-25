@@ -1,6 +1,5 @@
 ﻿using FiberEvolutionScraper.Api.Models;
 using FiberEvolutionScraper.Api.Services;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace FiberEvolutionScraper.Api.Controllers;
@@ -24,16 +23,20 @@ public class FiberController
     }
 
     [HttpGet()]
-    public IList<FiberPointDTO> GetWideArea([FromQuery] FibersGetModel parameters)
+    public async Task<IList<FiberPointDTO>> GetWideArea([FromQuery] FibersGetModel parameters)
     {
         var fibers = fiberService.GetFibersForLoc(parameters.CoordY, parameters.CoordX);
+        await fiberService.SaveToDB(fibers.ToList());
+
         return fibers;
     }
 
     [HttpGet()]
-    public IList<FiberPointDTO> GetCloseArea([FromQuery] FibersGetModel parameters)
+    public async Task<IList<FiberPointDTO>> GetCloseArea([FromQuery] FibersGetModel parameters)
     {
         var fibers = fiberService.GetFibersForLoc(parameters.CoordY, parameters.CoordX, 1);
+        await fiberService.SaveToDB(fibers.ToList());
+
         return fibers;
     }
 
@@ -55,6 +58,7 @@ public class FiberController
     public int UpdateWideArea([FromQuery] FibersGetModel parameters)
     {
         var result = fiberService.UpdateDbFibers(parameters.CoordY, parameters.CoordX);
-        return result;
+
+        return result.Result;
     }
 }
