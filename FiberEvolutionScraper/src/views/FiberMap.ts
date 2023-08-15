@@ -9,7 +9,7 @@ import { ToastStoreMethods } from '@/store/ToastStore';
 import { ISnackbar, ISnackbarColor } from '@/models/SnackbarInterface';
 import FiberPointDTO from '@/models/FiberPointDTO';
 import { EtapeFtth } from '@/models/Enums';
-import EligibiliteFtth from '@/models/EligibiliteFtthDTO';
+import LeafletPopupContent from '@/components/LeafletPopupComponent.vue';
 
 @Component({
     components: {
@@ -20,13 +20,14 @@ import EligibiliteFtth from '@/models/EligibiliteFtthDTO';
         'l-control': LControl,
         'l-layer-group': LLayerGroup,
         'l-icon': LIcon,
-        LControlLayers
+        LControlLayers,
+        'leaflet-popup-content': LeafletPopupContent
     }
 })
 export default class FiberMapVue extends Vue {
     //#region Public Properties
     public loading = false;
-    public loadingHistory = true;
+    public loadingHistory = false;
     public map: null | LMap = null;
     public userLocation = new LatLng(45.76, 4.83);
     public fibers: FiberPointDTO[] = [];
@@ -58,6 +59,7 @@ export default class FiberMapVue extends Vue {
     private openedMarker: null | LMarker = null;
     private date = new Date();
     public recentResult = false;
+    public resultFromDb = false;
     public defaultIcon = '/icons/marker-blue.png';
     public redIcon = '/icons/marker-red.png';
     public greenIcon = '/icons/marker-green.png';
@@ -99,7 +101,7 @@ export default class FiberMapVue extends Vue {
     }
 
     public getCloseAreaFibers() {
-        this.recentResult = false;
+        this.recentResult = this.resultFromDb = false;
         this.loading = true;
         this.openedMarker?.mapObject.closePopup();
         this.layers = [];
@@ -133,7 +135,7 @@ export default class FiberMapVue extends Vue {
     }
 
     public getFibers() {
-        this.recentResult = false;
+        this.recentResult = this.resultFromDb = false;
         this.loading = true;
         this.openedMarker?.mapObject.closePopup();
         this.layers = [];
@@ -153,8 +155,8 @@ export default class FiberMapVue extends Vue {
     }
     
     public getDbFibers() {
+        this.resultFromDb = this.loading = true;
         this.recentResult = false;
-        this.loading = true;
         this.openedMarker?.mapObject.closePopup();
         this.layers = [];
         axios.get<FiberPointDTO[]>('https://localhost:5001/api/fiber/GetFibers',
@@ -173,7 +175,7 @@ export default class FiberMapVue extends Vue {
     }
 
     public getNewestFibers() {
-        this.recentResult = true;
+        this.recentResult = this.resultFromDb = true;
         this.loading = true;
         this.openedMarker?.mapObject.closePopup();
         this.layers = [];
@@ -189,26 +191,27 @@ export default class FiberMapVue extends Vue {
         })
         .finally(() => {
             this.loading = false;
-            this.recentResult = true;
         });
     }
 
     public getHistorique(fiber: FiberPointDTO) {
-        this.loadingHistory = true;
-        axios.get<FiberPointDTO>('https://localhost:5001/api/fiber/GetSameSignaturePoints', 
-            { headers: { 'Content-Type': 'application/json' }, params: { signature: fiber.signature }})
-        .then((response) => {
-            fiber.created = response.data.created;
-            fiber.lastUpdated = response.data.lastUpdated;
-            fiber.eligibilitesFtth = response.data.eligibilitesFtth.sort((a, b) => (a.batiment < b.batiment && a.etapeFtth < b.etapeFtth ? -1 : 1));
-            fiber.eligibilitesFtth.forEach(f => f.strEtapeFtth = EtapeFtth[f.etapeFtth]);
-        })
-        .catch((errors) => {
-            this.createToast({ color:ISnackbarColor.Error, message: errors });
-        })
-        .finally(() => {
-            this.loadingHistory = false;
-        });
+        if (!this.resultFromDb) {
+            this.loadingHistory = true;
+            axios.get<FiberPointDTO>('https://localhost:5001/api/fiber/GetSameSignaturePoints', 
+                { headers: { 'Content-Type': 'application/json' }, params: { signature: fiber.signature }})
+            .then((response) => {
+                fiber.created = response.data.created;
+                fiber.lastUpdated = response.data.lastUpdated;
+                fiber.eligibilitesFtth = response.data.eligibilitesFtth.sort((a, b) => (a.batiment < b.batiment && a.etapeFtth < b.etapeFtth ? -1 : 1));
+                fiber.eligibilitesFtth.forEach(f => f.strEtapeFtth = EtapeFtth[f.etapeFtth]);
+            })
+            .catch((errors) => {
+                this.createToast({ color:ISnackbarColor.Error, message: errors });
+            })
+            .finally(() => {
+                this.loadingHistory = false;
+            });
+        }
     }
 
     public centerUpdate(center: LatLng) {
@@ -240,14 +243,6 @@ export default class FiberMapVue extends Vue {
             fiber.iconUrl = this.redIcon;
         }
         fiber.iconClassName = this.opacityWithElderness(fiber);
-    }
-
-    public getEtapeFtthValue(eligibiliteFtth: EligibiliteFtth) {
-        if (eligibiliteFtth !== null){
-            return EtapeFtth[eligibiliteFtth.etapeFtth];
-        } else {
-            return EtapeFtth._;
-        }
     }
 
     public showHideLayer(code: EtapeFtth) {
@@ -297,6 +292,9 @@ export default class FiberMapVue extends Vue {
     }
 
     public opacityWithElderness(fiber: FiberPointDTO) {
+        if (!this.recentResult) {
+            return 'opacity-100';
+        }
         let mostRecentDate = Math.max(...fiber.eligibilitesFtth.map(f => new Date(f.created).getTime()));
         if (fiber.eligibilitesFtth.length === 0) {
             mostRecentDate = new Date(fiber.created).getTime();
