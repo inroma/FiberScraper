@@ -32,9 +32,9 @@ public class FiberService
     internal IList<FiberPointDTO> GetDbFibersForLoc(double coordX, double coordY)
     {
         var result = context.FiberPoints.Include(f => f.EligibilitesFtth.OrderByDescending(e => e.LastUpdated))
-            .GroupBy(x => x.Signature).Select(a => a.First()).ToList()
+            .GroupBy(e => e.Signature).Select(g => g.First()).ToList()
             .GroupBy(x => Math.Pow((coordX - x.X), 2) + Math.Pow((coordY - x.Y), 2))
-            .OrderBy(x => x.Key).SelectMany(a => a.Select(b => b)).ToList().Take(500).ToList();
+            .OrderBy(x => x.Key).SelectMany(g => g.ToList()).Take(700);
 
         return result.ToList();
     }
@@ -76,7 +76,7 @@ public class FiberService
             var maxX = fiberPoints.Max(x => x.X + xOffset);
             var minY = fiberPoints.Min(x => x.Y - yOffset);
             var maxY = fiberPoints.Max(x => x.Y + yOffset);
-            var dbFibers = context.FiberPoints.Where(ctx => ctx.X >= minX && ctx.X <= maxX && ctx.Y >= minY && ctx.Y <= maxY).ToList();
+            var dbFibers = context.FiberPoints.Where(ctx => ctx.X >= minX && ctx.X <= maxX && ctx.Y >= minY && ctx.Y <= maxY);
 
             fiberPoints.ForEach(fiber =>
             {
