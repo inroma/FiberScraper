@@ -10,10 +10,10 @@ public class FiberApi
 {
     HttpClient client;
     TokenParser tokenParser;
-    double offsetX = 0.006929;
-    double offsetY = 0.004457;
-    double offsetCityX = 0.006929 * .25;
-    double offsetCityY = 0.004457 * .25;
+    readonly double offsetX = 0.006929;
+    readonly double offsetY = 0.004457;
+    readonly double offsetCityX = 0.006929 * .25;
+    readonly double offsetCityY = 0.004457 * .25;
 
     public FiberApi(IServiceProvider serviceProvider)
     {
