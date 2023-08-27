@@ -1,0 +1,22 @@
+services:
+  fiber-scraper-api:
+    image: fiberevolutionscraperapi
+    restart: unless-stopped
+    build:
+      context: .
+      dockerfile: ./FiberEvolutionScraper.Api/Dockerfile
+    volumes:
+      - /home/pi/botFiles/fiberScraper/:/app/files
+
+  fiber-scraper-front-end:
+    image: fiber-scraper-front-end
+    restart: unless-stopped
+    build:
+      context: .
+      dockerfile: ./FiberEvolutionScraper/Dockerfile
+      args:
+        VUE_APP_API_URL: http://localhost:8080
+    ports:
+      - "8080:8888"
+    depends_on:
+      - fiber-scraper-api
