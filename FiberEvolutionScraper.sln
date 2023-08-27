@@ -5,7 +5,7 @@ VisualStudioVersion = 17.4.33205.214
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{54A90642-561A-4BB1-A94E-469ADEE60C69}") = "fiberevolutionscraper", "FiberEvolutionScraper\fiberevolutionscraper.esproj", "{973B72A5-353E-4A20-801E-2B39D029957F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FiberEvolutionScraper.Api", "FiberEvolutionScraper.Api\FiberEvolutionScraper.Api.csproj", "{9649442C-67C0-41EB-B4B9-2A50F3AAD385}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FiberEvolutionScraper.Api", "FiberEvolutionScraper.Api\FiberEvolutionScraper.Api.csproj", "{9649442C-67C0-41EB-B4B9-2A50F3AAD385}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
