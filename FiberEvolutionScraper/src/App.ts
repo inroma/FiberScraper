@@ -34,7 +34,7 @@ export default class FiberMapVue extends Vue {
     ]
   }
 
-  public drawer: boolean = true;
+  public drawer: boolean = !this.smallScreen;
 
   public get smallScreen(): boolean {
     return this.$vuetify.breakpoint.mdAndDown;
