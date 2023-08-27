@@ -71,7 +71,6 @@ export default class FiberMapVue extends Vue {
     public blackIcon = '/icons/marker-black.png';
     public blueInvertedIcon = '/icons/marker-white.png';
     public layers: { markers: FiberPointDTO[], visible: boolean, name: string }[] = [];
-
     public icons = [{code: EtapeFtth.ELLIGIBLE, title: "Élligible", icon: this.greenIcon, order: 0},
         {code: EtapeFtth.EN_COURS_IMMEUBLE, title: "Déploiement Immeuble", icon: this.purpleIcon, order: 2},
         {code: EtapeFtth.TERMINE_QUARTIER, title: "Quartier Terminé", icon: this.blueInvertedIcon, order: 3},
@@ -81,6 +80,7 @@ export default class FiberMapVue extends Vue {
         {code: EtapeFtth.PROCHE_CLIENT, title: "Proche Client", icon: this.yellowIcon, order: 1},
         {code: EtapeFtth.UNKNOWN, title: "Statut inconnu", icon: this.blackIcon, order: 7}
     ];
+    public openedFiber?: FiberPointDTO = undefined;
 
     public get headers() {
         return [
@@ -305,5 +305,15 @@ export default class FiberMapVue extends Vue {
 
     public get orderedIcons() {
         return this.icons.sort((a, b) => a.order - b.order);
+    }
+
+    public get mapHeight() {
+        switch(this.$vuetify.breakpoint.name) {
+            case 'xs':
+            case 'md':
+                return "50vh";
+            default:
+                return "75vh";
+        }
     }
 }

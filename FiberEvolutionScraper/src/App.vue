@@ -2,7 +2,7 @@
   <v-app>
     <v-app-bar app hide-on-scroll clipped-left scroll-threshold="80">
       <v-app-bar-nav-icon v-if="smallScreen" @click.stop="drawer = true"/>
-      <v-app-bar-title>Fiber Evolution Scraper</v-app-bar-title>
+      <v-toolbar-title>Fiber Evolution Scraper</v-toolbar-title>
     </v-app-bar>
     <v-navigation-drawer v-model="drawer" app expand-on-hover clipped class="pa-0 nav-bar" mini-variant>
       <v-list>

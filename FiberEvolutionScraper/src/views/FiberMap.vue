@@ -37,13 +37,12 @@
 }
 #mapContainer {
     z-index: 3;
-    height:900px;
 }
 </style>
 
 <template>
     <v-card key="main-card" class="mx-0 mb-0">
-        <v-card-actions ref="menu" class="mb-3">
+        <v-card-actions ref="menu">
             <v-btn icon @click="centerMapOnLocation()" color="primary" class="ml-5">
                 <v-icon>mdi-crosshairs-gps</v-icon>
             </v-btn>
@@ -51,36 +50,40 @@
                 @getFibers="getFibers" @getCloseAreaFibers="getCloseAreaFibers" @getNewestFibers="getNewestFibers"/>
             <v-btn class="mr-5" @click="clearData()" color="error" :disabled="!fibers.length">Clear</v-btn>
         </v-card-actions>
-        <div class="mb-10 ml-10 mr-10">
-            <l-map id="mapContainer" ref="map" :center="userLocation" :zoom="zoom"
-            @update:center="centerUpdate" @update:bounds="boundsUpdated">
-                <l-control-layers key="control-layers" position="topright"/>
-                <l-tile-layer v-for="tileProvider in tileProviders"
-                    :url="tileProvider.url" :attribution="tileProvider.attribution"
-                    :key="tileProvider.name" :name="tileProvider.name" layer-type="base" :visible="tileProvider.visible"
-                />
-                <l-layer-group v-for="layer in layers" :visible="layer.visible" :key="'layer_'+layer.name">
-                    <l-marker
-                        v-for="fiber in layer.markers"
-                        :ref="'marker_'+fiber.signature" :key="'marker_'+layer.name+'marker_'+fiber.signature"
-                        :lat-lng="[fiber.y, fiber.x]" @click="getHistorique(fiber)">
-                        <l-icon :icon-url="fiber?.iconUrl" class="leaflet-marker-icon" :class-name="fiber?.iconClassName"/>
-                        <l-popup key="popup">
-                            <leaflet-popup-content :fiber="fiber" :loading="loadingHistory"/>
-                        </l-popup>
-                    </l-marker>
-                </l-layer-group>
-                <l-control key="control-custom" position='bottomleft' :class="['custom-control', { 'custom-control-dark': $vuetify.theme.dark }]">
-                    <v-btn style="z-index:2;" class="ma-2" x-small text
-                    v-for="icon in orderedIcons"
-                    :key="'control-custom-btn-'+icon.code" @click="showHideLayer(icon.code)" :ripple="false"
-                    :plain="!layers[icon.code]?.visible"
-                    :disabled="!layers[icon.code] || layers[icon.code]?.markers?.length === 0">
-                        <v-img :key="'control-custom-btn-img-'+icon.code" contain height="27" width="20" :src="icon.icon"/>
-                        <span :key="'control-custom-btn-span-'+icon.code" class="pl-2">{{ icon.title }}</span>
-                    </v-btn>
-                </l-control>
-            </l-map>
+        <div class="ml-10 mr-10">
+            <v-row no-gutters>
+                <v-responsive min-height="350" min-width="100">
+                    <l-map id="mapContainer" :style="'height:'+mapHeight" ref="map" :center="userLocation" :zoom="zoom"
+                    @update:center="centerUpdate" @update:bounds="boundsUpdated">
+                        <l-control-layers key="control-layers" position="topright"/>
+                        <l-tile-layer v-for="tileProvider of tileProviders"
+                            :url="tileProvider.url" :attribution="tileProvider.attribution"
+                            :key="tileProvider.name" :name="tileProvider.name" layer-type="base" :visible="tileProvider.visible"
+                        />
+                        <l-layer-group v-for="layer of layers" :visible="layer.visible" :key="'layer_'+layer.name">
+                            <l-marker
+                                v-for="fiber of layer.markers"
+                                :ref="'marker_'+fiber.signature" :key="'layer_'+layer.name+'marker_'+fiber.signature"
+                                :lat-lng="[fiber.y, fiber.x]" @click="getHistorique(fiber)">
+                                <l-icon :icon-url="fiber.iconUrl" class="leaflet-marker-icon" :class-name="fiber?.iconClassName"/>
+                                <l-popup :key="'popup'+fiber.signature+fiber.x">
+                                    <leaflet-popup-content :fiber="fiber" :loading="loadingHistory"/>
+                                </l-popup>
+                            </l-marker>
+                        </l-layer-group>
+                        <l-control key="control-custom" position='bottomleft' :class="['custom-control', { 'custom-control-dark': $vuetify.theme.dark }]" disableScrollPropagation>
+                            <v-btn style="z-index:2;" class="ma-2" x-small text
+                            v-for="icon in orderedIcons"
+                            :key="'control-custom-btn-'+icon.code" @click="showHideLayer(icon.code)" :ripple="false"
+                            :plain="!layers[icon.code]?.visible"
+                            :disabled="!layers[icon.code] || layers[icon.code]?.markers?.length === 0">
+                                <v-img :key="'control-custom-btn-img-'+icon.code" contain height="27" width="20" :src="icon.icon"/>
+                                <span :key="'control-custom-btn-span-'+icon.code" class="pl-2">{{ icon.title }}</span>
+                            </v-btn>
+                        </l-control>
+                    </l-map>
+                </v-responsive>
+            </v-row>
             <v-row key="main-card-content" justify="center">
                 <v-col md="10">
                     <v-data-table class="mt-5 mb-10" :headers="headers" key="list-details" :items="fibers" fixed-header height="650px"
