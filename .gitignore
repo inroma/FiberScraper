@@ -135,4 +135,5 @@ $RECYCLE.BIN/
 
 _NCrunch*
 
-/FiberEvolutionScraper.Api/appsettings.json
+/FiberEvolutionScraper.Api/files/appsettings.json
+
