@@ -66,7 +66,7 @@
                         <l-layer-group v-for="layer of layers" :visible="layer.visible" :key="'layer_'+layer.name">
                             <l-marker v-for="fiber of layer.markers" :ref="'marker_'+fiber.signature" :key="'layer_'+layer.name+'marker_'+fiber.signature"
                             :lat-lng="[fiber.y, fiber.x]" @click="getHistorique(fiber)">
-                                <l-icon :icon-url="fiber.iconUrl" class="leaflet-marker-icon" :class-name="fiber?.iconClassName"/>
+                                <l-icon :icon-url="fiber.iconUrl" class="leaflet-marker-icon" :class-name="fiber?.iconClassName" :popupAnchor="[0, -41]"/>
                                 <l-popup :key="'popup'+fiber.signature+fiber.x">
                                     <leaflet-popup-content :fiber="fiber" :loading="loadingHistory"/>
                                 </l-popup>
