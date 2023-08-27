@@ -1,10 +1,9 @@
-﻿namespace FiberEvolutionScraper.Api.Api;
-
-using FiberEvolutionScraper.Api.Services;
+﻿using FiberEvolutionScraper.Api.Services;
 using FiberEvolutionScraper.Api.Models;
 using System.Globalization;
-using System.Linq;
 using System.Text.Json;
+
+namespace FiberEvolutionScraper.Api.Api;
 
 public class FiberApi
 {

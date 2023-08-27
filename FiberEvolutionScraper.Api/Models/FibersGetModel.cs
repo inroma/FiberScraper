@@ -1,9 +1,8 @@
-﻿namespace FiberEvolutionScraper.Api.Models
-{
-    public class FibersGetModel
-    {
-        public float CoordX { get; set; }
+﻿namespace FiberEvolutionScraper.Api.Models;
 
-        public float CoordY { get; set; }
-    }
+public class FibersGetModel
+{
+    public float CoordX { get; set; }
+
+    public float CoordY { get; set; }
 }
