@@ -14,7 +14,7 @@ public class Program
 
         IConfigurationRoot configuration = new ConfigurationBuilder()
             .SetBasePath(Directory.GetCurrentDirectory())
-            .AddJsonFile("appsettings.json")
+            .AddJsonFile("files/appsettings.json")
             .Build();
         string dbConnectionString = configuration.GetConnectionString("Database");
         // Add services to the container.
