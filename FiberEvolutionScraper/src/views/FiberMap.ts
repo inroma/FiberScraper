@@ -29,6 +29,7 @@ import HeaderButtonsComponent from '@/components/HeaderButtonsComponent.vue';
 export default class FiberMapVue extends Vue {
     //#region Public Properties
     public loading = false;
+    public controlOpened = false;
     public loadingHistory = false;
     public map: null | LMap = null;
     public userLocation = new LatLng(45.76, 4.83);

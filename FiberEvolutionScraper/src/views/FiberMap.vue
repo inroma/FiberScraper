@@ -54,12 +54,15 @@
             <v-row no-gutters>
                 <v-responsive min-height="350" min-width="100">
                     <l-map id="mapContainer" :style="'height:'+mapHeight" ref="map" :center="userLocation" :zoom="zoom"
-                    :max-bounds="maxBounds" @update:center="centerUpdate" @update:bounds="boundsUpdated">
+                    :max-bounds="maxBounds" @update:center="centerUpdate" @update:bounds="boundsUpdated" @click="controlOpened = false">
+                        <!-- Background Tiles Controls -->
                         <l-control-layers key="control-layers" position="topright"/>
+                        <!-- Background Tiles Providers -->
                         <l-tile-layer v-for="tileProvider of tileProviders"
                             :url="tileProvider.url" :attribution="tileProvider.attribution"
                             :key="tileProvider.name" :name="tileProvider.name" layer-type="base" :visible="tileProvider.visible"
                         />
+                        <!-- Map Layers -->
                         <l-layer-group v-for="layer of layers" :visible="layer.visible" :key="'layer_'+layer.name">
                             <l-marker v-for="fiber of layer.markers" :ref="'marker_'+fiber.signature" :key="'layer_'+layer.name+'marker_'+fiber.signature"
                             :lat-lng="[fiber.y, fiber.x]" @click="getHistorique(fiber)">
@@ -69,7 +72,13 @@
                                 </l-popup>
                             </l-marker>
                         </l-layer-group>
-                        <l-control key="control-custom" position='bottomleft' :class="['custom-control', { 'custom-control-dark': $vuetify.theme.dark }]" disableScrollPropagation>
+                        <!-- Layers visibility controls -->
+                        <l-control v-if="$vuetify.breakpoint.mdAndDown && !controlOpened" key="control-custom" position='bottomleft' :class="['custom-control', { 'custom-control-dark': $vuetify.theme.dark }]" disableScrollPropagation>
+                            <v-btn small text :ripple="false" @click.stop="controlOpened = true">
+                                <v-icon>mdi-map-marker-multiple-outline</v-icon>
+                            </v-btn>
+                        </l-control>
+                        <l-control v-else key="control-custom" position='bottomleft' :class="['custom-control', { 'custom-control-dark': $vuetify.theme.dark }]" disableScrollPropagation>
                             <v-btn style="z-index:2;" class="ma-2" x-small text
                             v-for="icon in orderedIcons"
                             :key="'control-custom-btn-'+icon.code" @click="showHideLayer(icon.code)" :ripple="false"
