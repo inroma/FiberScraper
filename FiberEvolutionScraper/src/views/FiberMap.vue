@@ -2,14 +2,10 @@
 .leaflet-popup-content {
     min-width: 350px;
 }
-.leaflet-dark-tile {
-    filter: hue-rotate(180deg) invert(100%) !important;
-}
 .custom-control {
   background: rgba(255, 255, 255, 0.785);
-  padding: 0.5em;
-  padding-bottom: 1em;
-  padding-top: 1em;
+  padding-bottom: 0.5em;
+  padding-top: 0.5em;
   margin: 0.3em;
   border: 1px solid #aaa;
   border-radius: 0.7em;
@@ -20,15 +16,6 @@
 }
 .custom-control-dark {
   background: rgba(90, 90, 90, 0.785);
-  padding-bottom: 0.5em;
-  padding-top: 0.5em;
-  margin: 0.3em;
-  border: 1px solid #aaa;
-  border-radius: 0.7em;
-  flex-direction: column !important;
-  display: flex;
-  align-items: flex-start;
-  pointer-events: auto;
 }
 .leaflet-marker-icon {
     margin-left: -12px;
@@ -83,7 +70,7 @@
                         </l-popup>
                     </l-marker>
                 </l-layer-group>
-                <l-control key="control-custom" position='bottomleft' :class="{ 'custom-control': !$vuetify.theme.dark, 'custom-control-dark': $vuetify.theme.dark }">
+                <l-control key="control-custom" position='bottomleft' :class="['custom-control', { 'custom-control-dark': $vuetify.theme.dark }]">
                     <v-btn style="z-index:2;" class="ma-2" x-small text
                     v-for="icon in orderedIcons"
                     :key="'control-custom-btn-'+icon.code" @click="showHideLayer(icon.code)" :ripple="false"
