@@ -105,7 +105,7 @@ export default class FiberMapVue extends Vue {
         this.loading = true;
         this.openedMarker?.mapObject.closePopup();
         this.layers = [];
-        axios.get<FiberPointDTO[]>('https://localhost:5001/api/fiber/GetCloseArea',
+        axios.get<FiberPointDTO[]>('/api/v1/fiber/GetCloseArea',
             { headers: { 'Content-Type': 'application/json' },
             params: { coordX: this.userLocation.lat, coordY: this.userLocation.lng }})
         .then((response) => {
@@ -122,7 +122,7 @@ export default class FiberMapVue extends Vue {
 
     public updateFibers() {
         this.loading = true;
-        axios.get<number>('https://localhost:5001/api/fiber/UpdateWideArea',
+        axios.get<number>('/api/v1/fiber/UpdateWideArea',
             { headers: { 'Content-Type': 'application/json' },
             params: { coordX: this.userLocation.lat, coordY: this.userLocation.lng }})
         .then((response) => {
@@ -139,7 +139,7 @@ export default class FiberMapVue extends Vue {
         this.loading = true;
         this.openedMarker?.mapObject.closePopup();
         this.layers = [];
-        axios.get<FiberPointDTO[]>('https://localhost:5001/api/fiber/GetWideArea',
+        axios.get<FiberPointDTO[]>('/api/v1/fiber/GetWideArea',
             { headers: { 'Content-Type': 'application/json' },
             params: { coordX: this.userLocation.lat, coordY: this.userLocation.lng }})
         .then((response) => {
@@ -159,7 +159,7 @@ export default class FiberMapVue extends Vue {
         this.recentResult = false;
         this.openedMarker?.mapObject.closePopup();
         this.layers = [];
-        axios.get<FiberPointDTO[]>('https://localhost:5001/api/fiber/GetFibers',
+        axios.get<FiberPointDTO[]>('/api/v1/fiber/GetFibers',
             { headers: { 'Content-Type': 'application/json' },
             params: { coordX: this.userLocation.lat, coordY: this.userLocation.lng }})
         .then((response) => {
@@ -179,7 +179,7 @@ export default class FiberMapVue extends Vue {
         this.loading = true;
         this.openedMarker?.mapObject.closePopup();
         this.layers = [];
-        axios.get<FiberPointDTO[]>('https://localhost:5001/api/fiber/GetNewestPoints',
+        axios.get<FiberPointDTO[]>('/api/v1/fiber/GetNewestPoints',
             { headers: { 'Content-Type': 'application/json' },
             params: { data: this.bounds.toBBoxString() }})
         .then((response) => {
@@ -197,7 +197,7 @@ export default class FiberMapVue extends Vue {
     public getHistorique(fiber: FiberPointDTO) {
         if (!this.resultFromDb) {
             this.loadingHistory = true;
-            axios.get<FiberPointDTO>('https://localhost:5001/api/fiber/GetSameSignaturePoints', 
+            axios.get<FiberPointDTO>('/api/v1/fiber/GetSameSignaturePoints', 
                 { headers: { 'Content-Type': 'application/json' }, params: { signature: fiber.signature }})
             .then((response) => {
                 fiber.created = response.data.created;
