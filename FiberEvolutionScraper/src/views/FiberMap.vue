@@ -46,13 +46,28 @@
             <v-btn icon @click="centerMapOnLocation()" color="primary" class="ml-5">
                 <v-icon>mdi-crosshairs-gps</v-icon>
             </v-btn>
-            <header-banner-buttons class="d-sm-none-and-down" :loading="loading" @updateFibers="updateFibers" @getDbFibers="getDbFibers"
-                @getFibers="getFibers" @getCloseAreaFibers="getCloseAreaFibers" @getNewestFibers="getNewestFibers"/>
+            <header-banner-buttons class="hidden-sm-and-down" :loading="loading" @updateFibers="updateFibers" @getDbFibers="getDbFibers"
+            @getFibers="getFibers" @getCloseAreaFibers="getCloseAreaFibers" @getNewestFibers="getNewestFibers"/>
+            <v-menu offset-y :close-on-content-click="false" :nudge-left="130" min-width="350">
+                <template v-slot:activator="{ on, attrs }">
+                    <v-btn class="hidden-md-and-up mx-auto" color="primary" v-bind="attrs" v-on="on" :loading="loading">Actions</v-btn>
+                </template>
+                <v-list class="hidden-md-and-up" dense style="width: min-content;">
+                    <v-list-item>
+                        <v-row dense no-gutters @click="$emit('close')">
+                            <v-col cols="1">
+                                <header-banner-buttons class="d-flex align-start justify-start" :loading="loading" @updateFibers="updateFibers" @getDbFibers="getDbFibers"
+                                @getFibers="getFibers" @getCloseAreaFibers="getCloseAreaFibers" @getNewestFibers="getNewestFibers"/>
+                            </v-col>
+                        </v-row>
+                    </v-list-item>
+                </v-list>
+            </v-menu>
             <v-btn class="mr-5" @click="clearData()" color="error" :disabled="!fibers.length">Clear</v-btn>
         </v-card-actions>
-        <div class="ml-10 mr-10">
+        <div class="ml-5 mr-5">
             <v-row no-gutters>
-                <v-responsive min-height="350" min-width="100">
+                <v-responsive min-width="200">
                     <l-map id="mapContainer" :style="'height:'+mapHeight" ref="map" :center="userLocation" :zoom="zoom"
                     :max-bounds="maxBounds" @update:center="centerUpdate" @update:bounds="boundsUpdated" @click="controlOpened = false">
                         <!-- Background Tiles Controls -->

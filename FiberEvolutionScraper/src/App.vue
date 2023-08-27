@@ -4,7 +4,7 @@
       <v-app-bar-nav-icon v-if="smallScreen" @click.stop="drawer = true"/>
       <v-toolbar-title>Fiber Evolution Scraper</v-toolbar-title>
     </v-app-bar>
-    <v-navigation-drawer v-model="drawer" app :expand-on-hover="!smallScreen" clipped class="pa-0 nav-bar" :mini-variant="!smallScreen">
+    <v-navigation-drawer v-model="drawer" app :expand-on-hover="!smallScreen" clipped class="px-0 pt-0 nav-bar" :mini-variant="!smallScreen">
       <v-list>
         <v-list-item v-for="header in headers" link :to="header.url" :key="'header'+header.title" :disabled="header.disabled">
           <v-list-item-icon><v-icon :disabled="header.disabled">{{ header.icon }}</v-icon></v-list-item-icon>
@@ -14,7 +14,7 @@
         </v-list-item>
       </v-list>
       <template v-slot:append>
-        <v-list-item class="pl-10 pr-10 pb-3">
+        <v-list-item class="pl-10 pr-10">
           <v-list-item-content>
             <v-btn @click="$vuetify.theme.dark = !$vuetify.theme.dark" color="primary">
               <v-icon>mdi-theme-light-dark</v-icon>
