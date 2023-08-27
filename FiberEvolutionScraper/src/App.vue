@@ -1,11 +1,10 @@
 <template>
   <v-app>
     <v-app-bar app hide-on-scroll clipped-left scroll-threshold="80">
-      <v-app-bar-nav-icon v-if="smallScreen" @click="drawer = !drawer"/>
+      <v-app-bar-nav-icon v-if="smallScreen" @click.stop="drawer = true"/>
       <v-app-bar-title>Fiber Evolution Scraper</v-app-bar-title>
     </v-app-bar>
-    <v-navigation-drawer :value="drawer || $vuetify.breakpoint.mdAndUp" app expand-on-hover clipped class="pa-0 nav-bar" mini-variant
-      :mobile-breakpoint="$vuetify.breakpoint.mdAndUp">
+    <v-navigation-drawer v-model="drawer" app expand-on-hover clipped class="pa-0 nav-bar" mini-variant>
       <v-list>
         <v-list-item v-for="header in headers" link :to="header.url" :key="'header'+header.title">
           <v-list-item-icon><v-icon>{{ header.icon }}</v-icon></v-list-item-icon>
