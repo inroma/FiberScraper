@@ -11,14 +11,20 @@ export default class FiberMapVue extends Vue {
   public get headers() {
     return [
         {
-          title: 'Home',
+          title: 'Accueil',
           icon: 'mdi-home-outline',
           url: '/home',
         },
         {
-          title: 'Deployment',
+          title: 'Déploiements',
           icon: 'mdi-connection',
           url: '/',
+        },
+        {
+          title: 'Auto-Refresh',
+          icon: 'mdi-timer-refresh-outline',
+          url: '/auto-refresh',
+          disabled: true
         },
         {
           title: 'About',
