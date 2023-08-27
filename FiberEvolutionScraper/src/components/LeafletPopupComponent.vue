@@ -11,21 +11,23 @@
                     </v-list-item-subtitle>
                 </v-list-item-content>
             </v-list-item>
-            <div v-for="item, i of fiber?.eligibilitesFtth" :key="'popup-list-'+item.codeImb+'-'+item.etapeFtth">
-                <v-list-item class="px-0">
-                    <v-list-item-content>
-                        <v-list-item-title>{{ fiber?.libAdresse }}</v-list-item-title>
-                        <v-list-item-subtitle v-if="!!item.batiment">
-                            <b>Batiment: </b> {{ item.batiment }}<br>
-                        </v-list-item-subtitle>
-                        <v-list-item-subtitle>
-                            <b>FTTH: </b> {{ item.strEtapeFtth }}<br>
-                            <b>Created: </b> {{ new Date(item.created).toLocaleString()}}<br>
-                            <b>Dernière MaJ: </b> {{ new Date(item.lastUpdated).toLocaleString()}}
-                        </v-list-item-subtitle>
-                    </v-list-item-content>
-                </v-list-item>
-                <v-divider v-if="i < fiber?.eligibilitesFtth.length-1"/>
+            <div v-else>
+                <div v-for="item, i of fiber?.eligibilitesFtth" :key="'popup-list-'+item.codeImb+'-'+item.etapeFtth">
+                    <v-list-item class="px-0">
+                        <v-list-item-content>
+                            <v-list-item-title>{{ fiber?.libAdresse }}</v-list-item-title>
+                            <v-list-item-subtitle v-if="!!item.batiment">
+                                <b>Batiment: </b> {{ item.batiment }}<br>
+                            </v-list-item-subtitle>
+                            <v-list-item-subtitle>
+                                <b>FTTH: </b> {{ item.strEtapeFtth }}<br>
+                                <b>Created: </b> {{ new Date(item.created).toLocaleString()}}<br>
+                                <b>Dernière MaJ: </b> {{ new Date(item.lastUpdated).toLocaleString()}}
+                            </v-list-item-subtitle>
+                        </v-list-item-content>
+                    </v-list-item>
+                    <v-divider v-if="i < fiber?.eligibilitesFtth.length-1"/>
+                </div>
             </div>
         </v-list>
     </v-container>
