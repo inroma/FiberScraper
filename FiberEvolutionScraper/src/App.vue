@@ -4,10 +4,10 @@
       <v-app-bar-nav-icon v-if="smallScreen" @click.stop="drawer = true"/>
       <v-toolbar-title>Fiber Evolution Scraper</v-toolbar-title>
     </v-app-bar>
-    <v-navigation-drawer v-model="drawer" app expand-on-hover clipped class="pa-0 nav-bar" mini-variant>
+    <v-navigation-drawer v-model="drawer" app :expand-on-hover="!smallScreen" clipped class="pa-0 nav-bar" :mini-variant="!smallScreen">
       <v-list>
         <v-list-item v-for="header in headers" link :to="header.url" :key="'header'+header.title" :disabled="header.disabled">
-          <v-list-item-icon><v-icon>{{ header.icon }}</v-icon></v-list-item-icon>
+          <v-list-item-icon><v-icon :disabled="header.disabled">{{ header.icon }}</v-icon></v-list-item-icon>
           <v-list-item-content>
             <v-list-item-title class="text-h6">{{ header.title }}</v-list-item-title>
           </v-list-item-content>
