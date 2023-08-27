@@ -1,5 +1,5 @@
 import 'leaflet/dist/leaflet.css';
-import L, { LatLng } from "leaflet";
+import L, { LatLng, latLngBounds } from "leaflet";
 import { LMap, LTileLayer, LMarker, LLayerGroup, LPopup, LControl, LControlLayers, LIcon } from "vue2-leaflet";
 import Vue from 'vue';
 import { Action } from 'vuex-class';
@@ -80,7 +80,10 @@ export default class FiberMapVue extends Vue {
         {code: EtapeFtth.PROCHE_CLIENT, title: "Proche Client", icon: this.yellowIcon, order: 1},
         {code: EtapeFtth.UNKNOWN, title: "Statut inconnu", icon: this.blackIcon, order: 7}
     ];
-    public openedFiber?: FiberPointDTO = undefined;
+    public maxBounds = latLngBounds([
+        [40.3097691, -6.0005669],
+        [52.0544363, 11.9582151]
+    ]);
 
     public get headers() {
         return [
