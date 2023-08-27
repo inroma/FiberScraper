@@ -14,7 +14,7 @@
         z-index: 100;
         overflow-y: hidden;
         width: 95%;
-        height: 95%;
+        height: 100%;
         pointer-events: none
     }
     .snackbar-item {
