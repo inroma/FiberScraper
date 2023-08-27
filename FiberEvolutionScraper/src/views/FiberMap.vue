@@ -55,24 +55,15 @@
 </style>
 
 <template>
-    <v-card key="main-card">
-        <v-row ref="menu" class="mb-3">
-            <v-col class="ml-3 text-left">
-                <v-btn icon @click="centerMapOnLocation()" color="primary">
-                    <v-icon>mdi-crosshairs-gps</v-icon>
-                </v-btn>
-            </v-col>
-            <v-col class="ml-3 justify-center" :cols="2" :lg="10" :md="10" :offset-md="2" :sm="9">
-                <v-btn class="mr-5" @click="updateFibers()" color="green lighten-1" :loading="loading">Actualiser zone étendue</v-btn>
-                <v-btn class="mr-5" @click="getDbFibers()">Charger fibres en BDD</v-btn>
-                <v-btn class="mr-5" @click="getFibers()" color="primary" :loading="loading">Charger zone étendue</v-btn>
-                <v-btn class="mr-5" @click="getCloseAreaFibers()" color="primary" :loading="loading">Charger zone proche</v-btn>
-                <v-btn @click="getNewestFibers()" color="blue accent-4">Charger nouveaux points</v-btn>
-            </v-col>
-            <v-col class="mr-3 text-right">
-                <v-btn @click="clearData()" color="error" :disabled="!fibers.length">Clear</v-btn>
-            </v-col>
-        </v-row>
+    <v-card key="main-card" class="mx-0 mb-0">
+        <v-card-actions ref="menu" class="mb-3">
+            <v-btn icon @click="centerMapOnLocation()" color="primary" class="ml-5">
+                <v-icon>mdi-crosshairs-gps</v-icon>
+            </v-btn>
+            <header-banner-buttons class="d-sm-none-and-down" :loading="loading" @updateFibers="updateFibers" @getDbFibers="getDbFibers"
+                @getFibers="getFibers" @getCloseAreaFibers="getCloseAreaFibers" @getNewestFibers="getNewestFibers"/>
+            <v-btn class="mr-5" @click="clearData()" color="error" :disabled="!fibers.length">Clear</v-btn>
+        </v-card-actions>
         <div class="mb-10 ml-10 mr-10">
             <l-map id="mapContainer" ref="map" :center="userLocation" :zoom="zoom"
             @update:center="centerUpdate" @update:bounds="boundsUpdated">

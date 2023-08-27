@@ -1,4 +1,3 @@
-import axios from 'axios';
 import 'leaflet/dist/leaflet.css';
 import L, { LatLng } from "leaflet";
 import { LMap, LTileLayer, LMarker, LLayerGroup, LPopup, LControl, LControlLayers, LIcon } from "vue2-leaflet";
@@ -10,6 +9,8 @@ import { ISnackbar, ISnackbarColor } from '@/models/SnackbarInterface';
 import FiberPointDTO from '@/models/FiberPointDTO';
 import { EtapeFtth } from '@/models/Enums';
 import LeafletPopupContent from '@/components/LeafletPopupComponent.vue';
+import FiberService from '@/services/FiberService';
+import HeaderButtonsComponent from '@/components/HeaderButtonsComponent.vue';
 
 @Component({
     components: {
@@ -21,6 +22,7 @@ import LeafletPopupContent from '@/components/LeafletPopupComponent.vue';
         'l-layer-group': LLayerGroup,
         'l-icon': LIcon,
         LControlLayers,
+        'header-banner-buttons': HeaderButtonsComponent,
         'leaflet-popup-content': LeafletPopupContent
     }
 })
@@ -105,9 +107,7 @@ export default class FiberMapVue extends Vue {
         this.loading = true;
         this.openedMarker?.mapObject.closePopup();
         this.layers = [];
-        axios.get<FiberPointDTO[]>('/api/v1/fiber/GetCloseArea',
-            { headers: { 'Content-Type': 'application/json' },
-            params: { coordX: this.userLocation.lat, coordY: this.userLocation.lng }})
+        FiberService.getCloseAreaFibers(this.userLocation.lat, this.userLocation.lng)
         .then((response) => {
             this.fibers = response.data;
             this.mapFibersToLayer();
@@ -122,9 +122,7 @@ export default class FiberMapVue extends Vue {
 
     public updateFibers() {
         this.loading = true;
-        axios.get<number>('/api/v1/fiber/UpdateWideArea',
-            { headers: { 'Content-Type': 'application/json' },
-            params: { coordX: this.userLocation.lat, coordY: this.userLocation.lng }})
+        FiberService.updateWideArea(this.userLocation.lat, this.userLocation.lng)
         .then((response) => {
             this.createToast({ message: response.data + " points créés / mis à jour." });
         })
@@ -139,9 +137,7 @@ export default class FiberMapVue extends Vue {
         this.loading = true;
         this.openedMarker?.mapObject.closePopup();
         this.layers = [];
-        axios.get<FiberPointDTO[]>('/api/v1/fiber/GetWideArea',
-            { headers: { 'Content-Type': 'application/json' },
-            params: { coordX: this.userLocation.lat, coordY: this.userLocation.lng }})
+        FiberService.getWideArea(this.userLocation.lat, this.userLocation.lng)
         .then((response) => {
             this.fibers = response.data;
             this.mapFibersToLayer();
@@ -159,9 +155,7 @@ export default class FiberMapVue extends Vue {
         this.recentResult = false;
         this.openedMarker?.mapObject.closePopup();
         this.layers = [];
-        axios.get<FiberPointDTO[]>('/api/v1/fiber/GetFibers',
-            { headers: { 'Content-Type': 'application/json' },
-            params: { coordX: this.userLocation.lat, coordY: this.userLocation.lng }})
+        FiberService.getDbFibers(this.userLocation.lat, this.userLocation.lng)
         .then((response) => {
             this.fibers = response.data;
             this.mapFibersToLayer();
@@ -179,9 +173,7 @@ export default class FiberMapVue extends Vue {
         this.loading = true;
         this.openedMarker?.mapObject.closePopup();
         this.layers = [];
-        axios.get<FiberPointDTO[]>('/api/v1/fiber/GetNewestPoints',
-            { headers: { 'Content-Type': 'application/json' },
-            params: { data: this.bounds.toBBoxString() }})
+        FiberService.getNewestPoints(this.bounds.toBBoxString())
         .then((response) => {
             this.fibers = response.data;
             this.mapFibersToLayer();
@@ -197,8 +189,7 @@ export default class FiberMapVue extends Vue {
     public getHistorique(fiber: FiberPointDTO) {
         if (!this.resultFromDb) {
             this.loadingHistory = true;
-            axios.get<FiberPointDTO>('/api/v1/fiber/GetSameSignaturePoints', 
-                { headers: { 'Content-Type': 'application/json' }, params: { signature: fiber.signature }})
+            FiberService.getHistorique(fiber.signature)
             .then((response) => {
                 fiber.created = response.data.created;
                 fiber.lastUpdated = response.data.lastUpdated;
