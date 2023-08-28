@@ -4,6 +4,16 @@
             <v-col>
                 <v-tooltip bottom>
                     <template v-slot:activator="{ on }">
+                        <v-btn @click="getNewestFibers()" color="blue accent-4">Charger nouveaux points
+                            <v-icon small v-on="on" right>mdi-information-outline</v-icon>
+                        </v-btn>
+                    </template>
+                    <span>Affiche les points ajoutés/modifiés en BDD depuis moins de 5 jours</span>
+                </v-tooltip>
+            </v-col>
+            <v-col>
+                <v-tooltip bottom>
+                    <template v-slot:activator="{ on }">
                         <v-btn @click="updateFibers()" color="green lighten-1" :loading="loading">
                             Actualiser zone étendue
                             <v-icon small v-on="on" right>mdi-information-outline</v-icon>
@@ -41,16 +51,6 @@
                         </v-btn>
                     </template>
                     <span>Affiche les données de raccordement depuis <br/> l'API Orange sur une zone restreinte</span>
-                </v-tooltip>
-            </v-col>
-            <v-col>
-                <v-tooltip bottom>
-                    <template v-slot:activator="{ on }">
-                        <v-btn @click="getNewestFibers()" color="blue accent-4">Charger nouveaux points
-                            <v-icon small v-on="on" right>mdi-information-outline</v-icon>
-                        </v-btn>
-                    </template>
-                    <span>Affiche les points ajoutés/modifiés depuis moins de 5 jours</span>
                 </v-tooltip>
             </v-col>
         </v-row>
