@@ -7,7 +7,7 @@
     <UserSecretsId>169ad67e-74b0-4357-a97c-d36cca0eb68c</UserSecretsId>
     <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
     <OutputType>Exe</OutputType>
-    <!--<PlatformTarget>arm64</PlatformTarget>-->
+    <PlatformTarget>arm64</PlatformTarget>
   </PropertyGroup>
   <ItemGroup>
     <None Remove="files\appsettings.json" />
