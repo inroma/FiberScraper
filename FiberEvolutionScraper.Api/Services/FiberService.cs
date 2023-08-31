@@ -76,7 +76,7 @@ public class FiberService
             var maxX = fiberPoints.Max(x => x.X + xOffset);
             var minY = fiberPoints.Min(x => x.Y - yOffset);
             var maxY = fiberPoints.Max(x => x.Y + yOffset);
-            var dbFibers = context.FiberPoints.Where(ctx => ctx.X >= minX && ctx.X <= maxX && ctx.Y >= minY && ctx.Y <= maxY);
+            var dbFibers = context.FiberPoints.Where(ctx => ctx.X >= minX && ctx.X <= maxX && ctx.Y >= minY && ctx.Y <= maxY).ToList();
 
             fiberPoints.ForEach(fiber =>
             {
@@ -84,7 +84,12 @@ public class FiberService
                 if (dbFiber == null)
                 {
                     fiber.Created = DateTime.UtcNow;
-                    fiber.LastUpdated = DateTime.UtcNow;
+                    fiber.LastUpdated = fiber.Created;
+                    fiber.EligibilitesFtth.ForEach(e =>
+                    {
+                        e.Created = fiber.Created;
+                        e.LastUpdated = fiber.Created;
+                    });
                     context.FiberPoints.Add(fiber);
                 }
                 else
