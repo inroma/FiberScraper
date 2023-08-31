@@ -27,7 +27,7 @@ public class FiberApi
 
     public FiberResponseModel GetFibersForLoc(double x, double y, int squareSize = 5, bool canIterate = true)
     {
-        setToken();
+        SetToken();
         if (!client.DefaultRequestHeaders.Any(h => h.Key == "AppAuthorization"))
         {
             client.DefaultRequestHeaders.Add("AppAuthorization", $"Bearer {tokenParser.Token}");
@@ -96,7 +96,7 @@ public class FiberApi
         }
     }
 
-    private void setToken()
+    private void SetToken()
     {
         if (tokenParser.Token == null || tokenParser.TokenAge < DateTime.Now.AddHours(-1))
         {
