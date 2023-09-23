@@ -50,7 +50,7 @@
             @getFibers="getFibers" @getCloseAreaFibers="getCloseAreaFibers" @getNewestFibers="getNewestFibers"/>
             <v-menu offset-y :close-on-content-click="false" :nudge-left="130" min-width="350">
                 <template v-slot:activator="{ on, attrs }">
-                    <v-btn class="hidden-md-and-up mx-auto" color="primary" v-bind="attrs" v-on="on" :loading="loading">Actions</v-btn>
+                    <v-btn class="hidden-md-and-up mx-auto" color="primary" v-bind="attrs" v-on="on">Actions</v-btn>
                 </template>
                 <v-list class="hidden-md-and-up" dense style="width: min-content;">
                     <v-list-item>
