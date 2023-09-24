@@ -50,7 +50,7 @@
             @getFibers="getFibers" @getCloseAreaFibers="getCloseAreaFibers" @getNewestFibers="getNewestFibers"/>
             <v-menu offset-y :close-on-content-click="false" :nudge-left="130" min-width="350">
                 <template v-slot:activator="{ on, attrs }">
-                    <v-btn class="hidden-md-and-up mx-auto" color="primary" v-bind="attrs" v-on="on" :loading="loading">Actions</v-btn>
+                    <v-btn class="hidden-md-and-up mx-auto" color="primary" v-bind="attrs" v-on="on">Actions</v-btn>
                 </template>
                 <v-list class="hidden-md-and-up" dense style="width: min-content;">
                     <v-list-item>
@@ -65,7 +65,7 @@
             </v-menu>
             <v-btn class="mr-5" @click="clearData()" color="error" :disabled="!fibers.length">Clear</v-btn>
         </v-card-actions>
-        <div class="ml-5 mr-5">
+        <div class="ml-10 mr-10">
             <v-row no-gutters>
                 <v-responsive min-width="200">
                     <l-map id="mapContainer" :style="'height:'+mapHeight" ref="map" :center="userLocation" :zoom="zoom"

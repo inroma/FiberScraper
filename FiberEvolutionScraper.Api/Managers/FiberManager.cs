@@ -7,13 +7,13 @@ using System.Globalization;
 
 namespace FiberEvolutionScraper.Api.Services;
 
-public class FiberService
+public class FiberManager
 {
     readonly ApplicationDbContext context;
     readonly FiberApi fiberApi;
     readonly IMapper mapper;
 
-    public FiberService(IServiceProvider serviceProvider)
+    public FiberManager(IServiceProvider serviceProvider)
     {
         context = serviceProvider.GetRequiredService<ApplicationDbContext>();
         fiberApi = serviceProvider.GetRequiredService<FiberApi>();
@@ -23,7 +23,7 @@ public class FiberService
     internal IList<FiberPointDTO> GetFibersForLoc(double coordX, double coordY, int squareSize = 5, bool canIterate = true)
     {
         var fibers = fiberApi.GetFibersForLoc(coordX, coordY, squareSize, canIterate);
-        var mapped = mapper.Map<IList<FiberPointDTO>>(fibers.Results).ToList();
+        var mapped = mapper.Map<IList<FiberPointDTO>>(fibers).ToList();
         mapped = mapped.DistinctBy(m => m.Signature).ToList();
 
         return mapped;
@@ -59,9 +59,9 @@ public class FiberService
             .GroupBy(x => x.Signature).Select(a => a.OrderBy(a => a.LastUpdated).First()).Take(800).ToList();
     }
 
-    internal async Task<int> UpdateDbFibers(double coordX, double coordY)
+    internal async Task<int> UpdateDbFibers(double coordX, double coordY, int squareSize = 5)
     {
-        var fibers = GetFibersForLoc(coordX, coordY, 5, true);
+        var fibers = GetFibersForLoc(coordX, coordY, squareSize);
 
         return await SaveToDB(fibers.ToList());
     }

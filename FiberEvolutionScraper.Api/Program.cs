@@ -3,6 +3,8 @@ using FiberEvolutionScraper.Api.Data;
 using FiberEvolutionScraper.Api.Models;
 using FiberEvolutionScraper.Api.Services;
 using Microsoft.EntityFrameworkCore;
+using Quartz.AspNetCore;
+using Quartz;
 
 namespace FiberEvolutionScraper.Api;
 
@@ -20,11 +22,14 @@ public class Program
         // Add services to the container.
 
         builder.Services.AddControllers();
-        // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-        builder.Services.AddEndpointsApiExplorer();
 
+        builder.Services.AddLogging(builder => 
+            builder.AddConfiguration(configuration.GetSection("Logging"))
+            .AddConsole());
         builder.Services.AddScoped<FiberApi>();
-        builder.Services.AddScoped<FiberService>();
+        builder.Services.AddScoped<FiberManager>();
+        builder.Services.AddScoped<AutoRefreshManager>();
+        builder.Services.AddScoped<AutoRefreshService>();
         builder.Services.AddScoped<HttpClient>();
         builder.Services.AddSingleton<TokenParser>();
         builder.Services.AddDbContext<ApplicationDbContext>(options => options.UseNpgsql(dbConnectionString));
@@ -39,6 +44,32 @@ public class Program
                 .ReverseMap()
             ;
             cfg.CreateMap<EligibilitesFtth, EligibiliteFtthDTO>().ReverseMap();
+        });
+
+        builder.Services.AddQuartz(q =>
+        {
+            var jobKey = new JobKey("AutoRefreshJob");
+            q.AddJob<AutoRefreshService>(opts => opts.WithIdentity(jobKey));
+
+#if DEBUG
+            q.AddTrigger(opts => opts
+                .ForJob(jobKey)
+                .WithIdentity("AutoRefreshJob-trigger")
+                .WithCronSchedule("0 0/5 * ? * *").StartNow()
+            );
+#else
+            q.AddTrigger(opts => opts
+                .ForJob(jobKey)
+                .WithIdentity("AutoRefreshJob-trigger")
+                .WithCronSchedule("0 0 7,12,18 ? * *")
+            );
+#endif
+        });
+
+        builder.Services.AddQuartzServer(options =>
+        {
+            // when shutting down we want jobs to complete gracefully
+            options.WaitForJobsToComplete = true;
         });
 
         var app = builder.Build();

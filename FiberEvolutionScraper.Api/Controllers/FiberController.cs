@@ -8,25 +8,25 @@ namespace FiberEvolutionScraper.Api.Controllers;
 [Route("api/[controller]/[action]")]
 public class FiberController
 {
-    private FiberService fiberService;
+    private readonly FiberManager FiberManager;
 
-    public FiberController(IServiceProvider serviceProvider)
+    public FiberController(FiberManager fiberManager)
     {
-        fiberService = serviceProvider.GetService<FiberService>();
+        FiberManager = fiberManager;
     }
 
     [HttpGet()]
     public IList<FiberPointDTO> GetFibers([FromQuery] FibersGetModel parameters)
     {
-        var fibers = fiberService.GetDbFibersForLoc(parameters.CoordY, parameters.CoordX);
+        var fibers = FiberManager.GetDbFibersForLoc(parameters.CoordY, parameters.CoordX);
         return fibers;
     }
 
     [HttpGet()]
     public async Task<IList<FiberPointDTO>> GetWideArea([FromQuery] FibersGetModel parameters)
     {
-        var fibers = fiberService.GetFibersForLoc(parameters.CoordY, parameters.CoordX);
-        await fiberService.SaveToDB(fibers.ToList());
+        var fibers = FiberManager.GetFibersForLoc(parameters.CoordY, parameters.CoordX);
+        await FiberManager.SaveToDB(fibers.ToList());
 
         return fibers;
     }
@@ -34,8 +34,8 @@ public class FiberController
     [HttpGet()]
     public async Task<IList<FiberPointDTO>> GetCloseArea([FromQuery] FibersGetModel parameters)
     {
-        var fibers = fiberService.GetFibersForLoc(parameters.CoordY, parameters.CoordX, 1);
-        await fiberService.SaveToDB(fibers.ToList());
+        var fibers = FiberManager.GetFibersForLoc(parameters.CoordY, parameters.CoordX, 1);
+        await FiberManager.SaveToDB(fibers.ToList());
 
         return fibers;
     }
@@ -43,21 +43,21 @@ public class FiberController
     [HttpGet()]
     public IList<FiberPointDTO> GetNewestPoints([FromQuery] string data)
     {
-        var fibers = fiberService.GetNewestPoints(data);
+        var fibers = FiberManager.GetNewestPoints(data);
         return fibers;
     }
 
     [HttpGet()]
     public FiberPointDTO GetSameSignaturePoints([FromQuery] string signature)
     {
-        var fibers = fiberService.GetSameSignaturePoints(signature);
+        var fibers = FiberManager.GetSameSignaturePoints(signature);
         return fibers;
     }
 
     [HttpGet]
     public int UpdateWideArea([FromQuery] FibersGetModel parameters)
     {
-        var result = fiberService.UpdateDbFibers(parameters.CoordY, parameters.CoordX);
+        var result = FiberManager.UpdateDbFibers(parameters.CoordY, parameters.CoordX);
 
         return result.Result;
     }
