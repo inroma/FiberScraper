@@ -9,6 +9,8 @@ public class ApplicationDbContext : DbContext
 
     public DbSet<EligibiliteFtthDTO> EligibiliteFtth { get; set; }
 
+    public DbSet<AutoRefreshInput> AutoRefreshInputs { get; set; }
+
     public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
     : base(options)
     {

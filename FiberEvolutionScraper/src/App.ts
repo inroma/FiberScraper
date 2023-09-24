@@ -14,22 +14,25 @@ export default class FiberMapVue extends Vue {
           title: 'Accueil',
           icon: 'mdi-home-outline',
           url: '/home',
+          disabled: false
         },
         {
           title: 'Déploiements',
           icon: 'mdi-connection',
           url: '/',
+          disabled: false
         },
         {
           title: 'Auto-Refresh',
           icon: 'mdi-timer-refresh-outline',
           url: '/auto-refresh',
-          disabled: true
+          disabled: false
         },
         {
           title: 'About',
           icon: 'mdi-help-box',
           url: '/about',
+          disabled: false
         },
     ]
   }

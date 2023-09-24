@@ -65,7 +65,7 @@
             </v-menu>
             <v-btn class="mr-5" @click="clearData()" color="error" :disabled="!fibers.length">Clear</v-btn>
         </v-card-actions>
-        <div class="ml-5 mr-5">
+        <div class="ml-10 mr-10">
             <v-row no-gutters>
                 <v-responsive min-width="200">
                     <l-map id="mapContainer" :style="'height:'+mapHeight" ref="map" :center="userLocation" :zoom="zoom"
