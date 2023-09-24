@@ -3,7 +3,7 @@ import axios, { AxiosPromise, AxiosResponse } from 'axios';
 
 export default class AutoRefreshService {
 
-    private static readonly endpoint = 'https://localhost:5001/api/autorefresh/';
+    private static readonly endpoint = '/api/v1/autorefresh/';
 
     static getAll(): AxiosPromise<AutoRefreshInput[]> {
         return axios.get<AutoRefreshInput[]>(`${this.endpoint}GetAll`);

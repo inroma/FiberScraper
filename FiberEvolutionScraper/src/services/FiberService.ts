@@ -3,7 +3,7 @@ import axios, { AxiosPromise } from 'axios';
 
 export default class FiberService {
 
-    private static readonly endpoint = 'https://localhost:5001/api/fiber/';
+    private static readonly endpoint = '/api/v1/fiber/';
     private static readonly headers = { 'Content-Type': 'application/json' };
 
     static getCloseAreaFibers(lat: number, lng: number): AxiosPromise<FiberPointDTO[]> {
