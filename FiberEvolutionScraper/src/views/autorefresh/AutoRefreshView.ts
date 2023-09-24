@@ -76,7 +76,7 @@ export default class AutoRefreshView extends Vue {
     private createToast!: (params: ISnackbar) => void;
 
     public mounted() {
-        this.centerMapOnLocation();
+        // this.centerMapOnLocation();
         this.getAutoRefreshInputs();
     }
 

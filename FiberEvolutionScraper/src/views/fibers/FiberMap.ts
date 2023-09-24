@@ -103,7 +103,7 @@ export default class FiberMapVue extends Vue {
     private createToast!: (params: ISnackbar) => void;
 
     public mounted() {
-        this.centerMapOnLocation();
+        // this.centerMapOnLocation();
     }
 
     public getCloseAreaFibers() {
