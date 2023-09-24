@@ -100,7 +100,7 @@
                             :plain="!layers[icon.code]?.visible"
                             :disabled="!layers[icon.code] || layers[icon.code]?.markers?.length === 0">
                                 <v-img :key="'control-custom-btn-img-'+icon.code" contain height="27" width="20" :src="icon.icon"/>
-                                <span :key="'control-custom-btn-span-'+icon.code" class="pl-2">{{ icon.title }}</span>
+                                <span :key="'control-custom-btn-span-'+icon.code" class="pl-2 black--text">{{ icon.title }}</span>
                             </v-btn>
                         </l-control>
                     </l-map>
