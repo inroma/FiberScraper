@@ -41,23 +41,32 @@ public class FiberApi
         var modul = squareSize % 2 == 1 ? squareSize / 2 : squareSize / 2 - 0.5;
         (double startX, double startY) = (x - modul * currentOffsetX, y - modul * currentOffsetY);
 
-        var parallelResult = Parallel.For(0, squareSize, (j) =>
+        Parallel.For(0, squareSize, j =>
         {
-            Parallel.For(0, squareSize, async k =>
+            Parallel.For(0, squareSize, (k, state) =>
             {
-                httpResponse = await client.GetAsync($"api/eligibilite/zoneAdresse?x={(startX + k * currentOffsetX).ToString(CultureInfo.InvariantCulture)}&y={(startY + j * currentOffsetY).ToString(CultureInfo.InvariantCulture)}&extendedZone=false");
+                httpResponse = client.GetAsync($"api/eligibilite/zoneAdresse?" +
+                    $"x={(startX + (k * currentOffsetX)).ToString(CultureInfo.InvariantCulture)}&" +
+                    $"y={(startY + (j * currentOffsetY)).ToString(CultureInfo.InvariantCulture)}&extendedZone=false")
+                    .GetAwaiter().GetResult();
                 if (httpResponse.IsSuccessStatusCode)
                 {
-                    var tempResult = JsonSerializer.Deserialize<FiberResponseModel>(await httpResponse.Content.ReadAsStringAsync());
+                    // On override le Header car Orange l'envoi parfois en double
+                    httpResponse.Content.Headers.ContentType = new("application/json");
+                    var tempResult = JsonSerializer.Deserialize<FiberResponseModel>(httpResponse.Content.ReadAsStringAsync().Result);
                     lock (fibers)
                     {
                         fibers.AddRange(tempResult.Results);
                     }
                     if (tempResult.ZoneSize != "GTC" && canIterate)
                     {
-                        fibers.AddRange(GetFibersForLoc(startX + k * currentOffsetX, startY + j * currentOffsetY, 3, false));
+                        fibers.AddRange(GetFibersForLoc(startX + (k * currentOffsetX), startY + (j * currentOffsetY), 3, false));
                     }
                     //AddDebugMarker(fibers, startPoint, j, k, currentOffsetY, currentOffsetX, squareSize, modul, tempResult.ZoneSize);
+                }
+                else if (httpResponse.StatusCode == System.Net.HttpStatusCode.Forbidden)
+                {
+                    throw new Exception($"Erreur lors d'une requête API, {httpResponse.ReasonPhrase ?? httpResponse.StatusCode.ToString()}");
                 }
             });
         });
