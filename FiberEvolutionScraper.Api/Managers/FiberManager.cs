@@ -70,6 +70,10 @@ public class FiberManager
     {
         try
         {
+            if (!fiberPoints.Any())
+            {
+                return 0;
+            }
             var xOffset = 0.8;
             var yOffset = 0.8;
             var minX = fiberPoints.Min(x => x.X - xOffset);
