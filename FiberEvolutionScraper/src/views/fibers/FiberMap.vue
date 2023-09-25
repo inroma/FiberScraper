@@ -90,15 +90,15 @@
                         <!-- Layers visibility controls -->
                         <l-control v-if="$vuetify.breakpoint.mdAndDown && !controlOpened" key="control-custom" position='bottomleft' :class="['custom-control', { 'custom-control-dark': $vuetify.theme.dark }]" disableScrollPropagation>
                             <v-btn small text :ripple="false" @click.stop="controlOpened = true">
-                                <v-icon>mdi-map-marker-multiple-outline</v-icon>
+                                <v-icon color="black">mdi-map-marker-multiple-outline</v-icon>
                             </v-btn>
                         </l-control>
                         <l-control v-else key="control-custom" position='bottomleft' :class="['custom-control', { 'custom-control-dark': $vuetify.theme.dark }]" disableScrollPropagation>
                             <v-btn style="z-index:2;" class="ma-2" x-small text
                             v-for="icon in orderedIcons"
                             :key="'control-custom-btn-'+icon.code" @click="showHideLayer(icon.code)" :ripple="false"
-                            :plain="!layers[icon.code]?.visible"
-                            :disabled="!layers[icon.code] || layers[icon.code]?.markers?.length === 0">
+                            :plain="!layers[icon.code]?.visible || !layers[icon.code]?.markers?.length"
+                            :disabled="!layers[icon.code] || !layers[icon.code]?.markers?.length">
                                 <v-img :key="'control-custom-btn-img-'+icon.code" contain height="27" width="20" :src="icon.icon"/>
                                 <span :key="'control-custom-btn-span-'+icon.code" class="pl-2 black--text">{{ icon.title }}</span>
                             </v-btn>
