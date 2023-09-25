@@ -55,13 +55,14 @@ public class Program
             q.AddTrigger(opts => opts
                 .ForJob(jobKey)
                 .WithIdentity("AutoRefreshJob-trigger")
-                .WithCronSchedule("0 0/5 * ? * *").StartNow()
+                .WithCronSchedule("0 0/5 * ? * *", x => x.InTimeZone(TimeZoneInfo.Local))
+                .StartNow()
             );
 #else
             q.AddTrigger(opts => opts
                 .ForJob(jobKey)
                 .WithIdentity("AutoRefreshJob-trigger")
-                .WithCronSchedule("0 0 7,12,18 ? * *")
+                .WithCronSchedule("0 0 7,12,18 ? * *", x => x.InTimeZone(TimeZoneInfo.Local))
             );
 #endif
         });
