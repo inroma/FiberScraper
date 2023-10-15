@@ -37,9 +37,11 @@
                             :key="tileProvider.name" :name="tileProvider.name" layer-type="base" :visible="tileProvider.visible"
                         />
                         <l-rectangle v-for="rectangle, i in rectangles" :key="'rectangle_'+i" :bounds="rectangle.getBounds()"
-                        :color="rectangle.options.color" :fillColor="rectangle.options.fillColor" :weight="rectangle.options.weight"/>
+                            :color="rectangle.options.color" :fillColor="rectangle.options.fillColor"
+                            :weight="rectangle.options.weight" :dashArray="rectangle.options.dashArray"/>
                         <l-rectangle v-for="rectangle, i in newRectangle" :key="'newRectangle_'+i" :bounds="rectangle.getBounds()"
-                        :color="rectangle.options.color" :fillColor="rectangle.options.fillColor" :weight="rectangle.options.weight"/>
+                            :color="rectangle.options.color" :fillColor="rectangle.options.fillColor"
+                            :weight="rectangle.options.weight" :dashArray="rectangle.options.dashArray"/>
                         <l-control key="control-custom" position='bottomleft' class="custom-control" disableScrollPropagation>
                             <v-btn icon @click="centerMapOnLocation()" color="primary" class="mx-2">
                                 <v-icon>mdi-crosshairs-gps</v-icon>
@@ -108,7 +110,7 @@
                             <div v-else class="d-inline">
                                 <v-tooltip bottom>
                                     <template v-slot:activator="{ on }">
-                                        <v-btn icon small @click.prevent="editItem(item)" v-on="on"><v-icon>mdi-pencil</v-icon></v-btn>
+                                        <v-btn icon small @click.stop="editItem(item)" v-on="on"><v-icon>mdi-pencil</v-icon></v-btn>
                                     </template>
                                     <span>Éditer l'auto-refresh</span>
                                 </v-tooltip>

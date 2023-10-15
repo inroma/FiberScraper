@@ -107,6 +107,7 @@ export default class AutoRefreshView extends Vue {
         item.coordX = this.userLocation.lng;
         item.coordY = this.userLocation.lat;
         this.autoRefreshItems.push(item);
+        this.centerUpdate(this.userLocation);
     }
 
     public getRectangleFromInput(item: AutoRefreshInput, cityOffset: boolean = false) {
@@ -118,7 +119,10 @@ export default class AutoRefreshView extends Vue {
             [[bounds.lat - areaSizeDivided*latOffset, bounds.lng - areaSizeDivided*lngOffset],
                 [bounds.lat + areaSizeDivided*latOffset, bounds.lng + areaSizeDivided*lngOffset]],
             {
-                color: latOffset === 0.004457 ? 'red' : 'blue', fillColor: 'lightblue', weight: 2
+                color: !item.enabled ? 'grey' : latOffset === 0.004457 ? 'red' : 'blue',
+                fillColor: 'lightblue',
+                weight: 2,
+                dashArray: !item.enabled || item.id === 0 ? "6" : undefined
             });
         return rectangle;
     }
@@ -129,7 +133,7 @@ export default class AutoRefreshView extends Vue {
         .then((response) => {
             this.createToast({ color: ISnackbarColor.Success, message: `${response.data} zone créée avec succès` });
             this.getAutoRefreshInputs();
-            this.newRectangle = undefined;
+            this.newRectangle = [];
         })
         .catch((errors) => {
             this.createToast({ color: ISnackbarColor.Error, message: errors });
@@ -214,8 +218,10 @@ export default class AutoRefreshView extends Vue {
     }
 
     public editItem(point: AutoRefreshInput) {
+        this.centerMapOnPoint(point);
         this.autoRefreshItems.map(x => x.isEditing = false);
         point.isEditing = true;
+        this.centerUpdate(this.userLocation);
     }
 
     public get mapHeight() {
