@@ -18,6 +18,7 @@ public class Program
             .SetBasePath(Directory.GetCurrentDirectory())
             .AddJsonFile("files/appsettings.json")
             .Build();
+        GlobalSettings globalConfiguration = configuration.GetSection("GlobalSettings").Get<GlobalSettings>();
         string dbConnectionString = configuration.GetConnectionString("Database");
         // Add services to the container.
 
@@ -55,14 +56,14 @@ public class Program
             q.AddTrigger(opts => opts
                 .ForJob(jobKey)
                 .WithIdentity("AutoRefreshJob-trigger")
-                .WithCronSchedule("0 0/5 * ? * *", x => x.InTimeZone(TimeZoneInfo.Local))
+                .WithCronSchedule(globalConfiguration?.CronSchedule ?? "0 0/5 * ? * MON,TUE,WED,THU,FRI,SAT", x => x.InTimeZone(TimeZoneInfo.FindSystemTimeZoneById("Central Europe Standard Time")))
                 .StartNow()
             );
 #else
             q.AddTrigger(opts => opts
                 .ForJob(jobKey)
                 .WithIdentity("AutoRefreshJob-trigger")
-                .WithCronSchedule("0 0 7,12,18 ? * *", x => x.InTimeZone(TimeZoneInfo.Local))
+                .WithCronSchedule(globalConfiguration?.CronSchedule ?? "0 0 8,16 ? * MON,TUE,WED,THU,FRI,SAT", x => x.InTimeZone(TimeZoneInfo.FindSystemTimeZoneById("Central Europe Standard Time")))
             );
 #endif
         });
