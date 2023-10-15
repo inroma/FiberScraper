@@ -22,6 +22,21 @@
 
 <template>
     <v-card key="main-card" class="mx-0 mb-0">
+        <v-dialog v-model="deleteDialog" width="auto" @click:outside="deleteDialog = false">
+            <v-card>
+                <v-card-title class="pa-3">
+                    Confirmer la suppression
+                </v-card-title>
+                <v-card-text class="pa-5">
+                    Voulez-vous vraiment supprimer cet item ?
+                </v-card-text>
+                <v-card-actions class="pb-4">
+                    <v-spacer/>
+                    <v-btn color="primary" @click="deleteItem(popupDeleteItem); deleteDialog = false">Confirmer</v-btn>
+                    <v-btn color="secondary" @click="deleteDialog = false">Fermer</v-btn>
+                </v-card-actions>
+            </v-card>
+        </v-dialog>
         <v-card-actions ref="menu">
         </v-card-actions>
         <div class="ml-10 mr-10">
@@ -117,7 +132,7 @@
                             </div>
                             <v-tooltip bottom>
                                 <template v-slot:activator="{ on }">
-                                    <v-btn icon small @click.stop="deleteItem(item)" v-on="on"><v-icon color="red">mdi-delete-outline</v-icon></v-btn>
+                                    <v-btn icon small v-on="on" @click.stop="popupDeleteItem = item; deleteDialog = true"><v-icon color="red">mdi-delete-outline</v-icon></v-btn>
                                 </template>
                                 <span>Supprimer cet auto-refresh</span>
                             </v-tooltip>
@@ -126,7 +141,8 @@
                 </v-col>
             </v-row>
         </div>
-    <v-btn class="primary" elevation="2" dark fab icon fixed bottom right @click="createItem">
+    <v-btn class="primary" elevation="2" dark fab icon fixed bottom right @click="createItem"
+        :disabled="autoRefreshItems.some(x => x.isEditing)">
         <v-icon dark>mdi-plus</v-icon>
     </v-btn>
     </v-card>

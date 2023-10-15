@@ -56,6 +56,8 @@ export default class AutoRefreshView extends Vue {
     public autoRefreshItems: AutoRefreshInput[] = [];
     public rectangles: L.Rectangle[] = [];
     public newRectangle: L.Rectangle[] = [];
+    public deleteDialog: boolean  = false;
+    public popupDeleteItem?: AutoRefreshInput = undefined;
 
     public get headers() {
         return [
@@ -175,6 +177,7 @@ export default class AutoRefreshView extends Vue {
                 this.createToast({ color: ISnackbarColor.Error, message: errors });
             })
             .finally(() => {
+                this.popupDeleteItem = undefined;
                 this.loading = false;
             });
         }
