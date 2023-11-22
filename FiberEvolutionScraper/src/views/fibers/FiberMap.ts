@@ -65,6 +65,7 @@ export default class FiberMapVue extends Vue {
     public resultFromDb = false;
     public defaultIcon = '/icons/marker-blue.png';
     public redIcon = '/icons/marker-red.png';
+    public pinkIcon = '/icons/marker-pink.png';
     public greenIcon = '/icons/marker-green.png';
     public yellowIcon = '/icons/marker-yellow.png';
     public purpleIcon = '/icons/marker-purple.png';
@@ -73,13 +74,14 @@ export default class FiberMapVue extends Vue {
     public blueInvertedIcon = '/icons/marker-white.png';
     public layers: { markers: FiberPointDTO[], visible: boolean, name: string }[] = [];
     public icons = [{code: EtapeFtth.ELLIGIBLE, title: "Élligible", icon: this.greenIcon, order: 0},
+        {code: EtapeFtth.PROCHE_CLIENT, title: "Proche Client", icon: this.yellowIcon, order: 1},
         {code: EtapeFtth.EN_COURS_IMMEUBLE, title: "Déploiement Immeuble", icon: this.purpleIcon, order: 2},
         {code: EtapeFtth.TERMINE_QUARTIER, title: "Quartier Terminé", icon: this.blueInvertedIcon, order: 3},
         {code: EtapeFtth.EN_COURS_QUARTIER, title: "Déploiement Quartier", icon: this.defaultIcon, order: 4},
         {code: EtapeFtth.PREVU_QUARTIER, title: "Quartier Programmé", icon: this.brownIcon, order: 5},
-        {code: EtapeFtth._, title: "Aucune donnée", icon: this.redIcon, order: 6},
-        {code: EtapeFtth.PROCHE_CLIENT, title: "Proche Client", icon: this.yellowIcon, order: 1},
-        {code: EtapeFtth.UNKNOWN, title: "Statut inconnu", icon: this.blackIcon, order: 7}
+        {code: EtapeFtth.NON_PREVU, title: "Non prévu", icon: this.pinkIcon, order: 6},
+        {code: EtapeFtth._, title: "Aucune donnée", icon: this.redIcon, order: 7},
+        {code: EtapeFtth.UNKNOWN, title: "Statut inconnu", icon: this.blackIcon, order: 999}
     ];
     public maxBounds = latLngBounds([
         [40.3097691, -6.0005669],

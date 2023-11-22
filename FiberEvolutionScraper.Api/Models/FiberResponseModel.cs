@@ -83,7 +83,7 @@ public class EligibilitesFtth
     public string CodeImb { get; set; }
 
     [JsonPropertyName("coord")]
-    public Coord Coord { get; set; }
+    public BestCoords Coord { get; set; }
 
     [JsonPropertyName("etapeFtth")]
     public string EtapeFtth { get; set; }

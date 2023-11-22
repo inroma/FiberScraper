@@ -10,5 +10,6 @@ public enum EtapeFtth
     _,
     DEBUG,
     PROCHE_CLIENT,
+    NON_PREVU,
     UNKNOWN = 999
 }
