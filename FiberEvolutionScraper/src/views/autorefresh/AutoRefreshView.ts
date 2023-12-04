@@ -227,6 +227,16 @@ export default class AutoRefreshView extends Vue {
         this.centerUpdate(this.userLocation);
     }
 
+    public runAll() {
+        AutoRefreshService.runAll()
+        .then(() => {
+            this.createToast({ message: "Refresh manuel des zones lancé", color: ISnackbarColor.Success });
+        })
+        .catch(() => {
+            this.createToast({ message: "Erreur pendant le lancement manuel des refresh", color: ISnackbarColor.Error });
+        })
+    }
+
     public get mapHeight() {
         switch(this.$vuetify.breakpoint.name) {
             case 'xs':

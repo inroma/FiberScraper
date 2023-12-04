@@ -1,6 +1,7 @@
 ﻿using FiberEvolutionScraper.Api.Models;
 using FiberEvolutionScraper.Api.Services;
 using Microsoft.AspNetCore.Mvc;
+using Quartz;
 
 namespace FiberEvolutionScraper.Api.Controllers;
 
@@ -12,13 +13,15 @@ public class AutoRefreshController
 
     private readonly AutoRefreshManager autoRefreshManager;
     private readonly ILogger<AutoRefreshController> logger;
+    private readonly ISchedulerFactory schedulerFactory;
 
     #endregion Private Fields
 
-    public AutoRefreshController(AutoRefreshManager autoRefreshManager, ILogger<AutoRefreshController> logger)
+    public AutoRefreshController(AutoRefreshManager autoRefreshManager, ILogger<AutoRefreshController> logger, ISchedulerFactory factory)
     {
         this.autoRefreshManager = autoRefreshManager;
         this.logger = logger;
+        schedulerFactory = factory;
     }
 
     [HttpGet("GetAll")]
@@ -55,5 +58,17 @@ public class AutoRefreshController
         var result = await autoRefreshManager.Delete(inputId);
 
         return result;
+    }
+
+    [HttpPost("RunAll")]
+    public async Task RunAll()
+    {
+        logger.LogDebug("Run All Auto Refresh");
+        IScheduler scheduler = await schedulerFactory.GetScheduler();
+        var trigger = await scheduler.GetTrigger(new("AutoRefreshJob-trigger"));
+        if (trigger != null)
+        {
+            await scheduler.TriggerJob(new JobKey("AutoRefreshJob"));
+        }
     }
 }

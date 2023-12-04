@@ -20,4 +20,8 @@ export default class AutoRefreshService {
     static delete(inputId: number): AxiosPromise<number> {
         return axios.delete<number>(`${this.endpoint}Delete`, { params: { inputId: inputId }});
     }
+
+    static runAll(): AxiosPromise {
+        return axios.post(`${this.endpoint}RunAll`);
+    }
 }

@@ -69,6 +69,24 @@
                     </l-map>
                 </v-responsive>
             </v-row>
+            <v-row>
+                <v-col>
+                </v-col>
+                <v-col>
+                    <v-btn class="primary" @click="runAll">
+                        <v-icon left dark>mdi-play-outline</v-icon>
+                        Refresh manuel des zones
+                    </v-btn>
+                </v-col>
+                <v-col>
+                    <v-btn class="primary" @click="createItem" :disabled="autoRefreshItems.some(x => x.isEditing)">
+                        <v-icon left dark>mdi-plus</v-icon>
+                        Ajouter une zone
+                    </v-btn>
+                </v-col>
+                <v-col>
+                </v-col>
+            </v-row>
             <v-row key="main-card-content" justify="center">
                 <v-col md="11">
                     <v-data-table class="mt-5 mb-10" :headers="headers" key="list-details" :items="autoRefreshItems" fixed-header height="650px"
@@ -141,10 +159,6 @@
                 </v-col>
             </v-row>
         </div>
-    <v-btn class="primary" elevation="2" dark fab icon fixed bottom right @click="createItem"
-        :disabled="autoRefreshItems.some(x => x.isEditing)">
-        <v-icon dark>mdi-plus</v-icon>
-    </v-btn>
     </v-card>
 </template>
 <script lang="ts" src="./AutoRefreshView.ts"/>
