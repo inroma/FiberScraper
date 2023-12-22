@@ -120,26 +120,33 @@ public class FiberManager
 
     private static void AddOrUpdateEligibiliteFtth(ApplicationDbContext dbContext, FiberPointDTO dbFiber, FiberPointDTO fiberPoint)
     {
-        fiberPoint.EligibilitesFtth.ForEach(e =>
+        foreach (var item in fiberPoint.EligibilitesFtth.Select((eligibilite, i) => (eligibilite, i)))
         {
-            var dbE = dbFiber.EligibilitesFtth.FirstOrDefault(dbE => dbE.CodeImb == e.CodeImb && dbE.EtapeFtth == e.EtapeFtth);
-            if (dbE != null)
+            var dbE = dbFiber.EligibilitesFtth.OrderByDescending(dbe => dbe.LastUpdated).FirstOrDefault(dbE => dbE.CodeImb == item.eligibilite.CodeImb && dbE.EtapeFtth == item.eligibilite.EtapeFtth);
+            // Dans le cas où le dernier statut repasse sur un statut connu en BDD
+            if (item.i == 0)
             {
-                if (dbE.Batiment != e.Batiment || dbE.DateDebutEligibilite != e.DateDebutEligibilite)
+                var firstItem = dbFiber.EligibilitesFtth.OrderByDescending(dbe => dbe.LastUpdated).FirstOrDefault(dbE => dbE.CodeImb == item.eligibilite.CodeImb);
+                if (firstItem != null && dbE != null && firstItem.EtapeFtth != item.eligibilite.EtapeFtth)
                 {
                     dbE.LastUpdated = DateTime.UtcNow;
+                    dbE.DateDebutEligibilite = item.eligibilite.DateDebutEligibilite;
+                    dbE.Batiment = item.eligibilite.Batiment;
                 }
-                dbE.DateDebutEligibilite = e.DateDebutEligibilite;
-                dbE.Batiment = e.Batiment;
-                dbContext.EligibiliteFtth.Update(dbE);
             }
-            else
+            else if (dbE != null && (dbE.Batiment != item.eligibilite.Batiment || dbE.DateDebutEligibilite != item.eligibilite.DateDebutEligibilite))
             {
-                e.Created = DateTime.UtcNow;
-                e.LastUpdated = DateTime.UtcNow;
-                dbFiber.EligibilitesFtth.Add(e);
+                dbE.LastUpdated = DateTime.UtcNow;
+                dbE.DateDebutEligibilite = item.eligibilite.DateDebutEligibilite;
+                dbE.Batiment = item.eligibilite.Batiment;
             }
-        });
+            else if (dbE == null)
+            {
+                item.eligibilite.Created = DateTime.UtcNow;
+                item.eligibilite.LastUpdated = DateTime.UtcNow;
+                dbFiber.EligibilitesFtth.Add(item.eligibilite);
+            }
+        }
 
     }
 }

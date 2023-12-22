@@ -292,9 +292,9 @@ export default class FiberMapVue extends Vue {
         if (!this.recentResult) {
             return 'opacity-100';
         }
-        let mostRecentDate = Math.max(...fiber.eligibilitesFtth.map(f => new Date(f.created).getTime()));
+        let mostRecentDate = Math.max(...fiber.eligibilitesFtth.map(f => new Date(f.lastUpdated).getTime()));
         if (fiber.eligibilitesFtth.length === 0) {
-            mostRecentDate = new Date(fiber.created).getTime();
+            mostRecentDate = new Date(fiber.lastUpdated).getTime();
         }
         let result = 100;
         if (mostRecentDate >= this.date.getTime() - 1 * 86400000) {
