@@ -1,25 +1,39 @@
-import Vue from "vue";
+import { createPinia } from 'pinia'
+import { createApp } from 'vue'
 import App from "./App.vue";
 import router from "./router";
-import store from "./store";
-import Vuetify from "vuetify";
+import { createVuetify } from 'vuetify'
+import { fr, en } from 'vuetify/locale'
+import * as components from 'vuetify/components'
+import * as directives from 'vuetify/directives'
 import 'vuetify/dist/vuetify.min.css';
 import '@mdi/font/css/materialdesignicons.css';
 
-Vue.config.productionTip = false;
+const pinia = createPinia();
+const app = createApp(App).use(pinia);
 
-const vuetify = new Vuetify({
-  theme: { dark: true },
+const vuetify = createVuetify({
+  components,
+  directives,
   icons: {
-    iconfont: 'mdi',
+    defaultSet: 'mdi',
   },
+  theme: {
+    defaultTheme: 'dark'
+  },
+  locale: {
+    locale: 'fr',
+    fallback: 'en',
+    messages: { fr, en },
+  },
+  defaults: {
+    global: {
+      density: "comfortable"
+    },
+    VBtn: {
+      density: "default"
+    }
+  }
 });
 
-Vue.use(Vuetify, vuetify);
-
-new Vue({
-  router,
-  store,
-  vuetify,
-  render: (h) => h(App),
-}).$mount("#app");
+app.use(router).use(vuetify).mount("#app");

@@ -1,6 +1,6 @@
 export enum EtapeFtth
 {
-    ELLIGIBLE,
+    ELIGIBLE,
     EN_COURS_IMMEUBLE,
     TERMINE_QUARTIER,
     EN_COURS_QUARTIER,
