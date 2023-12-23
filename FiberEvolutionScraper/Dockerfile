@@ -23,6 +23,4 @@ RUN npm install
 COPY ./ .
 RUN npm run build
 
-COPY /dist .
-
 ENTRYPOINT [ "npm", "run", "dev", "--", "--host" ]
