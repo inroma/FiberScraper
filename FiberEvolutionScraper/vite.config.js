@@ -20,7 +20,7 @@ export default defineConfig(({ mode }) => {
                     target: env.VITE_BACKEND_URL,
                     secure: false,
                     changeOrigin: true,
-                    rewrite: (path) => path.replace(/^\/api\/v1/, 'api/'),
+                    rewrite: (path) => path.replace(/^\/api\/v1\//, 'api/'),
                 }
             },
             port: 8888
