@@ -1,37 +1,74 @@
 <template>
   <v-app>
-    <v-app-bar app hide-on-scroll clipped-left scroll-threshold="80">
-      <v-app-bar-nav-icon v-if="smallScreen" @click.stop="drawer = true"/>
-      <v-toolbar-title>Fiber Evolution Scraper</v-toolbar-title>
+    <v-app-bar density="default" scroll-threshold="80" scroll-behavior="hide">
+      <v-app-bar-nav-icon v-if="mdAndDown" @click.stop="drawer = !drawer"/>
+      <v-toolbar-title align="left">Fiber Evolution Scraper</v-toolbar-title>
     </v-app-bar>
-    <v-navigation-drawer v-model="drawer" app :expand-on-hover="!smallScreen" clipped class="px-0 pt-0 nav-bar" :mini-variant="!smallScreen">
+    <v-navigation-drawer :model-value="drawer" expand-on-hover class="px-0 pt-0 nav-bar" mobile-breakpoint="lg" rail permanent>
       <v-list>
-        <v-list-item v-for="header in headers" link :to="header.url" :key="'header'+header.title" :disabled="header.disabled">
-          <v-list-item-icon><v-icon :disabled="header.disabled">{{ header.icon }}</v-icon></v-list-item-icon>
-          <v-list-item-content>
-            <v-list-item-title class="text-h6">{{ header.title }}</v-list-item-title>
-          </v-list-item-content>
+        <v-list-item v-for="header in headers" link :to="header.url" :prepend-icon="header.icon"
+        :title="header.title" :key="'header'+header.title" :disabled="header.disabled" density="default">
         </v-list-item>
       </v-list>
-      <template v-slot:append>
+      <template #append>
         <v-list-item class="pl-10 pr-10">
-          <v-list-item-content>
-            <v-btn @click="$vuetify.theme.dark = !$vuetify.theme.dark" color="primary">
-              <v-icon>mdi-theme-light-dark</v-icon>
-              Theme Switch
-            </v-btn>
-          </v-list-item-content>
+          <v-btn @click="changeTheme()" color="primary">
+            <v-icon>mdi-theme-light-dark</v-icon>
+            Theme Switch
+          </v-btn>
         </v-list-item>
       </template>
     </v-navigation-drawer>
     <v-main>
-      <toast/>
+      <ToastComponent/>
       <router-view key="router-view" class="ma-5"/>
     </v-main>
   </v-app>
 </template>
 
-<script lang="ts" src="./App.ts" />
+<script setup lang="ts">
+import { ref } from 'vue';
+import ToastComponent from './components/ToastComponent.vue';
+import { useDisplay, useTheme } from 'vuetify/lib/framework.mjs';
+
+const headers = [
+	{
+		title: 'Accueil',
+		icon: 'mdi-home-outline',
+		url: '/home',
+		disabled: false
+	},
+	{
+		title: 'Déploiements',
+		icon: 'mdi-connection',
+		url: '/',
+		disabled: false
+	},
+	{
+		title: 'Auto-Refresh',
+		icon: 'mdi-timer-refresh-outline',
+		url: '/auto-refresh',
+		disabled: false
+	},
+	{
+		title: 'About',
+		icon: 'mdi-help-box',
+		url: '/about',
+		disabled: false
+	},
+];
+
+const { mdAndDown } = useDisplay();
+const { current } = useTheme();
+const { global } = useTheme();
+
+const drawer = ref(true);
+
+function changeTheme() {
+	global.name.value = current.value.dark ? 'light' : 'dark';
+}
+
+</script>
 
 <style>
 #app {

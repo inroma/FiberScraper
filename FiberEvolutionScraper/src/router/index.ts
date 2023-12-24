@@ -1,12 +1,9 @@
 import FiberMapVue from "@/views/fibers/FiberMap.vue";
-import Vue from "vue";
-import VueRouter, { RouteConfig } from "vue-router";
-import HomeView from "../views/HomeView.vue";
+import { RouteRecordRaw, createRouter, createWebHistory } from "vue-router";
+import HomeView from "@/views/HomeView.vue";
 import AutoRefreshView from "@/views/autorefresh/AutoRefreshView.vue";
 
-Vue.use(VueRouter);
-
-const routes: Array<RouteConfig> = [
+const routes: Array<RouteRecordRaw> = [
   {
     path: "/",
     name: "fibermap",
@@ -24,9 +21,8 @@ const routes: Array<RouteConfig> = [
   }
 ];
 
-const router = new VueRouter({
-  mode: "history",
-  base: process.env.BASE_URL,
+const router = createRouter({
+  history: createWebHistory(),
   routes,
 });
 

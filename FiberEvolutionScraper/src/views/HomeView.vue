@@ -4,12 +4,6 @@
   </div>
 </template>
 
-<script lang="ts">
-import { Component, Vue } from "vue-property-decorator";
+<script setup lang="ts">
 
-@Component({
-  components: {
-  },
-})
-export default class HomeView extends Vue {}
 </script>
