@@ -47,25 +47,17 @@ public class Program
             cfg.CreateMap<EligibilitesFtth, EligibiliteFtthDTO>().ReverseMap();
         });
 
+#if !DEBUG
         builder.Services.AddQuartz(q =>
         {
             var jobKey = new JobKey("AutoRefreshJob");
             q.AddJob<AutoRefreshService>(opts => opts.WithIdentity(jobKey));
 
-#if DEBUG
-            q.AddTrigger(opts => opts
-                .ForJob(jobKey)
-                .WithIdentity("AutoRefreshJob-trigger")
-                .WithCronSchedule(globalConfiguration?.CronSchedule ?? "0 0/5 * ? * MON,TUE,WED,THU,FRI,SAT", x => x.InTimeZone(TimeZoneInfo.FindSystemTimeZoneById("Central Europe Standard Time")))
-                .StartNow()
-            );
-#else
             q.AddTrigger(opts => opts
                 .ForJob(jobKey)
                 .WithIdentity("AutoRefreshJob-trigger")
                 .WithCronSchedule(globalConfiguration?.CronSchedule ?? "0 0 8,16 ? * MON,TUE,WED,THU,FRI,SAT", x => x.InTimeZone(TimeZoneInfo.FindSystemTimeZoneById("Central Europe Standard Time")))
             );
-#endif
         });
 
         builder.Services.AddQuartzServer(options =>
@@ -73,6 +65,7 @@ public class Program
             // when shutting down we want jobs to complete gracefully
             options.WaitForJobsToComplete = true;
         });
+#endif
 
         var app = builder.Build();
 
