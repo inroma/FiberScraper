@@ -74,8 +74,8 @@ public class FiberManager
             {
                 return 0;
             }
-            var xOffset = 0.8;
-            var yOffset = 0.8;
+            var xOffset = 0.6;
+            var yOffset = 0.6;
             var minX = fiberPoints.Min(x => x.X - xOffset);
             var maxX = fiberPoints.Max(x => x.X + xOffset);
             var minY = fiberPoints.Min(x => x.Y - yOffset);
@@ -98,7 +98,7 @@ public class FiberManager
                 }
                 else
                 {
-                    AddOrUpdateEligibiliteFtth(context, dbFiber, fiber);
+                    AddOrUpdateEligibiliteFtth(dbFiber, fiber);
                     if (fiber.X != dbFiber.X || fiber.Y != dbFiber.Y || fiber.LibAdresse != dbFiber.LibAdresse)
                     {
                         fiber.LastUpdated = DateTime.UtcNow;
@@ -118,35 +118,23 @@ public class FiberManager
         }
     }
 
-    private static void AddOrUpdateEligibiliteFtth(ApplicationDbContext dbContext, FiberPointDTO dbFiber, FiberPointDTO fiberPoint)
+    private static void AddOrUpdateEligibiliteFtth(FiberPointDTO dbFiber, FiberPointDTO fiberPoint)
     {
-        foreach (var item in fiberPoint.EligibilitesFtth.Select((eligibilite, i) => (eligibilite, i)))
+        foreach (var item in fiberPoint.EligibilitesFtth)
         {
-            var dbE = dbFiber.EligibilitesFtth.OrderByDescending(dbe => dbe.LastUpdated).FirstOrDefault(dbE => dbE.CodeImb == item.eligibilite.CodeImb && dbE.EtapeFtth == item.eligibilite.EtapeFtth);
-            // Dans le cas où le dernier statut repasse sur un statut connu en BDD
-            if (item.i == 0)
+            var dbE = dbFiber.EligibilitesFtth.OrderByDescending(dbe => dbe.LastUpdated).FirstOrDefault(dbE => dbE.CodeImb == item.CodeImb && dbE.EtapeFtth == item.EtapeFtth);
+            if (dbE == null)
             {
-                var firstItem = dbFiber.EligibilitesFtth.OrderByDescending(dbe => dbe.LastUpdated).FirstOrDefault(dbE => dbE.CodeImb == item.eligibilite.CodeImb);
-                if (firstItem != null && dbE != null && firstItem.EtapeFtth != item.eligibilite.EtapeFtth)
-                {
-                    dbE.LastUpdated = DateTime.UtcNow;
-                    dbE.DateDebutEligibilite = item.eligibilite.DateDebutEligibilite;
-                    dbE.Batiment = item.eligibilite.Batiment;
-                }
+                item.Created = DateTime.UtcNow;
+                item.LastUpdated = DateTime.UtcNow;
+                dbFiber.EligibilitesFtth.Add(item);
             }
-            else if (dbE != null && (dbE.Batiment != item.eligibilite.Batiment || dbE.DateDebutEligibilite != item.eligibilite.DateDebutEligibilite))
+            // Dans le cas où le statut repasse sur un statut connu en BDD
+            else if (dbE != null && dbE.Batiment != item.Batiment)
             {
                 dbE.LastUpdated = DateTime.UtcNow;
-                dbE.DateDebutEligibilite = item.eligibilite.DateDebutEligibilite;
-                dbE.Batiment = item.eligibilite.Batiment;
-            }
-            else if (dbE == null)
-            {
-                item.eligibilite.Created = DateTime.UtcNow;
-                item.eligibilite.LastUpdated = DateTime.UtcNow;
-                dbFiber.EligibilitesFtth.Add(item.eligibilite);
+                dbE.Batiment = item.Batiment;
             }
         }
-
     }
 }
