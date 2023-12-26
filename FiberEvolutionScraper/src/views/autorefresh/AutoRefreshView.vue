@@ -69,7 +69,7 @@
                 <v-col>
                 </v-col>
                 <v-col>
-                    <v-btn color="primary" @click="runAll">
+                    <v-btn color="primary" @click="runAll()">
                         <v-icon start>mdi-play-outline</v-icon>
                         Refresh manuel des zones
                     </v-btn>
@@ -81,6 +81,9 @@
                     </v-btn>
                 </v-col>
                 <v-col>
+                    <v-btn class="float-end mr-10" icon @click="getAutoRefreshInputs()" variant="outlined">
+                        <v-icon>mdi-reload</v-icon>
+                    </v-btn>
                 </v-col>
             </v-row>
             <v-row key="main-card-content" justify="center">
