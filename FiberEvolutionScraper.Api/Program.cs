@@ -49,18 +49,13 @@ public class Program
 
         builder.Services.AddQuartz(q =>
         {
-            var jobKey = new JobKey("AutoRefreshJob");
-            q.AddJob<AutoRefreshService>(opts => opts.WithIdentity(jobKey));
-
 #if DEBUG
-            q.AddTrigger(opts => opts
-                .ForJob(jobKey)
+            q.ScheduleJob<AutoRefreshService>(trigger => trigger
                 .WithIdentity("AutoRefreshJob-trigger")
                 .WithCronSchedule(globalConfiguration?.CronSchedule ?? "0 0 0 ? * * 2077", x => x.InTimeZone(TimeZoneInfo.FindSystemTimeZoneById("Central Europe Standard Time")))
             );
 #else
-            q.AddTrigger(opts => opts
-                .ForJob(jobKey)
+            q.ScheduleJob<AutoRefreshService>(trigger => trigger
                 .WithIdentity("AutoRefreshJob-trigger")
                 .WithCronSchedule(globalConfiguration?.CronSchedule ?? "0 0 8,16 ? * MON,TUE,WED,THU,FRI,SAT", x => x.InTimeZone(TimeZoneInfo.FindSystemTimeZoneById("Central Europe Standard Time")))
                 .StartNow()
@@ -68,13 +63,9 @@ public class Program
 #endif
         });
 
-        builder.Services.AddQuartzServer(options =>
-        {
-            // when shutting down we want jobs to complete gracefully
-            options.WaitForJobsToComplete = true;
-        });
+        builder.Services.AddQuartzHostedService(q => q.WaitForJobsToComplete = true);
 
-            var app = builder.Build();
+        var app = builder.Build();
 
         // Configure the HTTP request pipeline.
         if (!app.Environment.IsDevelopment())
