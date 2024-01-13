@@ -4,7 +4,7 @@
       <v-app-bar-nav-icon v-if="mdAndDown" @click.stop="drawer = !drawer"/>
       <v-toolbar-title align="left">Fiber Evolution Scraper</v-toolbar-title>
     </v-app-bar>
-    <v-navigation-drawer :model-value="drawer" expand-on-hover class="px-0 pt-0 nav-bar" mobile-breakpoint="lg" rail permanent>
+    <v-navigation-drawer :model-value="drawer" expand-on-hover class="px-0 pt-0 nav-bar" rail permanent>
       <v-list>
         <v-list-item v-for="header in headers" link :to="header.url" :prepend-icon="header.icon"
         :title="header.title" :key="'header'+header.title" :disabled="header.disabled" density="default">
@@ -30,6 +30,7 @@
 import { ref } from 'vue';
 import ToastComponent from './components/ToastComponent.vue';
 import { useDisplay, useTheme } from 'vuetify/lib/framework.mjs';
+import { watch } from 'vue';
 
 const headers = [
 	{
@@ -62,7 +63,9 @@ const { mdAndDown } = useDisplay();
 const { current } = useTheme();
 const { global } = useTheme();
 
-const drawer = ref(true);
+const drawer = ref(!mdAndDown.value);
+
+watch(mdAndDown, () => drawer.value = !mdAndDown.value);
 
 function changeTheme() {
 	global.name.value = current.value.dark ? 'light' : 'dark';
