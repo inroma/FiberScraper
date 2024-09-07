@@ -41,33 +41,33 @@
 </style>
 
 <template>
-    <v-card key="main-card" class="mx-0 mb-0">
-        <v-card-actions ref="menu">
-            <v-btn icon @click="centerMapOnLocation()" color="primary" class="ml-5">
-                <v-icon>mdi-crosshairs-gps</v-icon>
-            </v-btn>
+    <VCard key="main-card" class="mx-0 mb-0">
+        <VCardActions ref="menu">
+            <VBtn icon @click="centerMapOnLocation()" color="primary" class="ml-5">
+                <VIcon>mdi-crosshairs-gps</VIcon>
+            </VBtn>
             <HeaderButtonsComponent class="hidden-sm-and-down" :loading="loading" @updateFibers="updateFibers" @getDbFibers="getDbFibers"
             @getFibers="getFibers" @getCloseAreaFibers="getCloseAreaFibers" @getNewestFibers="getNewestFibers"/>
             
-            <v-btn class="hidden-md-and-up mx-auto" color="primary" variant="flat">Actions
-            <v-menu activator="parent" offset-y :close-on-content-click="false" offset="0 130">
-                <v-list class="hidden-md-and-up">
-                    <v-list-item>
-                        <v-row no-gutters @click="$emit('close')" style="width: min-content;">
-                            <v-col cols="6">
+            <VBtn class="hidden-md-and-up mx-auto" color="primary" variant="flat">Actions
+            <VMenu activator="parent" offset-y :close-on-content-click="false" offset="0 130">
+                <VList class="hidden-md-and-up">
+                    <VListItem>
+                        <VRow no-gutters @click="$emit('close')" style="width: min-content;">
+                            <VCol cols="6">
                                 <HeaderButtonsComponent class="d-flex" :loading="loading" @updateFibers="updateFibers" @getDbFibers="getDbFibers"
                                 @getFibers="getFibers" @getCloseAreaFibers="getCloseAreaFibers" @getNewestFibers="getNewestFibers"/>
-                            </v-col>
-                        </v-row>
-                    </v-list-item>
-                </v-list>
-            </v-menu>
-            </v-btn>
-            <v-btn class="mr-5" @click="clearData()" color="error" :disabled="!fibers.length" :variant="!fibers.length ? 'outlined' : 'flat'">Clear</v-btn>
-        </v-card-actions>
+                            </VCol>
+                        </VRow>
+                    </VListItem>
+                </VList>
+            </VMenu>
+            </VBtn>
+            <VBtn class="mr-5" @click="clearData()" color="error" text="Clear" :disabled="!fibers.length" :variant="!fibers.length ? 'outlined' : 'flat'" />
+        </VCardActions>
         <div class="ml-10 mr-10">
-            <v-row no-gutters>
-                <v-responsive min-width="200">
+            <VRow no-gutters>
+                <VResponsive min-width="200">
                     <l-map :style="{ height:mapHeight, width:'100%'}" ref="map" :center="[userLocation.x, userLocation.y]" :zoom="zoom"
                     :max-bounds="maxBounds" @update:center="centerUpdate" @update:bounds="boundsUpdated" @click="controlOpened = false">
                         <!-- Background Tiles Controls -->
@@ -104,8 +104,8 @@
                             </v-btn>
                         </l-control>
                     </l-map>
-                </v-responsive>
-            </v-row>
+                </VResponsive>
+            </VRow>
             <v-row key="main-card-content" justify="center">
                 <v-col md="10">
                     <v-data-table class="mt-5 mb-10" :headers="headers" key="list-details" :items="fibers" fixed-header height="650px"
@@ -129,7 +129,7 @@
                 </v-col>
             </v-row>
         </div>
-    </v-card>
+    </VCard>
 </template>
 <script setup lang="ts">
 import 'leaflet/dist/leaflet.css';
@@ -218,9 +218,7 @@ const headers = [
 
 const toastStore = useToastStore();
 
-const isDarkTheme = computed(() => {
-    return current.value.dark;
-})
+const isDarkTheme = computed(() => current.value.dark)
 
 //#endregion
 
@@ -421,11 +419,7 @@ function opacityWithElderness(fiber: FiberPointDTO) {
     return 'opacity-' + result;
 }
 
-const orderedIcons = computed(() => {
-    return icons.sort((a, b) => a.order - b.order);
-});
+const orderedIcons = computed(() => icons.sort((a, b) => a.order - b.order));
 
-const mapHeight = computed(() => {
-    return mdAndDown.value ? "50vh" : "75vh";
-});
+const mapHeight = computed(() => mdAndDown.value ? "50vh" : "75vh");
 </script>

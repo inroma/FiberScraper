@@ -2,16 +2,16 @@
     <v-container>
         <v-row :dense="!smAndDown">
             <v-col>
-                <v-btn @click="getNewestFibers()" color="primary" variant="flat">Charger nouveaux points
-                    <v-icon small end>mdi-information-outline</v-icon>
+                <v-btn @click="getNewestFibers()" color="primary" variant="flat" text="Charger nouveaux points" #append>
+                    <v-icon small>mdi-information-outline</v-icon>
                     <v-tooltip activator="parent" location="bottom">
                         <span>Affiche les points ajoutés/modifiés en BDD depuis moins de 5 jours</span>
                     </v-tooltip>
                 </v-btn>
             </v-col>
             <v-col>
-                <v-btn @click="updateFibers()" color="green lighten-1" :loading="loading" variant="tonal">
-                    Actualiser zone étendue
+                <v-btn @click="updateFibers()" color="green lighten-1" :loading="loading"
+                text="Actualiser zone étendue" variant="tonal" #append>
                     <v-icon small end>mdi-information-outline</v-icon>
                     <v-tooltip activator="parent" location="bottom">
                         <span>Requête une grande zone de données sur l'API Orange <br/>
@@ -20,7 +20,7 @@
                 </v-btn>
             </v-col>
             <v-col>
-                <v-btn @click="getDbFibers()" variant="outlined">Charger fibres en BDD
+                <v-btn @click="getDbFibers()" variant="outlined" text="Charger fibres en BDD" #append>
                     <v-icon small end>mdi-information-outline</v-icon>
                     <v-tooltip activator="parent" location="bottom">
                         <span>Affiche les raccordements fibres enregistrés en BDD</span>
@@ -28,7 +28,7 @@
                 </v-btn>
             </v-col>
             <v-col>
-                <v-btn @click="getFibers()" color="primary" :loading="loading" variant="tonal">Charger zone étendue
+                <v-btn @click="getFibers()" color="primary" :loading="loading" variant="tonal" text="Charger zone étendue" #append>
                     <v-icon small end>mdi-information-outline</v-icon>
                     <v-tooltip activator="parent" location="bottom">
                         <span>Affiche les données de raccordement depuis <br/> l'API Orange sur une zone large</span>
@@ -36,7 +36,7 @@
                 </v-btn>
             </v-col>
             <v-col>
-                <v-btn @click="getCloseAreaFibers()" color="primary" :loading="loading" variant="tonal">Charger zone proche
+                <v-btn @click="getCloseAreaFibers()" color="primary" :loading="loading" variant="tonal" text="Charger zone proche" #append>
                     <v-icon small end>mdi-information-outline</v-icon>
                     <v-tooltip activator="parent" location="bottom">
                         <span>Affiche les données de raccordement depuis <br/> l'API Orange sur une zone restreinte</span>

@@ -18,7 +18,7 @@ public class Program
             .SetBasePath(Directory.GetCurrentDirectory())
             .AddJsonFile("files/appsettings.json")
             .Build();
-        GlobalSettings globalConfiguration = configuration.GetSection("GlobalSettings").Get<GlobalSettings>();
+        GlobalSettings globalConfiguration = configuration.GetSection(nameof(GlobalSettings)).Get<GlobalSettings>();
         string dbConnectionString = configuration.GetConnectionString("Database");
         // Add services to the container.
 

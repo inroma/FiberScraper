@@ -1,9 +1,9 @@
 <template>
-  <v-app>
-    <v-app-bar density="default" scroll-threshold="80" scroll-behavior="hide">
-      <v-app-bar-nav-icon v-if="mdAndDown" @click.stop="drawer = !drawer"/>
-      <v-toolbar-title align="left">Fiber Evolution Scraper</v-toolbar-title>
-    </v-app-bar>
+  <VApp>
+    <VAppBar density="default" scroll-threshold="80" scroll-behavior="hide">
+      <VAppBarNavIcon v-if="mdAndDown" @click.stop="drawer = !drawer"/>
+      <VToolbarTitle align="left">Fiber Evolution Scraper</VToolbarTitle>
+    </VAppBar>
     <v-navigation-drawer :model-value="drawer" expand-on-hover class="px-0 pt-0 nav-bar" rail permanent>
       <v-list>
         <v-list-item v-for="header in headers" link :to="header.url" :prepend-icon="header.icon"
@@ -19,11 +19,11 @@
         </v-list-item>
       </template>
     </v-navigation-drawer>
-    <v-main>
+    <VMain>
       <ToastComponent/>
       <router-view key="router-view" class="ma-5"/>
-    </v-main>
-  </v-app>
+    </VMain>
+  </VApp>
 </template>
 
 <script setup lang="ts">
