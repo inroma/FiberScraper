@@ -1,28 +1,28 @@
 <template>
-    <v-container class="pa-0">
-        <v-progress-circular v-if="loading" indeterminate color="primary" />
-        <v-list v-else :key="'list-popup'+fiber?.signature" theme="light" max-height="310px" class="pa-0 overflow-y-auto" density="compact">
-            <v-list-item v-if="fiber?.eligibilitesFtth?.length === 0" :key="'popup-list-'+fiber?.signature" class="px-2">
-                <v-list-item-title>{{ fiber.libAdresse }}</v-list-item-title>
+    <VContainer class="pa-0">
+        <VProgressCircular v-if="loading" indeterminate color="primary" />
+        <VList v-else :key="'list-popup'+fiber?.signature" theme="light" max-height="310px" class="pa-0 overflow-y-auto" density="compact">
+            <VListItem v-if="fiber?.eligibilitesFtth?.length === 0" :key="'popup-list-'+fiber?.signature" class="px-2">
+                <VListItemTitle>{{ fiber.libAdresse }}</VListItemTitle>
                 <b>Création: </b>{{ new Date(fiber.created).toLocaleString('fr-FR')}}<br>
                 <b>Dernière MaJ: </b>{{ new Date(fiber.lastUpdated).toLocaleString('fr-FR')}}
-            </v-list-item>
+            </VListItem>
             <div v-else>
                 <div v-for="item, i of fiber?.eligibilitesFtth" :key="'popup-list-'+item.codeImb+'-'+item.etapeFtth">
-                    <v-list-item class="px-2">
-                        <v-list-item-title>{{ fiber?.libAdresse }}</v-list-item-title>
-                        <v-list-item-subtitle v-if="!!item.batiment" class="pb-1 text-black">
+                    <VListItem class="px-2">
+                        <VListItemTitle>{{ fiber?.libAdresse }}</VListItemTitle>
+                        <VListItemSubtitle v-if="!!item.batiment" class="pb-1 text-black">
                             <b>Batiment: </b>{{ item.batiment }}<br>
-                        </v-list-item-subtitle>
+                        </VListItemSubtitle>
                         <b>FTTH: </b>{{ item.strEtapeFtth }}<br>
                         <b>Création: </b>{{ new Date(item.created).toLocaleString()}}<br>
                         <b>Dernière MaJ: </b>{{ new Date(item.lastUpdated).toLocaleString()}}
-                    </v-list-item>
-                    <v-divider v-if="i < fiber?.eligibilitesFtth.length-1"/>
+                    </VListItem>
+                    <VDivider v-if="i < fiber?.eligibilitesFtth.length-1"/>
                 </div>
             </div>
-        </v-list>
-    </v-container>
+        </VList>
+    </VContainer>
 </template>
 <script setup lang="ts">
 import FiberPointDTO from '@/models/FiberPointDTO';

@@ -139,7 +139,7 @@ import { Ref, computed, ref } from 'vue';
 import { ISnackbarColor } from '@/models/SnackbarInterface';
 import FiberPointDTO from '@/models/FiberPointDTO';
 import { EtapeFtth } from '@/models/Enums';
-import LeafletPopupContent from '@/components/LeafletPopupComponent.vue';
+import MapPopupComponent from '@/components/MapPopupComponent.vue';
 import FiberService from '@/services/FiberService';
 import HeaderButtonsComponent from '@/components/HeaderButtonsComponent.vue';
 import { useToastStore } from '@/store/ToastStore';
