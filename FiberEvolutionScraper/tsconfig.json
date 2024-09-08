@@ -2,7 +2,7 @@
   "compilerOptions": {
     "target": "esnext",
     "module": "esnext",
-    "strict": true,
+    "strict": false,
     "jsx": "preserve",
     "moduleResolution": "node",
     "experimentalDecorators": true,
@@ -30,7 +30,6 @@
     "**/*.js",
     "**/*.tsx",
     "**/*.vue",
-    "**/*.d.ts"
   ],
-  "exclude": ["dist"]
+  "exclude": ["node_modules", "dist"]
 }

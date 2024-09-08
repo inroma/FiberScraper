@@ -9,7 +9,6 @@ import * as directives from 'vuetify/directives'
 import 'vuetify/dist/vuetify.min.css';
 import '@mdi/font/css/materialdesignicons.css';
 import 'vue3-openlayers/dist/vue3-openlayers.css';
-import OpenLayersMap from "vue3-openlayers";
 import { useGeographic } from 'ol/proj';
 
 const pinia = createPinia();
@@ -42,5 +41,4 @@ useGeographic();
 
 app
   .use(router)
-  .use(OpenLayersMap)
   .use(vuetify).mount("#app");

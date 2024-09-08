@@ -5,52 +5,32 @@ import AutoRefreshService from '@/services/AutoRefreshService';
 import { useToastStore } from '@/store/ToastStore';
 import { Ref, computed, onMounted, ref } from 'vue';
 import { useDisplay } from 'vuetify'
-import { Map, View } from 'ol';
+import { View } from 'ol';
+import { Map, Layers, Sources, MapControls, Styles, Geometries } from 'vue3-openlayers';
+import { MapHelper } from '@/helpers/MapHelper';
 
 //#region Public Properties
 const loading = ref(false);
 const userLocation = ref<[number, number]>([4.83, 45.76]);
 const zoom = ref(11);
-const tileLayers = [
-    {
-        name: 'OpenStreetMap',
-        visible: true,
-        attribution:
-        '&copy; <a target="_blank" href="http://osm.org/copyright">OpenStreetMap</a> contributors',
-        url: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png'
-    },
-    {
-        name: 'CartoDBDark',
-        visible: false,
-        url: 'https://basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
-    },
-    {
-        name: 'OpenTopoMap',
-        visible: false,
-        url: 'https://tile.opentopomap.org/{z}/{x}/{y}.png',
-        attribution:
-        'Map data: &copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>, <a href="http://viewfinderpanoramas.org">SRTM</a> | Map style: &copy; <a href="https://opentopomap.org">OpenTopoMap</a> (<a href="https://creativecommons.org/licenses/by-sa/3.0/">CC-BY-SA</a>)',
-    }
-];
-const maxBounds = [ -6, 41, 9.5, 52 ];
+const tileLayers = MapHelper.getTileLayers();
 const autoRefreshItems = ref([]) as Ref<AutoRefreshInput[]>;
 const deleteDialog = ref(false);
 const popupDeleteItem = ref(undefined) as Ref<AutoRefreshInput | undefined>;
 const toastStore = useToastStore();
 const { name } = useDisplay();
 
-const rectangles = computed<Number[][][][]>(() => autoRefreshItems.value?.filter(a => a.enabled && !a.isEditing)?.flatMap(item => getRectangleFromInput(item)));
-const smallRectangles = computed<Number[][][][]>(() => autoRefreshItems.value?.filter(a => a.enabled && !a.isEditing)?.flatMap(item => getRectangleFromInput(item, true)));
+const rectangles = computed<number[][][][]>(() => autoRefreshItems.value?.filter(a => a.enabled && !a.isEditing)?.flatMap(item => getRectangleFromInput(item)));
+const smallRectangles = computed<number[][][][]>(() => autoRefreshItems.value?.filter(a => a.enabled && !a.isEditing)?.flatMap(item => getRectangleFromInput(item, true)));
 const disabledRectangles = computed(() => {
-    let value: Number[][][][] = [];
+    let value: number[][][][] = [];
     autoRefreshItems.value?.filter(a => !a.enabled)?.forEach(item => {
         value = getRectangleFromInput(item).concat(getRectangleFromInput(item, true));
     });
     return value;
 });
-const newRectangle = computed<Number[][][][]>(() => {
-    let value: Number[][][][] = [];
+const newRectangle = computed<number[][][][]>(() => {
+    let value: number[][][][] = [];
     autoRefreshItems.value?.filter(a => a.isEditing || a.id === 0)?.forEach(item => {
         value = getRectangleFromInput(item).concat(getRectangleFromInput(item, true));
     });
@@ -58,7 +38,6 @@ const newRectangle = computed<Number[][][][]>(() => {
 });
 const lineDash = [7, 7];
 
-const map = ref<Map>();
 const view = ref<View>();
 
 const headers = [
@@ -252,56 +231,56 @@ const areaSizes =  [1, 3, 5];
         </VCardActions>
             <VRow class="ml-10 mr-10 h-full" no-gutters>
                 <VResponsive min-width="200">
-                    <OlMap ref="map" :style="{ height:mapHeight, width:'100%' }" loadTilesWhileAnimating loadTilesWhileInteracting
+                    <Map.OlMap :style="{ height:mapHeight, width:'100%' }" loadTilesWhileAnimating loadTilesWhileInteracting
                     @moveend="centerUpdate">
-                        <OlView ref="view" :center="userLocation" :zoom="zoom" :rotation="0" :extent="maxBounds" smoothExtentConstraint/>
-                        <OlTileLayer v-for="tile, i in tileLayers" :title="tile.name" :visible="tile.visible" :key="'tileLayer_'+i">
-                            <OlSourceOsm :url="tile.url" :attribution="tile.attribution" />
-                        </OlTileLayer>
-                        <OlLayerswitcherimageControl mouseover :selection="true"/>
-                        <OlVectorLayer title="Zones">
-                            <ol-source-vector>
-                                <ol-feature>
-                                    <ol-geom-multi-polygon :coordinates="rectangles" />
-                                    <ol-style>
-                                        <ol-style-stroke color="red" :width="2" />
-                                        <ol-style-fill color="rgba(186,236,255,0.18)" />
-                                    </ol-style>
-                                </ol-feature>
-                                <ol-feature>
-                                    <ol-geom-multi-polygon :coordinates="smallRectangles" />
-                                    <ol-style>
-                                        <ol-style-stroke color="blue" :width="2" />
-                                        <ol-style-fill color="rgba(186,236,255,0.18)" />
-                                    </ol-style>
-                                </ol-feature>
-                                <ol-feature>
-                                    <ol-geom-multi-polygon :coordinates="disabledRectangles" />
-                                    <ol-style>
-                                        <ol-style-stroke color="grey" :width="2" :lineDash="lineDash" />
-                                        <ol-style-fill color="rgba(0,0,0,0)" />
-                                    </ol-style>
-                                </ol-feature>
-                                <ol-feature v-if="newRectangle?.length > 0">
-                                    <ol-geom-multi-polygon :coordinates="[newRectangle.at(0)]" />
-                                    <ol-style>
-                                        <ol-style-stroke color="red" :width="2" :lineDash="lineDash" />
-                                        <ol-style-fill color="rgba(186,236,255,0.18)" />
-                                    </ol-style>
-                                </ol-feature>
-                                <ol-feature v-if="newRectangle?.length > 0">
-                                    <ol-geom-multi-polygon :coordinates="[newRectangle.at(1)]" />
-                                    <ol-style>
-                                        <ol-style-stroke color="blue" :width="2" :lineDash="lineDash" />
-                                        <ol-style-fill color="rgba(186,236,255,0.18)" />
-                                    </ol-style>
-                                </ol-feature>
-                            </ol-source-vector>
-                        </OlVectorLayer>
+                        <Map.OlView ref="view" :center="userLocation" :zoom="zoom" :rotation="0" :extent="MapHelper.maxBounds" smoothExtentConstraint/>
+                        <Layers.OlTileLayer v-for="tile, i in tileLayers" :title="tile.name" :visible="tile.visible" :key="'tileLayer_'+i">
+                            <Sources.OlSourceOsm :url="tile.url" :attribution="tile.attribution" />
+                        </Layers.OlTileLayer>
+                        <MapControls.OlLayerswitcherimageControl mouseover/>
+                        <Layers.OlVectorLayer title="Zones" base-layer>
+                            <Sources.OlSourceVector>
+                                <Map.OlFeature>
+                                    <Geometries.OlGeomMultiPolygon :coordinates="rectangles" />
+                                    <Styles.OlStyle>
+                                        <Styles.OlStyleStroke color="red" :width="2" />
+                                        <Styles.OlStyleFill color="rgba(186,236,255,0.18)" />
+                                    </Styles.OlStyle>
+                                </Map.OlFeature>
+                                <Map.OlFeature>
+                                    <Geometries.OlGeomMultiPolygon :coordinates="smallRectangles" />
+                                    <Styles.OlStyle>
+                                        <Styles.OlStyleStroke color="blue" :width="2" />
+                                        <Styles.OlStyleFill color="rgba(186,236,255,0.18)" />
+                                    </Styles.OlStyle>
+                                </Map.OlFeature>
+                                <Map.OlFeature>
+                                    <Geometries.OlGeomMultiPolygon :coordinates="disabledRectangles" />
+                                    <Styles.OlStyle>
+                                        <Styles.OlStyleStroke color="grey" :width="2" :lineDash="lineDash" />
+                                        <Styles.OlStyleFill color="rgba(0,0,0,0)" />
+                                    </Styles.OlStyle>
+                                </Map.OlFeature>
+                                <Map.OlFeature v-if="newRectangle?.length > 0">
+                                    <Geometries.OlGeomMultiPolygon :coordinates="[newRectangle.at(0)]" />
+                                    <Styles.OlStyle>
+                                        <Styles.OlStyleStroke color="red" :width="2" :lineDash="lineDash" />
+                                        <Styles.OlStyleFill color="rgba(186,236,255,0.18)" />
+                                    </Styles.OlStyle>
+                                </Map.OlFeature>
+                                <Map.OlFeature v-if="newRectangle?.length > 0">
+                                    <Geometries.OlGeomMultiPolygon :coordinates="[newRectangle.at(1)]" />
+                                    <Styles.OlStyle>
+                                        <Styles.OlStyleStroke color="blue" :width="2" :lineDash="lineDash" />
+                                        <Styles.OlStyleFill color="rgba(186,236,255,0.18)" />
+                                    </Styles.OlStyle>
+                                </Map.OlFeature>
+                            </Sources.OlSourceVector>
+                        </Layers.OlVectorLayer>
                         <div class="overlay right">
                             <div class="custom-control text-caption px-2 ma-2 mb-6">
                                 <div class="mb-1"><VIcon color="red">mdi-square-outline</VIcon><span class="text-black mx-2">Taille d'un refresh hors ville</span></div>
-                                <div><VIcon color="blue darken-3">mdi-square-outline</VIcon><span class="text-black mx-2">Taille d'un refresh exclusivement en ville</span></div>
+                                <div><VIcon color="blue-darken-3">mdi-square-outline</VIcon><span class="text-black mx-2">Taille d'un refresh exclusivement en ville</span></div>
                             </div>
                         </div>
                         <!-- <div class="overlay left">
@@ -309,7 +288,7 @@ const areaSizes =  [1, 3, 5];
                                 <VIcon size="28" @click="centerMapOnLocation()" color="primary" class="mx-2" icon="mdi-crosshairs-gps" />
                             </div>
                         </div> -->
-                    </OlMap>
+                    </Map.OlMap>
                 </VResponsive>
             </VRow>
             <VRow>
@@ -397,37 +376,4 @@ const areaSizes =  [1, 3, 5];
             </VRow>
     </VCard>
 </template>
-<style>
-#mapContainer {
-    z-index: 3;
-    height: 70vh;
-}
-.custom-control {
-    background: rgba(255, 255, 255, 0.785);
-    padding-bottom: 0.5em;
-    padding-top: 0.5em;
-    margin: 0.3em;
-    border: 1px solid #aaa;
-    border-radius: 0.7em;
-    flex-direction: column !important;
-    display: flex;
-    align-items: flex-start;
-    pointer-events: auto;
-}
-.overlay {
-    position: absolute;
-    display: block;
-    bottom: 0;
-    z-index: 1;
-}
-.right {
-    right: 0;
-}
-.left {
-    left: 0;
-}
-.v-data-table td {
-  padding-left: 6px !important;
-  padding-right: 6px !important;
-}
-</style>
+<style src="@/assets/css/main.css" scoped/>
