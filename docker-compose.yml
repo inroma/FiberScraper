@@ -1,22 +1,36 @@
+version: '3'
 services:
-  fiber-scraper-api:
-    image: fiberevolutionscraperapi
+  fiberscraper-api:
+    container_name: fiberscraper-api
+    hostname: fiberscraper-api
+    image: ghcr.io/inroma/fiberevolutionscraperapi:latest
     restart: unless-stopped
-    build:
-      context: .
-      dockerfile: ./FiberEvolutionScraper.Api/Dockerfile
     volumes:
-      - /home/pi/botFiles/fiberScraper/:/app/files
+      - /home/pi/botFiles/fiberScraper/:/app/api/files/
+    networks:
+      - db-network
+      - local
 
-  fiber-scraper-front-end:
-    image: fiber-scraper-front-end
+  fiberscraper-front:
+    container_name: fiberscraper-front
+    image: ghcr.io/inroma/fiberevolutionscraperfront:latest
     restart: unless-stopped
-    build:
-      context: .
-      dockerfile: ./FiberEvolutionScraper/Dockerfile
-      args:
-        VUE_APP_API_URL: http://localhost:8080
+    volumes:
+      - /home/pi/botFiles/fiberScraper/certs/:/myCert/
     ports:
-      - "8080:8888"
+      - "8888:80"
+      - "443:443"
+    networks:
+      - local
+      - gateway
     depends_on:
-      - fiber-scraper-api
+      - fiberscraper-api
+
+networks:
+  db-network:
+    external: true
+    name: db-network
+  gateway:
+    driver: bridge
+  local:
+    internal: true
