@@ -1,18 +1,18 @@
 <style scoped>
 </style>
 <template>
-    <v-snackbar v-for="(snackbar, i) in toastStore.getToasts" :key="i"
+    <VSnackbar v-for="(snackbar, i) in toastStore.getToasts" :key="i"
     :model-value="snackbar.show" :color="snackbar.color" :timeout="snackbar.timeout" timer="white">
-        <v-icon v-if="getIcon(snackbar)" class="pr-2">{{ getIcon(snackbar) }}</v-icon>
+        <VIcon v-if="getIcon(snackbar)" class="pr-2">{{ getIcon(snackbar) }}</VIcon>
 
         {{ snackbar.message }}
 
         <template #actions>
-            <v-btn @click="hideToast(snackbar)" icon :absolute="snackbar.message.length > 300 ? true : false" top right>
-                <v-icon>mdi-window-close</v-icon>
-            </v-btn>
+            <VBtn @click="hideToast(snackbar)" icon :absolute="snackbar.message.length > 300 ? true : false" top right>
+                <VIcon>mdi-window-close</VIcon>
+            </VBtn>
         </template>
-    </v-snackbar>
+    </VSnackbar>
 </template>
 <script setup lang="ts">
 import { ISnackbarColor, Snackbar } from '@/models/SnackbarInterface';
