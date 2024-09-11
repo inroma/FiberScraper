@@ -19,5 +19,5 @@ export default class FiberPointDTO implements BaseModelDTO
 
     iconUrl = "";
 
-    iconClassName = "";
+    opacity = 1;
 }

@@ -231,8 +231,7 @@ const areaSizes =  [1, 3, 5];
         </VCardActions>
             <VRow class="ml-10 mr-10 h-full" no-gutters>
                 <VResponsive min-width="200">
-                    <Map.OlMap :style="{ height:mapHeight, width:'100%' }" loadTilesWhileAnimating loadTilesWhileInteracting
-                    @moveend="centerUpdate">
+                    <Map.OlMap :style="{ height:mapHeight, width:'100%' }" loadTilesWhileAnimating loadTilesWhileInteracting @moveend="centerUpdate">
                         <Map.OlView ref="view" :center="userLocation" :zoom="zoom" :rotation="0" :extent="MapHelper.maxBounds" smoothExtentConstraint/>
                         <Layers.OlTileLayer v-for="tile, i in tileLayers" :title="tile.name" :visible="tile.visible" :key="'tileLayer_'+i">
                             <Sources.OlSourceOsm :url="tile.url" :attribution="tile.attribution" />

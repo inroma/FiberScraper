@@ -1,141 +1,5 @@
-<style>
-.leaflet-popup-content {
-    min-width: 320px;
-}
-.custom-control {
-  background: rgba(255, 255, 255, 0.785);
-  padding-bottom: 0.5em;
-  padding-top: 0.5em;
-  margin: 0.3em;
-  border: 1px solid #aaa;
-  border-radius: 0.7em;
-  flex-direction: column !important;
-  display: flex;
-  align-items: flex-start;
-  pointer-events: auto;
-}
-.custom-control-dark {
-  background: rgba(90, 90, 90, 0.785) !important;
-}
-.leaflet-marker-icon {
-    margin-left: -12px;
-    margin-top: -41px;
-    width: 25px;
-    height: 41px;
-}
-.opacity-80 {
-    filter:opacity(0.8) !important
-}
-.opacity-60 {
-    filter:opacity(0.6) !important
-}
-.opacity-50 {
-    filter:opacity(0.5) !important
-}
-.opacity-15 {
-    filter:opacity(0.15) !important
-}
-#mapContainer {
-    z-index: 3;
-}
-</style>
-
-<template>
-    <VCard key="main-card" class="mx-0 mb-0">
-        <VCardActions ref="menu">
-            <VBtn icon @click="centerMapOnLocation()" color="primary" class="ml-5">
-                <VIcon>mdi-crosshairs-gps</VIcon>
-            </VBtn>
-            <HeaderButtonsComponent class="hidden-sm-and-down" :loading="loading" @updateFibers="updateFibers" @getDbFibers="getDbFibers"
-            @getFibers="getFibers" @getCloseAreaFibers="getCloseAreaFibers" @getNewestFibers="getNewestFibers"/>
-            
-            <VBtn class="hidden-md-and-up mx-auto" color="primary" variant="flat">Actions
-            <VMenu activator="parent" offset-y :close-on-content-click="false" offset="0 130">
-                <VList class="hidden-md-and-up">
-                    <VListItem>
-                        <VRow no-gutters @click="$emit('close')" style="width: min-content;">
-                            <VCol cols="6">
-                                <HeaderButtonsComponent class="d-flex" :loading="loading" @updateFibers="updateFibers" @getDbFibers="getDbFibers"
-                                @getFibers="getFibers" @getCloseAreaFibers="getCloseAreaFibers" @getNewestFibers="getNewestFibers"/>
-                            </VCol>
-                        </VRow>
-                    </VListItem>
-                </VList>
-            </VMenu>
-            </VBtn>
-            <VBtn class="mr-5" @click="clearData()" color="error" text="Clear" :disabled="!fibers.length" :variant="!fibers.length ? 'outlined' : 'flat'" />
-        </VCardActions>
-        <div class="ml-10 mr-10">
-            <VRow no-gutters>
-                <VResponsive min-width="200">
-                    <l-map :style="{ height:mapHeight, width:'100%'}" ref="map" :center="[userLocation.x, userLocation.y]" :zoom="zoom"
-                    :max-bounds="maxBounds" @update:center="centerUpdate" @update:bounds="boundsUpdated" @click="controlOpened = false">
-                        <!-- Background Tiles Controls -->
-                        <l-control-layers position="topright"/>
-                        <!-- Background Tiles Providers -->
-                        <l-tile-layer v-for="tileProvider of tileProviders"
-                            :url="tileProvider.url" :attribution="tileProvider.attribution"
-                            :key="tileProvider.name" :name="tileProvider.name" layer-type="base" :visible="tileProvider.visible"
-                        />
-                        <!-- Map Layers -->
-                        <l-layer-group v-for="layer of layers" :visible="layer.visible" :key="'layer_'+layer.name">
-                            <l-marker v-for="fiber of layer.markers" :ref="fiber.signature" :key="'layer_'+layer.name+'marker_'+fiber.signature"
-                            :lat-lng="[fiber.y, fiber.x]" @click="getHistorique(fiber)">
-                                <l-icon :icon-url="fiber.iconUrl" class="leaflet-marker-icon" :class-name="fiber?.iconClassName" :popupAnchor="[0, -41]"/>
-                                <l-popup class="ml-n4 mr-n6 mb-n3 mt-6">
-                                    <leaflet-popup-content :fiber="fiber" :loading="loadingHistory"/>
-                                </l-popup>
-                            </l-marker>
-                        </l-layer-group>
-                        <!-- Layers visibility controls -->
-                        <l-control v-if="mdAndDown && !controlOpened" position='bottomleft' :class="['custom-control', { 'custom-control-dark': isDarkTheme }]" disableScrollPropagation>
-                            <v-btn small variant="text" :ripple="false" @click.stop="controlOpened = true">
-                                <v-icon size="24" color="black">mdi-map-marker-multiple-outline</v-icon>
-                            </v-btn>
-                        </l-control>
-                        <l-control v-else position='bottomleft' :class="['custom-control', { 'custom-control-dark': isDarkTheme }]" disableScrollPropagation>
-                            <v-btn style="z-index:2;" class="ma-2" size="comfortable"
-                            v-for="icon in orderedIcons"
-                            :key="'control-custom-btn-'+icon.code" @click="showHideLayer(icon.code)"
-                            :variant="layers[icon.code]?.visible ? 'text' : 'plain'"
-                            :disabled="!layers[icon.code] || !layers[icon.code]?.markers?.length">
-                                <v-img :key="'control-custom-btn-img-'+icon.code" height="27" width="20" :src="icon.icon"/>
-                                <span :key="'control-custom-btn-span-'+icon.code" class="pl-2">{{ icon.title }}</span>
-                            </v-btn>
-                        </l-control>
-                    </l-map>
-                </VResponsive>
-            </VRow>
-            <v-row key="main-card-content" justify="center">
-                <v-col md="10">
-                    <v-data-table class="mt-5 mb-10" :headers="headers" key="list-details" :items="fibers" fixed-header height="650px"
-                        itemsPerPage="100" :loading="loading" @click:row="centerMapOnPoint" :items-per-page-options="[50, 100, 200, 500, 1000]">
-                        <template #item.eligibilitesFtth="{ item }">
-                            <td key="list-item-eligibilite">
-                                {{ item.eligibilitesFtth[0]?.strEtapeFtth }}
-                            </td>
-                        </template>
-                        <template #item.batiment="{ item }">
-                            <td key="list-item-batiment">
-                                {{ item.eligibilitesFtth[0]?.batiment }}
-                            </td>
-                        </template>
-                        <template #item.created="{ item }">
-                            <td key="list-item-created">
-                                {{ new Date(item.eligibilitesFtth[0]?.created ?? item.created).toLocaleString() }}
-                            </td>
-                        </template>
-                    </v-data-table>
-                </v-col>
-            </v-row>
-        </div>
-    </VCard>
-</template>
 <script setup lang="ts">
-import 'leaflet/dist/leaflet.css';
-import L, { LatLng, Point, latLngBounds } from "leaflet";
-import { LMap, LTileLayer, LMarker, LLayerGroup, LPopup, LControl, LControlLayers, LIcon } from "@vue-leaflet/vue-leaflet";
-import { Ref, computed, ref } from 'vue';
+import { Ref, computed, onMounted, ref } from 'vue';
 import { ISnackbarColor } from '@/models/SnackbarInterface';
 import FiberPointDTO from '@/models/FiberPointDTO';
 import { EtapeFtth } from '@/models/Enums';
@@ -144,38 +8,28 @@ import FiberService from '@/services/FiberService';
 import HeaderButtonsComponent from '@/components/HeaderButtonsComponent.vue';
 import { useToastStore } from '@/store/ToastStore';
 import { useDisplay, useTheme } from 'vuetify/lib/framework.mjs';
+import { Overlay, View } from 'ol';
+import { Map as OlMap, Layers, Sources, MapControls, Styles, Geometries } from 'vue3-openlayers';
+import { MapHelper } from '@/helpers/MapHelper';
+import type Map from "ol/Map";
+import Select from 'ol/interaction/Select';
+import { click } from 'ol/events/condition';
+import { Stroke, Style } from 'ol/style';
+import { VScrollXReverseTransition } from 'vuetify/lib/components/index.mjs';
 
 //#region Public Properties
 const loading = ref(false);
 const controlOpened = ref(false);
 const loadingHistory = ref(false);
-const userLocation = ref(new Point(45.76, 4.83));
+const map = ref<{ map: Map }>(null);
+const view = ref<View>();
+const userLocation = ref<Array<number>>([4.83, 45.76]);
+let mapCenter: number[] = userLocation.value;
 const fibers: Ref<FiberPointDTO[]> = ref([]);
 const zoom = ref(11);
-const tileProviders = [
-    {
-        name: 'OpenStreetMap',
-        visible: true,
-        attribution:
-        '&copy; <a target="_blank" href="http://osm.org/copyright">OpenStreetMap</a> contributors',
-        url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
-    },
-    {
-        name: 'CartoDBDark',
-        visible: false,
-        url: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
-        subdomains: 'abcd'
-    },
-    {
-        name: 'OpenTopoMap',
-        visible: false,
-        url: 'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png',
-        attribution:
-        'Map data: &copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>, <a href="http://viewfinderpanoramas.org">SRTM</a> | Map style: &copy; <a href="https://opentopomap.org">OpenTopoMap</a> (<a href="https://creativecommons.org/licenses/by-sa/3.0/">CC-BY-SA</a>)',
-    }
-];
-const bounds: Ref<L.LatLngBounds | undefined> = ref(undefined);
+const tileLayers = MapHelper.getTileLayers();
+const bounds = ref<Array<number>>([]);
+const selectedFiber = ref<FiberPointDTO>(null);
 const date = new Date();
 const recentResult = ref(false);
 const resultFromDb = ref(false);
@@ -189,20 +43,16 @@ const brownIcon = '/icons/marker-orange.png';
 const blackIcon = '/icons/marker-black.png';
 const blueInvertedIcon = '/icons/marker-white.png';
 const layers: Ref<{ markers: FiberPointDTO[], visible: boolean, name: string }[]> = ref([]);
-const icons = [{code: EtapeFtth.ELIGIBLE, title: "Éligible", icon: greenIcon, order: 0},
-    {code: EtapeFtth.PROCHE_CLIENT, title: "Proche Client", icon: yellowIcon, order: 1},
-    {code: EtapeFtth.EN_COURS_IMMEUBLE, title: "Déploiement Immeuble", icon: purpleIcon, order: 2},
-    {code: EtapeFtth.TERMINE_QUARTIER, title: "Quartier Terminé", icon: blueInvertedIcon, order: 3},
-    {code: EtapeFtth.EN_COURS_QUARTIER, title: "Déploiement Quartier", icon: defaultIcon, order: 4},
-    {code: EtapeFtth.PREVU_QUARTIER, title: "Quartier Programmé", icon: brownIcon, order: 5},
-    {code: EtapeFtth.NON_PREVU, title: "Non prévu", icon: pinkIcon, order: 6},
-    {code: EtapeFtth._, title: "Aucune donnée", icon: redIcon, order: 7},
-    {code: EtapeFtth.UNKNOWN, title: "Statut inconnu", icon: blackIcon, order: 999}
+const icons = [{code: EtapeFtth[EtapeFtth.ELIGIBLE], title: "Éligible", icon: greenIcon, order: 20},
+    {code: EtapeFtth[EtapeFtth.PROCHE_CLIENT], title: "Proche Client", icon: yellowIcon, order: 19},
+    {code: EtapeFtth[EtapeFtth.EN_COURS_IMMEUBLE], title: "Déploiement Immeuble", icon: purpleIcon, order: 18},
+    {code: EtapeFtth[EtapeFtth.TERMINE_QUARTIER], title: "Quartier Terminé", icon: blueInvertedIcon, order: 17},
+    {code: EtapeFtth[EtapeFtth.EN_COURS_QUARTIER], title: "Déploiement Quartier", icon: defaultIcon, order: 16},
+    {code: EtapeFtth[EtapeFtth.PREVU_QUARTIER], title: "Quartier Programmé", icon: brownIcon, order: 15},
+    {code: EtapeFtth[EtapeFtth.NON_PREVU], title: "Non prévu", icon: pinkIcon, order: 14},
+    {code: EtapeFtth[EtapeFtth._], title: "Aucune donnée", icon: redIcon, order: 13},
+    {code: EtapeFtth[EtapeFtth.UNKNOWN], title: "Statut inconnu", icon: blackIcon, order: 2}
 ];
-const maxBounds = latLngBounds([
-    [40.3097691, -6.0005669],
-    [52.0544363, 11.9582151]
-]);
 
 const { mdAndDown } = useDisplay();
 const { current } = useTheme();
@@ -222,15 +72,27 @@ const isDarkTheme = computed(() => current.value.dark)
 
 //#endregion
 
-// onMounted(() => {
-//      centerMapOnLocation();
-// });
+onMounted(() => {
+    map.value.map.on('click', function (evt) {
+        const feature = map.value.map.forEachFeatureAtPixel(evt.pixel, function (feature) {
+            return feature;
+        });
+        if (!feature) {
+            selectedFiber.value = null;
+            return;
+        }
+        const fiber = fibers.value.find(f => f.signature === feature.get("signature"));
+        selectedFiber.value = fiber;
+        getHistorique();
+    });
+    // centerMapOnLocation();
+});
 
 function getCloseAreaFibers() {
     recentResult.value = resultFromDb.value = false;
     loading.value = true;
     layers.value = [];
-    FiberService.getCloseAreaFibers(userLocation.value.x, userLocation.value.y)
+    FiberService.getCloseAreaFibers(mapCenter.at(0), mapCenter.at(1))
     .then((response) => {
         fibers.value = response.data;
         mapFibersToLayer();
@@ -245,7 +107,7 @@ function getCloseAreaFibers() {
 
 function updateFibers() {
     loading.value = true;
-    FiberService.updateWideArea(userLocation.value.x, userLocation.value.y)
+    FiberService.updateWideArea(mapCenter.at(0), mapCenter.at(1))
     .then((response) => {
         toastStore.createToastMessage({ message: response.data + " points créés / mis à jour." });
     })
@@ -259,7 +121,7 @@ function getFibers() {
     recentResult.value = resultFromDb.value = false;
     loading.value = true;
     layers.value = [];
-    FiberService.getWideArea(userLocation.value.x, userLocation.value.y)
+    FiberService.getWideArea(mapCenter.at(0), mapCenter.at(1))
     .then((response) => {
         fibers.value = response.data;
         mapFibersToLayer();
@@ -276,7 +138,7 @@ function getDbFibers() {
     resultFromDb.value = loading.value = true;
     recentResult.value = false;
     layers.value = [];
-    FiberService.getDbFibers(userLocation.value.x, userLocation.value.y)
+    FiberService.getDbFibers(mapCenter.at(0), mapCenter.at(1))
     .then((response) => {
         fibers.value = response.data;
         mapFibersToLayer();
@@ -293,7 +155,7 @@ function getNewestFibers() {
     recentResult.value = resultFromDb.value = true;
     loading.value = true;
     layers.value = [];
-    FiberService.getNewestPoints(bounds.value!.toBBoxString())
+    FiberService.getNewestPoints(view.value?.calculateExtent().join(','))
     .then((response) => {
         fibers.value = response.data;
         mapFibersToLayer();
@@ -306,15 +168,14 @@ function getNewestFibers() {
     });
 }
 
-function getHistorique(fiber: FiberPointDTO) {
+function getHistorique() {
     if (!resultFromDb.value) {
         loadingHistory.value = true;
-        FiberService.getHistorique(fiber.signature)
+        FiberService.getHistorique(selectedFiber.value.signature)
         .then((response) => {
-            fiber.created = response.data.created;
-            fiber.lastUpdated = response.data.lastUpdated;
-            fiber.eligibilitesFtth = response.data.eligibilitesFtth.sort((a, b) => (a.batiment < b.batiment && a.etapeFtth < b.etapeFtth ? -1 : 1));
-            fiber.eligibilitesFtth.forEach(f => f.strEtapeFtth = EtapeFtth[f.etapeFtth]);
+            selectedFiber.value.created = response.data.created;
+            selectedFiber.value.lastUpdated = response.data.lastUpdated;
+            selectedFiber.value.eligibilitesFtth = response.data.eligibilitesFtth.sort((a, b) => (a.batiment < b.batiment && a.etapeFtth < b.etapeFtth ? -1 : 1));
         })
         .catch((errors) => {
             toastStore.createToastMessage({ color:ISnackbarColor.Error, message: errors });
@@ -325,23 +186,19 @@ function getHistorique(fiber: FiberPointDTO) {
     }
 }
 
-function centerUpdate(center: LatLng) {
-    userLocation.value = new Point(center.lat, center.lng);
-}
-
 function clearData() {
     fibers.value = [];
     layers.value = [];
 }
 
-function centerMapOnPoint(evt: PointerEvent, row: any) {
-    userLocation.value = new Point(row.item.y, row.item.x);
-    zoom.value = 19;
+function centerMapOnPoint(_: PointerEvent, row: any) {
+    view.value?.setZoom(18);
+    view.value?.setCenter([row.item.x, row.item.y]);
 }
 
 function setIcon(fiber: FiberPointDTO) {
     if (fiber.eligibilitesFtth.length > 0) {
-        const icon = icons.filter(a => a.code === fiber.eligibilitesFtth[0].etapeFtth)[0]?.icon;
+        const icon = icons.filter(a => a.code === EtapeFtth[fiber.eligibilitesFtth[0].etapeFtth])[0]?.icon;
         if (icon === undefined) {
             fiber.iconUrl = blackIcon;
         }
@@ -349,39 +206,38 @@ function setIcon(fiber: FiberPointDTO) {
     } else {
         fiber.iconUrl = redIcon;
     }
-    fiber.iconClassName = opacityWithElderness(fiber);
+    fiber.opacity = opacityWithElderness(fiber);
 }
 
-function showHideLayer(code: EtapeFtth) {
-    const selectedLayer = layers.value.filter(l => l.name === code.toString())[0];
+function showHideLayer(code: string) {
+    const curr = map.value.map.getAllLayers().find(l => l.get('title') === icons.find(n => n.code === code).title);
+    curr.setVisible(!curr.getVisible());
+    const selectedLayer = layers.value.filter(l => l.name === code)[0];
     selectedLayer.visible = !selectedLayer.visible;
 }
 
-function boundsUpdated (newBounds: L.LatLngBounds) {
-    bounds.value = newBounds;
+function boundsUpdated() {
+    bounds.value = view.value?.calculateExtent().map(x => x);
+}
+
+function centerUpdate() {
+    mapCenter = view.value?.getCenter();
 }
 
 function mapFibersToLayer() {
-    fibers.value.forEach(fiber => {
-        setIcon(fiber);
-        fiber.eligibilitesFtth.forEach(f => f.strEtapeFtth = EtapeFtth[f.etapeFtth]);
-    });
+    fibers.value.forEach(fiber => setIcon(fiber));
     layers.value = [];
-    Object.keys(EtapeFtth).forEach((value) => {
+    Object.values(EtapeFtth).filter(a => typeof(a) === 'string').forEach((value: string) => {
         layers.value.push(
             {
-                markers: fibers.value.filter(f => f.eligibilitesFtth[0]?.etapeFtth === Number(value)),
-                name: value.toString(),
+                markers: fibers.value.filter(f => EtapeFtth[f.eligibilitesFtth[0]?.etapeFtth] === value)?.toReversed(),
+                name: value,
                 visible: true,
             }
         );
     });
-    const noDataLayer = layers.value.filter(l => l.name === EtapeFtth._.toString())[0];
-    noDataLayer.markers = noDataLayer.markers.concat(
-        fibers.value.filter(f => f.eligibilitesFtth.length === 0)
-    );
-    const debugLayer = layers.value.filter(l => l.name === EtapeFtth.UNKNOWN.toString())[0];
-    debugLayer.markers = debugLayer.markers.concat(
+    const debugLayer = layers.value.filter(l => l.name === EtapeFtth[EtapeFtth.UNKNOWN])[0];
+    debugLayer.markers = debugLayer.markers?.concat(
         fibers.value.filter(f => f.eligibilitesFtth?.some(x => x.etapeFtth === EtapeFtth.DEBUG))
     );
 }
@@ -389,7 +245,8 @@ function mapFibersToLayer() {
 function centerMapOnLocation() {
     navigator.geolocation.getCurrentPosition(
         position => {
-            userLocation.value = new Point(position.coords.latitude, position.coords.longitude);
+            view.value.setZoom(15);
+            view.value.setCenter([position.coords.longitude, position.coords.latitude]);
         }, 
         error => toastStore.createToastMessage({ message: error.message, color: ISnackbarColor.Error }),
         {
@@ -400,26 +257,128 @@ function centerMapOnLocation() {
 
 function opacityWithElderness(fiber: FiberPointDTO) {
     if (!recentResult.value) {
-        return 'opacity-100';
+        return 1;
     }
     let mostRecentDate = Math.max(...fiber.eligibilitesFtth.map(f => new Date(f.lastUpdated).getTime()));
     if (fiber.eligibilitesFtth.length === 0) {
         mostRecentDate = new Date(fiber.lastUpdated).getTime();
     }
-    let result = 100;
+    let result = 1;
     if (mostRecentDate >= date.getTime() - 1 * 86400000) {
-        result = 100;
+        result = 1;
     } else if (mostRecentDate >= date.getTime() - 3 * 86400000) {
-        result = 60;
+        result = 0.7;
     } else if (mostRecentDate >= date.getTime() - 6 * 86400000) {
-        result = 50;
+        result = 0.55;
     } else {
-        result = 15;
+        result = 0.2;
     }
-    return 'opacity-' + result;
+    return result;
 }
 
-const orderedIcons = computed(() => icons.sort((a, b) => a.order - b.order));
+const reverseOrderedIcons = computed(() => icons.sort((a, b) => a.order + b.order));
 
 const mapHeight = computed(() => mdAndDown.value ? "50vh" : "75vh");
 </script>
+<template>
+    <VCard key="main-card" class="mx-0 mb-0">
+        <template #title>
+            <VCardActions ref="menu">
+                <VBtn icon @click="centerMapOnLocation()" color="primary" class="ml-5">
+                    <VIcon>mdi-crosshairs-gps</VIcon>
+                </VBtn>
+                <HeaderButtonsComponent class="hidden-sm-and-down py-0" :loading="loading" @updateFibers="updateFibers" @getDbFibers="getDbFibers"
+                @getFibers="getFibers" @getCloseAreaFibers="getCloseAreaFibers" @getNewestFibers="getNewestFibers"/>
+                
+                <VBtn class="hidden-md-and-up mx-auto" color="primary" variant="flat">Actions
+                <VMenu activator="parent" offset-y :close-on-content-click="false" offset="0 130">
+                    <VList class="hidden-md-and-up">
+                        <VListItem>
+                            <VRow no-gutters @click="$emit('close')" style="width: min-content;">
+                                <VCol cols="6">
+                                    <HeaderButtonsComponent class="d-flex" :loading="loading" @updateFibers="updateFibers" @getDbFibers="getDbFibers"
+                                    @getFibers="getFibers" @getCloseAreaFibers="getCloseAreaFibers" @getNewestFibers="getNewestFibers"/>
+                                </VCol>
+                            </VRow>
+                        </VListItem>
+                    </VList>
+                </VMenu>
+                </VBtn>
+                <VBtn class="mr-5" @click="clearData()" color="error" text="Clear" :disabled="!fibers.length" :variant="!fibers.length ? 'outlined' : 'flat'" />
+            </VCardActions>
+        </template>
+        <template #default>
+        <div class="ml-10 mr-10 justify-center">
+            <VContainer class="pa-0">
+            <VLayout>
+                <OlMap.OlMap ref="map" :style="{ height:mapHeight, width: '100%' }" @click="controlOpened = false" @moveend="centerUpdate">
+                    <OlMap.OlView ref="view" :center="userLocation" :zoom="zoom" :extent="MapHelper.maxBounds" :max-zoom="20" smoothExtentConstraint @change="boundsUpdated"/>
+                    <Layers.OlTileLayer v-for="tile, i in tileLayers" :title="tile.name" :visible="tile.visible" :key="'tileLayer_'+i">
+                        <Sources.OlSourceOsm :url="tile.url" :attributions="tile.attribution"/>
+                    </Layers.OlTileLayer>
+                    <MapControls.OlLayerswitcherimageControl mouseover />
+                    <Layers.OlVectorLayer v-for="layer in layers.filter(l => icons.map(i => i.code).find(a => a === l.name))" 
+                    :title="icons.find(i => i.code === layer.name).title" :key="'layer_'+layer.name">
+                        <Sources.OlSourceVector>
+                            <OlMap.OlFeature v-for="item in layer.markers" :key="'marker_'+item.signature" :properties="{ signature: item.signature }">
+                                <Geometries.OlGeomPoint :coordinates="[item.x, item.y]" />
+                                <Styles.OlStyle>
+                                    <Styles.OlStyleIcon :src="item.iconUrl" :opacity="item.opacity" anchor-x-units="pixels"
+                                    anchor-y-units="pixels" anchor-origin="bottom-left" :anchor="[12.5, 0]"/>
+                                </Styles.OlStyle>
+                            </OlMap.OlFeature>
+                        </Sources.OlSourceVector>
+                    </Layers.OlVectorLayer>
+                    <VOverlay class="justify-end align-end" persistent model-value contained :scrim="false" no-click-animation>
+                        <VExpandTransition>
+                            <MapPopupComponent :fiber="selectedFiber" :loading="loadingHistory"/>
+                        </VExpandTransition>
+                    </VOverlay>
+                    <!-- Layers visibility controls -->
+                    <div class="overlay bottom">
+                        <div v-if="mdAndDown && !controlOpened" :class="['custom-control', { 'custom-control-dark': isDarkTheme }]">
+                            <VBtn size="small" variant="text" :ripple="false" @click.stop="controlOpened = true">
+                                <VIcon size="24" color="black" icon="mdi-map-marker-multiple-outline" />
+                            </VBtn>
+                        </div>
+                        <div v-else :class="['custom-control', { 'custom-control-dark': isDarkTheme }]">
+                            <VBtn style="z-index:2;" class="my-1 mx-2" size="comfortable"
+                            v-for="icon in reverseOrderedIcons"
+                            :key="'control-custom-btn-'+icon.code" @click="showHideLayer(icon.code)"
+                            :variant="layers.find(l => l.name === icon.code)?.visible ? 'text' : 'plain'"
+                            :disabled="!layers.find(l => l.name === icon.code)?.markers?.length">
+                                <VImg :key="'control-custom-btn-img-'+icon.code" height="27" width="20" :src="icon.icon"/>
+                                <p :key="'control-custom-btn-span-'+icon.code" class="pl-2 text-overline">{{ icon.title }}</p>
+                            </VBtn>
+                        </div>
+                    </div>
+                </OlMap.OlMap>
+            </VLayout>
+            </VContainer>
+            <VRow key="main-card-content" justify="center">
+                <VCol md="10">
+                    <VDataTable class="mt-5 mb-10" :headers="headers" key="list-details" :items="fibers" fixed-header height="650px"
+                        itemsPerPage="100" :loading="loading" @click:row="centerMapOnPoint" :items-per-page-options="[50, 100, 200, 500, 1000]">
+                        <template #item.eligibilitesFtth="{ item }">
+                            <td key="list-item-eligibilite">
+                                {{ EtapeFtth[item.eligibilitesFtth[0]?.etapeFtth] }}
+                            </td>
+                        </template>
+                        <template #item.batiment="{ item }">
+                            <td key="list-item-batiment">
+                                {{ item.eligibilitesFtth[0]?.batiment }}
+                            </td>
+                        </template>
+                        <template #item.created="{ item }">
+                            <td key="list-item-created">
+                                {{ new Date(item.eligibilitesFtth[0]?.created ?? item.created).toLocaleString() }}
+                            </td>
+                        </template>
+                    </VDataTable>
+                </VCol>
+            </VRow>
+        </div>
+        </template>
+    </VCard>
+</template>
+<style src="@/assets/css/main.css" />

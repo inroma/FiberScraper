@@ -13,7 +13,5 @@ export default class EligibiliteFtth implements BaseModelDTO
 
     etapeFtth = EtapeFtth._;
 
-    strEtapeFtth = "";
-
     dateDebutEligibilite = new Date();
 }
