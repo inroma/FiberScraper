@@ -309,7 +309,7 @@ const mapHeight = computed(() => mdAndDown.value ? "50vh" : "75vh");
         </template>
         <template #default>
         <div class="ml-10 mr-10 justify-center">
-            <VContainer class="pa-0">
+            <VContainer class="pa-0" :width="mdAndDown ? '100%' : '80%'">
             <VLayout>
                 <OlMap.OlMap ref="map" :style="{ height:mapHeight, width: '100%' }" @click="controlOpened = false" @moveend="centerUpdate">
                     <OlMap.OlView ref="view" :center="userLocation" :zoom="zoom" :extent="MapHelper.maxBounds" :max-zoom="20" smoothExtentConstraint @change="boundsUpdated"/>
