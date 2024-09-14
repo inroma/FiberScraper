@@ -11,7 +11,7 @@ import { MapHelper } from '@/helpers/MapHelper';
 
 //#region Public Properties
 const loading = ref(false);
-const userLocation = ref<[number, number]>([4.83, 45.76]);
+const userLocation = ref<[number, number]>(MapHelper.defaultLocation);
 const zoom = ref(11);
 const tileLayers = MapHelper.getTileLayers();
 const autoRefreshItems = ref([]) as Ref<AutoRefreshInput[]>;
