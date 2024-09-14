@@ -9,9 +9,7 @@
     "lint": "eslint --ext .js,.ts,.vue --ignore-path .gitignore --fix src"
   },
   "dependencies": {
-    "@vue-leaflet/vue-leaflet": "^0.10.1",
     "axios": "1.7.7",
-    "leaflet": "1.9.4",
     "ol": "^10.1.0",
     "ol-contextmenu": "^5.5.0",
     "ol-ext": "^4.0.23",
