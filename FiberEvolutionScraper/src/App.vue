@@ -1,10 +1,10 @@
 <template>
   <VApp>
     <VAppBar density="default" scroll-threshold="80" scroll-behavior="hide">
-      <VAppBarNavIcon v-if="mdAndDown" @click.stop="drawer = !drawer"/>
-      <VToolbarTitle align="left">Fiber Evolution Scraper</VToolbarTitle>
+      <VAppBarNavIcon v-if="smAndDown" @click.stop="drawer = !drawer"/>
+      <VToolbarTitle align="left" text="Fiber Evolution Scraper" />
     </VAppBar>
-    <VNavigationDrawer :model-value="drawer" expand-on-hover class="px-0 pt-0 nav-bar" rail permanent>
+    <VNavigationDrawer :model-value="drawer" expand-on-hover class="px-0 pt-0 nav-bar" :rail="mdAndUp" permanent>
       <VList>
         <VListItem v-for="header in headers" link :to="header.url" :prepend-icon="header.icon"
         :title="header.title" :key="'header'+header.title" :disabled="header.disabled" density="default">
@@ -12,9 +12,8 @@
       </VList>
       <template #append>
         <VListItem class="pl-10 pr-10">
-          <VBtn @click="changeTheme()" color="primary">
+          <VBtn @click="changeTheme()" color="primary" text="Theme Switch" #prepend>
             <VIcon>mdi-theme-light-dark</VIcon>
-            Theme Switch
           </VBtn>
         </VListItem>
       </template>
@@ -27,10 +26,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, watchEffect } from 'vue';
 import ToastComponent from './components/ToastComponent.vue';
 import { useDisplay, useTheme } from 'vuetify/lib/framework.mjs';
-import { watch } from 'vue';
 
 const headers = [
 	{
@@ -53,13 +51,12 @@ const headers = [
 	}
 ];
 
-const { mdAndDown } = useDisplay();
-const { current } = useTheme();
-const { global } = useTheme();
+const { smAndDown, mdAndUp } = useDisplay();
+const { current, global } = useTheme();
 
-const drawer = ref(!mdAndDown.value);
+const drawer = ref(!smAndDown.value);
 
-watch(mdAndDown, () => drawer.value = !mdAndDown.value);
+watchEffect(() => drawer.value = !smAndDown.value);
 
 function changeTheme() {
 	global.name.value = current.value.dark ? 'light' : 'dark';

@@ -20,8 +20,7 @@ const controlOpened = ref(false);
 const loadingHistory = ref(false);
 const map = ref<{ map: Map }>(null);
 const view = ref<View>();
-const userLocation = ref<Array<number>>([4.83, 45.76]);
-let mapCenter: number[] = userLocation.value;
+const userLocation = ref<Array<number>>(MapHelper.defaultLocation);
 const fibers: Ref<FiberPointDTO[]> = ref([]);
 const zoom = ref(11);
 const tileLayers = MapHelper.getTileLayers();
@@ -30,25 +29,16 @@ const selectedFiber = ref<FiberPointDTO>(null);
 const date = dayjs();
 const recentResult = ref(false);
 const resultFromDb = ref(false);
-const defaultIcon = '/icons/marker-blue.png';
-const redIcon = '/icons/marker-red.png';
-const pinkIcon = '/icons/marker-pink.png';
-const greenIcon = '/icons/marker-green.png';
-const yellowIcon = '/icons/marker-yellow.png';
-const purpleIcon = '/icons/marker-purple.png';
-const brownIcon = '/icons/marker-orange.png';
-const blackIcon = '/icons/marker-black.png';
-const blueInvertedIcon = '/icons/marker-white.png';
 const layers: Ref<{ markers: FiberPointDTO[], visible: boolean, name: string }[]> = ref([]);
-const icons = [{code: EtapeFtth[EtapeFtth.ELIGIBLE], title: "Éligible", icon: greenIcon, order: 20},
-    {code: EtapeFtth[EtapeFtth.PROCHE_CLIENT], title: "Proche Client", icon: yellowIcon, order: 19},
-    {code: EtapeFtth[EtapeFtth.EN_COURS_IMMEUBLE], title: "Déploiement Immeuble", icon: purpleIcon, order: 18},
-    {code: EtapeFtth[EtapeFtth.TERMINE_QUARTIER], title: "Quartier Terminé", icon: blueInvertedIcon, order: 17},
-    {code: EtapeFtth[EtapeFtth.EN_COURS_QUARTIER], title: "Déploiement Quartier", icon: defaultIcon, order: 16},
-    {code: EtapeFtth[EtapeFtth.PREVU_QUARTIER], title: "Quartier Programmé", icon: brownIcon, order: 15},
-    {code: EtapeFtth[EtapeFtth.NON_PREVU], title: "Non prévu", icon: pinkIcon, order: 14},
-    {code: EtapeFtth[EtapeFtth._], title: "Aucune donnée", icon: redIcon, order: 13},
-    {code: EtapeFtth[EtapeFtth.UNKNOWN], title: "Statut inconnu", icon: blackIcon, order: 2}
+const icons = [{code: EtapeFtth[EtapeFtth.ELIGIBLE], title: "Éligible", icon: MapHelper.greenIcon, order: 20},
+    {code: EtapeFtth[EtapeFtth.PROCHE_CLIENT], title: "Proche Client", icon: MapHelper.yellowIcon, order: 19},
+    {code: EtapeFtth[EtapeFtth.EN_COURS_IMMEUBLE], title: "Déploiement Immeuble", icon: MapHelper.purpleIcon, order: 18},
+    {code: EtapeFtth[EtapeFtth.TERMINE_QUARTIER], title: "Quartier Terminé", icon: MapHelper.blueInvertedIcon, order: 17},
+    {code: EtapeFtth[EtapeFtth.EN_COURS_QUARTIER], title: "Déploiement Quartier", icon: MapHelper.defaultIcon, order: 16},
+    {code: EtapeFtth[EtapeFtth.PREVU_QUARTIER], title: "Quartier Programmé", icon: MapHelper.brownIcon, order: 15},
+    {code: EtapeFtth[EtapeFtth.NON_PREVU], title: "Non prévu", icon: MapHelper.pinkIcon, order: 14},
+    {code: EtapeFtth[EtapeFtth._], title: "Aucune donnée", icon: MapHelper.redIcon, order: 13},
+    {code: EtapeFtth[EtapeFtth.UNKNOWN], title: "Statut inconnu", icon: MapHelper.blackIcon, order: 2}
 ];
 
 const { mdAndDown } = useDisplay();
@@ -89,7 +79,7 @@ function getCloseAreaFibers() {
     recentResult.value = resultFromDb.value = false;
     loading.value = true;
     layers.value = [];
-    FiberService.getCloseAreaFibers(mapCenter.at(0), mapCenter.at(1))
+    FiberService.getCloseAreaFibers(userLocation.value.at(0), userLocation.value.at(1))
     .then((response) => {
         fibers.value = response.data;
         mapFibersToLayer();
@@ -104,7 +94,7 @@ function getCloseAreaFibers() {
 
 function updateFibers() {
     loading.value = true;
-    FiberService.updateWideArea(mapCenter.at(0), mapCenter.at(1))
+    FiberService.updateWideArea(userLocation.value.at(0), userLocation.value.at(1))
     .then((response) => {
         toastStore.createToastMessage({ message: response.data + " points créés / mis à jour." });
     })
@@ -118,7 +108,7 @@ function getFibers() {
     recentResult.value = resultFromDb.value = false;
     loading.value = true;
     layers.value = [];
-    FiberService.getWideArea(mapCenter.at(0), mapCenter.at(1))
+    FiberService.getWideArea(userLocation.value.at(0), userLocation.value.at(1))
     .then((response) => {
         fibers.value = response.data;
         mapFibersToLayer();
@@ -135,7 +125,7 @@ function getDbFibers() {
     resultFromDb.value = loading.value = true;
     recentResult.value = false;
     layers.value = [];
-    FiberService.getDbFibers(mapCenter.at(0), mapCenter.at(1))
+    FiberService.getDbFibers(userLocation.value.at(0), userLocation.value.at(1))
     .then((response) => {
         fibers.value = response.data;
         mapFibersToLayer();
@@ -191,17 +181,19 @@ function clearData() {
 function centerMapOnPoint(_: PointerEvent, row: any) {
     view.value?.setZoom(18);
     view.value?.setCenter([row.item.x, row.item.y]);
+    selectedFiber.value = row.item;
+    getHistorique();
 }
 
 function setIcon(fiber: FiberPointDTO) {
-    if (fiber.eligibilitesFtth.length > 0) {
+    if (fiber.eligibilitesFtth?.length > 0) {
         const icon = icons.filter(a => a.code === EtapeFtth[fiber.eligibilitesFtth[0].etapeFtth])[0]?.icon;
         if (icon === undefined) {
-            fiber.iconUrl = blackIcon;
+            fiber.iconUrl = MapHelper.blackIcon;
         }
         fiber.iconUrl = icon;
     } else {
-        fiber.iconUrl = redIcon;
+        fiber.iconUrl = MapHelper.redIcon;
     }
     fiber.opacity = opacityWithElderness(fiber);
 }
@@ -217,17 +209,13 @@ function boundsUpdated() {
     bounds.value = view.value?.calculateExtent().map(x => x);
 }
 
-function centerUpdate() {
-    mapCenter = view.value?.getCenter();
-}
-
 function mapFibersToLayer() {
     fibers.value.forEach(fiber => setIcon(fiber));
     layers.value = [];
     Object.values(EtapeFtth).filter(a => typeof(a) === 'string').forEach((value: string) => {
         layers.value.push(
             {
-                markers: fibers.value.filter(f => EtapeFtth[f.eligibilitesFtth[0]?.etapeFtth] === value)?.toReversed(),
+                markers: fibers.value.filter(f => EtapeFtth[(f.eligibilitesFtth.at(0)?.etapeFtth ?? EtapeFtth._)] === value),
                 name: value,
                 visible: true,
             }
@@ -288,18 +276,18 @@ const mapHeight = computed(() => mdAndDown.value ? "50vh" : "75vh");
                 @getFibers="getFibers" @getCloseAreaFibers="getCloseAreaFibers" @getNewestFibers="getNewestFibers"/>
                 
                 <VBtn class="hidden-md-and-up mx-auto" color="primary" variant="flat">Actions
-                <VMenu activator="parent" offset-y :close-on-content-click="false" offset="0 130">
-                    <VList class="hidden-md-and-up">
-                        <VListItem>
-                            <VRow no-gutters @click="$emit('close')" style="width: min-content;">
-                                <VCol cols="6">
-                                    <HeaderButtonsComponent class="d-flex" :loading="loading" @updateFibers="updateFibers" @getDbFibers="getDbFibers"
-                                    @getFibers="getFibers" @getCloseAreaFibers="getCloseAreaFibers" @getNewestFibers="getNewestFibers"/>
-                                </VCol>
-                            </VRow>
-                        </VListItem>
-                    </VList>
-                </VMenu>
+                    <VMenu activator="parent" offset-y :close-on-content-click="false" offset="0 130">
+                        <VList class="hidden-md-and-up">
+                            <VListItem>
+                                <VRow no-gutters @click="$emit('close')" style="width: min-content;">
+                                    <VCol cols="6">
+                                        <HeaderButtonsComponent class="d-flex" :loading="loading" @updateFibers="updateFibers" @getDbFibers="getDbFibers"
+                                        @getFibers="getFibers" @getCloseAreaFibers="getCloseAreaFibers" @getNewestFibers="getNewestFibers"/>
+                                    </VCol>
+                                </VRow>
+                            </VListItem>
+                        </VList>
+                    </VMenu>
                 </VBtn>
                 <VBtn class="mr-5" @click="clearData()" color="error" text="Clear" :disabled="!fibers.length" :variant="!fibers.length ? 'outlined' : 'flat'" />
             </VCardActions>
@@ -308,7 +296,7 @@ const mapHeight = computed(() => mdAndDown.value ? "50vh" : "75vh");
         <div class="ml-10 mr-10 justify-center">
             <VContainer class="pa-0" :width="mdAndDown ? '100%' : '80%'">
             <VLayout>
-                <OlMap.OlMap ref="map" :style="{ height:mapHeight, width: '100%' }" @click="controlOpened = false" @moveend="centerUpdate">
+                <OlMap.OlMap ref="map" :style="{ height:mapHeight, width: '100%' }" @click="controlOpened = false">
                     <OlMap.OlView ref="view" :center="userLocation" :zoom="zoom" :extent="MapHelper.maxBounds" :max-zoom="20" smoothExtentConstraint @change="boundsUpdated"/>
                     <Layers.OlTileLayer v-for="tile, i in tileLayers" :title="tile.name" :visible="tile.visible" :key="'tileLayer_'+i">
                         <Sources.OlSourceOsm :url="tile.url" :attributions="tile.attribution"/>
@@ -355,6 +343,7 @@ const mapHeight = computed(() => mdAndDown.value ? "50vh" : "75vh");
             <VRow key="main-card-content" justify="center">
                 <VCol md="10">
                     <VDataTable class="mt-5 mb-10" :headers="headers" key="list-details" :items="fibers" fixed-header height="650px"
+                        :mobile-breakpoint="'md'" :mobile='null'
                         itemsPerPage="100" :loading="loading" @click:row="centerMapOnPoint" :items-per-page-options="[50, 100, 200, 500, 1000]">
                         <template #item.eligibilitesFtth="{ item }">
                             <td key="list-item-eligibilite">

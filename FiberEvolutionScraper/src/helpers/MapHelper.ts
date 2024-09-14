@@ -23,5 +23,17 @@ export class MapHelper {
         }
     ];
 
+    static defaultLocation: [number, number] = [4.83, 45.76];
+
     static maxBounds = [ -6, 41, 9.5, 52 ];
+    
+    static defaultIcon = '/icons/marker-blue.png';
+    static redIcon = '/icons/marker-red.png';
+    static pinkIcon = '/icons/marker-pink.png';
+    static greenIcon = '/icons/marker-green.png';
+    static yellowIcon = '/icons/marker-yellow.png';
+    static purpleIcon = '/icons/marker-purple.png';
+    static brownIcon = '/icons/marker-orange.png';
+    static blackIcon = '/icons/marker-black.png';
+    static blueInvertedIcon = '/icons/marker-white.png';
 }

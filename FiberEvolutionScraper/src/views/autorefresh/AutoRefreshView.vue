@@ -11,14 +11,14 @@ import { MapHelper } from '@/helpers/MapHelper';
 
 //#region Public Properties
 const loading = ref(false);
-const userLocation = ref<[number, number]>([4.83, 45.76]);
+const userLocation = ref<[number, number]>(MapHelper.defaultLocation);
 const zoom = ref(11);
 const tileLayers = MapHelper.getTileLayers();
 const autoRefreshItems = ref([]) as Ref<AutoRefreshInput[]>;
 const deleteDialog = ref(false);
 const popupDeleteItem = ref(undefined) as Ref<AutoRefreshInput | undefined>;
 const toastStore = useToastStore();
-const { name } = useDisplay();
+const { mdAndDown } = useDisplay();
 
 const rectangles = computed<number[][][][]>(() => autoRefreshItems.value?.filter(a => a.enabled && !a.isEditing)?.flatMap(item => getRectangleFromInput(item)));
 const smallRectangles = computed<number[][][][]>(() => autoRefreshItems.value?.filter(a => a.enabled && !a.isEditing)?.flatMap(item => getRectangleFromInput(item, true)));
@@ -47,7 +47,7 @@ const headers = [
     { title: 'Coord Lat', value: 'coordY', sortable: true, key: "coordY" },
     { title: 'Taille de la zone', value: 'areaSize', sortable: true, width: '150px', key: "areaSize" },
     { title: 'Dernier Refresh', value: 'lastRun', sortable: true, width: '170px', key: "lastRun" },
-    { title: 'Activé', value: 'enabled', sortable: false, key: "enabled" },
+    { title: 'Activé', value: 'enabled', sortable: true, key: "enabled" },
     { title: 'Actions', value: 'actions', sortable: false, width: '110px', key: "actions" },
 ];
 
@@ -196,15 +196,7 @@ function runAll() {
     })
 }
 
-const mapHeight = computed(() => {
-    switch(name.value) {
-        case 'xs':
-        case 'md':
-            return "50vh";
-        default:
-            return "75vh";
-    }
-});
+const mapHeight = computed(() => mdAndDown.value ? "55vh" : "70vh");
 
 /** AreaSizes disponibles pour alimenter le champ */
 const areaSizes =  [1, 3, 5];
@@ -229,7 +221,7 @@ const areaSizes =  [1, 3, 5];
         </VDialog>
         <VCardActions ref="menu">
         </VCardActions>
-            <VRow class="ml-10 mr-10 h-full" no-gutters>
+            <VRow class="ml-10 mr-10" no-gutters>
                 <VResponsive min-width="200">
                     <Map.OlMap :style="{ height:mapHeight, width:'100%' }" loadTilesWhileAnimating loadTilesWhileInteracting @moveend="centerUpdate">
                         <Map.OlView ref="view" :center="userLocation" :zoom="zoom" :rotation="0" :extent="MapHelper.maxBounds" smoothExtentConstraint/>
@@ -290,28 +282,37 @@ const areaSizes =  [1, 3, 5];
                     </Map.OlMap>
                 </VResponsive>
             </VRow>
-            <VRow>
+            <VRow align="center">
                 <VCol>
-                </VCol>
-                <VCol>
-                    <VBtn color="primary" @click="runAll()" text="Refresh manuel des zones" #prepend>
-                        <VIcon>mdi-play-outline</VIcon>
+                    <VBtn color="primary" @click="runAll()" :icon="mdAndDown">
+                        <template #prepend>
+                            Refresh manuel des zones
+                        </template>
+                        <template #default>
+                            <VIcon class="ml-1">mdi-play-outline</VIcon>
+                        </template>
                     </VBtn>
                 </VCol>
                 <VCol>
-                    <VBtn color="primary" @click="createItem()" :disabled="autoRefreshItems.some(x => x.isEditing)" text="Ajouter une zone" #prepend>
-                        <VIcon>mdi-plus</VIcon>
+                    <VBtn color="primary" @click="createItem()" :disabled="autoRefreshItems.some(x => x.isEditing)" :icon="mdAndDown">
+                        <template #prepend>
+                            Ajouter une zone
+                        </template>
+                        <template #default>
+                            <VIcon>mdi-plus</VIcon>
+                        </template>
                     </VBtn>
                 </VCol>
                 <VCol>
-                    <VBtn class="float-end mr-10" icon @click="getAutoRefreshInputs()" variant="outlined">
+                    <VBtn icon @click="getAutoRefreshInputs()" variant="outlined">
                         <VIcon>mdi-reload</VIcon>
                     </VBtn>
                 </VCol>
             </VRow>
             <VRow key="main-card-content" justify="center">
                 <VCol md="11">
-                    <VDataTable class="mt-5 mb-10" :headers="headers" :header-props="{ align: 'center' }" key="list-details" :items="autoRefreshItems" fixed-header height="650px"
+                    <VDataTable class="mt-5 mb-10" :headers="headers" :header-props="{ align: 'center' }" key="list-details"
+                    :items="autoRefreshItems" fixed-header height="650px" :mobile='null' mobile-breakpoint="md"
                     items-per-page="25" :loading="loading" @click:row="centerMapOnPoint" :sort-by="[{ key: 'id', order: true }]">
                         <template #item.enabled="{ item }">
                             <VCheckbox :disabled="!item.isEditing" v-model="item.enabled" @click.stop hide-details/>
@@ -327,7 +328,7 @@ const areaSizes =  [1, 3, 5];
                         </template>
                         <template #item.lastRun="{ item }">
                             <td>
-                                {{ item.lastRun !== undefined ? new Date(item.lastRun).toLocaleString() : 'Jamais exécuté' }}
+                                {{ item.lastRun !== null ? new Date(item.lastRun).toLocaleString() : 'Jamais exécuté' }}
                             </td>
                         </template>
                         <template #item.areaSize="{ item }">
