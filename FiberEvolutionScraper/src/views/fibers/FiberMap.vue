@@ -355,6 +355,7 @@ const mapHeight = computed(() => mdAndDown.value ? "50vh" : "75vh");
             <VRow key="main-card-content" justify="center">
                 <VCol md="10">
                     <VDataTable class="mt-5 mb-10" :headers="headers" key="list-details" :items="fibers" fixed-header height="650px"
+                        :mobile-breakpoint="'md'" :mobile='null'
                         itemsPerPage="100" :loading="loading" @click:row="centerMapOnPoint" :items-per-page-options="[50, 100, 200, 500, 1000]">
                         <template #item.eligibilitesFtth="{ item }">
                             <td key="list-item-eligibilite">
