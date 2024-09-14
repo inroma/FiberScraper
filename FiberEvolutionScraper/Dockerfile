@@ -16,7 +16,7 @@
 # CMD ["nginx", "-g", "daemon off;"]
 
 # PROD
-FROM arm64v8/node:lts-alpine as build-stage
+FROM arm64v8/node:lts-alpine3.18 AS build-stage
 WORKDIR /app
 COPY ./package*.json .
 RUN npm install

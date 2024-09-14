@@ -8,6 +8,17 @@ import * as components from 'vuetify/components'
 import * as directives from 'vuetify/directives'
 import 'vuetify/dist/vuetify.min.css';
 import '@mdi/font/css/materialdesignicons.css';
+import 'vue3-openlayers/dist/vue3-openlayers.css';
+import OpenLayersMap from "vue3-openlayers";
+import { useGeographic } from 'ol/proj';
+import minMax from 'dayjs/plugin/minMax';
+import dayjs from 'dayjs'
+import isLeapYear from 'dayjs/plugin/isLeapYear'
+import 'dayjs/locale/fr'
+
+dayjs.extend(minMax) // use plugin
+dayjs.extend(isLeapYear) // use plugin
+dayjs.locale('fr') // use locale
 
 const pinia = createPinia();
 const app = createApp(App).use(pinia);
@@ -35,5 +46,9 @@ const vuetify = createVuetify({
     }
   }
 });
+useGeographic();
 
-app.use(router).use(vuetify).mount("#app");
+app
+  .use(router)
+  .use(OpenLayersMap)
+  .use(vuetify).mount("#app");

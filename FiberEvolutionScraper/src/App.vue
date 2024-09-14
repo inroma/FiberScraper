@@ -4,24 +4,24 @@
       <VAppBarNavIcon v-if="mdAndDown" @click.stop="drawer = !drawer"/>
       <VToolbarTitle align="left">Fiber Evolution Scraper</VToolbarTitle>
     </VAppBar>
-    <v-navigation-drawer :model-value="drawer" expand-on-hover class="px-0 pt-0 nav-bar" rail permanent>
-      <v-list>
-        <v-list-item v-for="header in headers" link :to="header.url" :prepend-icon="header.icon"
+    <VNavigationDrawer :model-value="drawer" expand-on-hover class="px-0 pt-0 nav-bar" rail permanent>
+      <VList>
+        <VListItem v-for="header in headers" link :to="header.url" :prepend-icon="header.icon"
         :title="header.title" :key="'header'+header.title" :disabled="header.disabled" density="default">
-        </v-list-item>
-      </v-list>
+        </VListItem>
+      </VList>
       <template #append>
-        <v-list-item class="pl-10 pr-10">
-          <v-btn @click="changeTheme()" color="primary">
-            <v-icon>mdi-theme-light-dark</v-icon>
+        <VListItem class="pl-10 pr-10">
+          <VBtn @click="changeTheme()" color="primary">
+            <VIcon>mdi-theme-light-dark</VIcon>
             Theme Switch
-          </v-btn>
-        </v-list-item>
+          </VBtn>
+        </VListItem>
       </template>
-    </v-navigation-drawer>
+    </VNavigationDrawer>
     <VMain>
       <ToastComponent/>
-      <router-view key="router-view" class="ma-5"/>
+      <RouterView key="router-view" class="ma-5"/>
     </VMain>
   </VApp>
 </template>
@@ -50,13 +50,7 @@ const headers = [
 		icon: 'mdi-timer-refresh-outline',
 		url: '/auto-refresh',
 		disabled: false
-	},
-	{
-		title: 'About',
-		icon: 'mdi-help-box',
-		url: '/about',
-		disabled: false
-	},
+	}
 ];
 
 const { mdAndDown } = useDisplay();
