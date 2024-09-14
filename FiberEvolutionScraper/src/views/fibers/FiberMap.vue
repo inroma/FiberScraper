@@ -8,14 +8,10 @@ import FiberService from '@/services/FiberService';
 import HeaderButtonsComponent from '@/components/HeaderButtonsComponent.vue';
 import { useToastStore } from '@/store/ToastStore';
 import { useDisplay, useTheme } from 'vuetify/lib/framework.mjs';
-import { Overlay, View } from 'ol';
+import { View } from 'ol';
 import { Map as OlMap, Layers, Sources, MapControls, Styles, Geometries } from 'vue3-openlayers';
 import { MapHelper } from '@/helpers/MapHelper';
 import type Map from "ol/Map";
-import Select from 'ol/interaction/Select';
-import { click } from 'ol/events/condition';
-import { Stroke, Style } from 'ol/style';
-import { VScrollXReverseTransition } from 'vuetify/lib/components/index.mjs';
 import dayjs from 'dayjs';
 
 //#region Public Properties
