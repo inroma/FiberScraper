@@ -186,7 +186,7 @@ function centerMapOnPoint(_: PointerEvent, row: any) {
 }
 
 function setIcon(fiber: FiberPointDTO) {
-    if (fiber.eligibilitesFtth.length > 0) {
+    if (fiber.eligibilitesFtth?.length > 0) {
         const icon = icons.filter(a => a.code === EtapeFtth[fiber.eligibilitesFtth[0].etapeFtth])[0]?.icon;
         if (icon === undefined) {
             fiber.iconUrl = MapHelper.blackIcon;
@@ -215,7 +215,7 @@ function mapFibersToLayer() {
     Object.values(EtapeFtth).filter(a => typeof(a) === 'string').forEach((value: string) => {
         layers.value.push(
             {
-                markers: fibers.value.filter(f => EtapeFtth[f.eligibilitesFtth[0]?.etapeFtth] === value)?.toReversed(),
+                markers: fibers.value.filter(f => EtapeFtth[(f.eligibilitesFtth.at(0)?.etapeFtth ?? EtapeFtth._)] === value),
                 name: value,
                 visible: true,
             }
