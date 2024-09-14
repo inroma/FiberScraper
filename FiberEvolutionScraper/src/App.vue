@@ -50,13 +50,7 @@ const headers = [
 		icon: 'mdi-timer-refresh-outline',
 		url: '/auto-refresh',
 		disabled: false
-	},
-	{
-		title: 'About',
-		icon: 'mdi-help-box',
-		url: '/about',
-		disabled: false
-	},
+	}
 ];
 
 const { mdAndDown } = useDisplay();
