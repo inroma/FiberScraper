@@ -56,11 +56,11 @@ const { current } = useTheme();
 
 const headers = [
     { title: 'Adresse', value: 'libAdresse' },
-    { title: 'Création', value: 'created' },
+    { title: 'Création', value: 'created', sortable: true },
     { title: 'Batiment', value: 'batiment', width: '250px' },
     { title: 'Éligibilité FTTH', value: 'eligibilitesFtth' },
-    { title: 'Coord Lat', value: 'x' },
-    { title: 'Coord Long', value: 'y' },
+    { title: 'Coord Lat', value: 'x', sortable: true },
+    { title: 'Coord Long', value: 'y', sortable: true },
 ];
 
 const toastStore = useToastStore();
