@@ -47,7 +47,7 @@ const headers = [
     { title: 'Coord Lat', value: 'coordY', sortable: true, key: "coordY" },
     { title: 'Taille de la zone', value: 'areaSize', sortable: true, width: '150px', key: "areaSize" },
     { title: 'Dernier Refresh', value: 'lastRun', sortable: true, width: '170px', key: "lastRun" },
-    { title: 'Activé', value: 'enabled', sortable: false, key: "enabled" },
+    { title: 'Activé', value: 'enabled', sortable: true, key: "enabled" },
     { title: 'Actions', value: 'actions', sortable: false, width: '110px', key: "actions" },
 ];
 
@@ -284,18 +284,30 @@ const areaSizes =  [1, 3, 5];
             </VRow>
             <VRow align="center">
                 <VCol>
-                    <VBtn color="primary" @click="runAll()" text="Refresh manuel des zones" #prepend>
-                        <VIcon>mdi-play-outline</VIcon>
+                    <VBtn color="primary" @click="runAll()" :icon="mdAndDown">
+                        <template #prepend>
+                            Refresh manuel des zones
+                        </template>
+                        <template #default>
+                            <VIcon class="ml-1">mdi-play-outline</VIcon>
+                        </template>
                     </VBtn>
                 </VCol>
                 <VCol>
-                    <VBtn color="primary" @click="createItem()" :disabled="autoRefreshItems.some(x => x.isEditing)" text="Ajouter une zone" #prepend>
-                        <VIcon>mdi-plus</VIcon>
+                    <VBtn color="primary" @click="createItem()" :disabled="autoRefreshItems.some(x => x.isEditing)" :icon="mdAndDown">
+                        <template #prepend>
+                            Ajouter une zone
+                        </template>
+                        <template #default>
+                            <VIcon>mdi-plus</VIcon>
+                        </template>
                     </VBtn>
                 </VCol>
-                <VBtn class="float-end mr-10" icon @click="getAutoRefreshInputs()" variant="outlined">
-                    <VIcon>mdi-reload</VIcon>
-                </VBtn>
+                <VCol>
+                    <VBtn icon @click="getAutoRefreshInputs()" variant="outlined">
+                        <VIcon>mdi-reload</VIcon>
+                    </VBtn>
+                </VCol>
             </VRow>
             <VRow key="main-card-content" justify="center">
                 <VCol md="11">
@@ -316,7 +328,7 @@ const areaSizes =  [1, 3, 5];
                         </template>
                         <template #item.lastRun="{ item }">
                             <td>
-                                {{ item.lastRun !== undefined ? new Date(item.lastRun).toLocaleString() : 'Jamais exécuté' }}
+                                {{ item.lastRun !== null ? new Date(item.lastRun).toLocaleString() : 'Jamais exécuté' }}
                             </td>
                         </template>
                         <template #item.areaSize="{ item }">
