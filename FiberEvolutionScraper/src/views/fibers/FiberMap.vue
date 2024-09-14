@@ -16,6 +16,7 @@ import Select from 'ol/interaction/Select';
 import { click } from 'ol/events/condition';
 import { Stroke, Style } from 'ol/style';
 import { VScrollXReverseTransition } from 'vuetify/lib/components/index.mjs';
+import dayjs from 'dayjs';
 
 //#region Public Properties
 const loading = ref(false);
@@ -30,7 +31,7 @@ const zoom = ref(11);
 const tileLayers = MapHelper.getTileLayers();
 const bounds = ref<Array<number>>([]);
 const selectedFiber = ref<FiberPointDTO>(null);
-const date = new Date();
+const date = dayjs();
 const recentResult = ref(false);
 const resultFromDb = ref(false);
 const defaultIcon = '/icons/marker-blue.png';
@@ -259,18 +260,18 @@ function opacityWithElderness(fiber: FiberPointDTO) {
     if (!recentResult.value) {
         return 1;
     }
-    let mostRecentDate = Math.max(...fiber.eligibilitesFtth.map(f => new Date(f.lastUpdated).getTime()));
+    let mostRecentDate = dayjs.max(...fiber.eligibilitesFtth.map(f => dayjs(f.lastUpdated)));
     if (fiber.eligibilitesFtth.length === 0) {
-        mostRecentDate = new Date(fiber.lastUpdated).getTime();
+        mostRecentDate = dayjs(fiber.lastUpdated);
     }
     let result = 1;
-    if (mostRecentDate >= date.getTime() - 1 * 86400000) {
+    if (mostRecentDate >= date.add(-1, 'day')) {
         result = 1;
-    } else if (mostRecentDate >= date.getTime() - 3 * 86400000) {
+    } else if (mostRecentDate >= date.add(-2, 'day')) {
         result = 0.7;
-    } else if (mostRecentDate >= date.getTime() - 6 * 86400000) {
+    } else if (mostRecentDate >= date.add(-3, 'day')) {
         result = 0.55;
-    } else {
+    } else if (mostRecentDate >= date.add(-4, 'day')) {
         result = 0.2;
     }
     return result;
