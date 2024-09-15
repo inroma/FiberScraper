@@ -64,11 +64,6 @@ public class AutoRefreshController
     public async Task RunAll()
     {
         logger.LogDebug("Run All Auto Refresh");
-        IScheduler scheduler = await schedulerFactory.GetScheduler();
-        var trigger = await scheduler.GetTrigger(new("AutoRefreshJob-trigger"));
-        if (trigger != null)
-        {
-            await scheduler.TriggerJob(new JobKey("AutoRefreshJob"));
-        }
+        await autoRefreshManager.RefreshAll();
     }
 }
