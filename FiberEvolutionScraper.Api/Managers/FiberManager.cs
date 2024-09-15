@@ -51,8 +51,8 @@ public class FiberManager
 
         var result = context.FiberPoints.Include(f => f.EligibilitesFtth.OrderByDescending(e => e.LastUpdated))
             .Where(f => f.X >= latlng[0] && f.Y >= latlng[1] && f.X <= latlng[2] && f.Y <= latlng[3])
-            .Where(f => f.EligibilitesFtth.Any(e => e.Created >= DateTime.UtcNow.AddDays(-5) || e.LastUpdated >= DateTime.UtcNow.AddDays(-1))
-                    || f.EligibilitesFtth.Count == 0 && f.Created >= DateTime.UtcNow.AddDays(-5) || f.LastUpdated >= DateTime.UtcNow.AddDays(-1))
+            .Where(f => f.EligibilitesFtth.Any(e => e.Created >= DateTime.UtcNow.AddDays(-6) || e.LastUpdated >= DateTime.UtcNow.AddDays(-3))
+                    || f.EligibilitesFtth.Count == 0 && f.Created >= DateTime.UtcNow.AddDays(-6) || f.LastUpdated >= DateTime.UtcNow.AddDays(-3))
             .ToList();
 
         return result
@@ -63,14 +63,14 @@ public class FiberManager
     {
         var fibers = GetFibersForLoc(coordX, coordY, squareSize);
 
-        return await SaveToDB(fibers.ToList());
+        return await SaveToDB([.. fibers]);
     }
 
     public async Task<int> SaveToDB(List<FiberPointDTO> fiberPoints)
     {
         try
         {
-            if (!fiberPoints.Any())
+            if (fiberPoints.Count == 0)
             {
                 return 0;
             }
