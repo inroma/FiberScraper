@@ -1,7 +1,6 @@
 ﻿using FiberEvolutionScraper.Api.Models;
 using FiberEvolutionScraper.Api.Services;
 using Microsoft.AspNetCore.Mvc;
-using Quartz;
 
 namespace FiberEvolutionScraper.Api.Controllers;
 
@@ -12,16 +11,16 @@ public class AutoRefreshController
     #region Private Fields
 
     private readonly AutoRefreshManager autoRefreshManager;
+    private readonly AutoRefreshService autoRefreshService;
     private readonly ILogger<AutoRefreshController> logger;
-    private readonly ISchedulerFactory schedulerFactory;
 
     #endregion Private Fields
 
-    public AutoRefreshController(AutoRefreshManager autoRefreshManager, ILogger<AutoRefreshController> logger, ISchedulerFactory factory)
+    public AutoRefreshController(AutoRefreshManager autoRefreshManager, ILogger<AutoRefreshController> logger, AutoRefreshService autoRefreshService)
     {
         this.autoRefreshManager = autoRefreshManager;
         this.logger = logger;
-        schedulerFactory = factory;
+        this.autoRefreshService = autoRefreshService;
     }
 
     [HttpGet("GetAll")]
@@ -61,9 +60,10 @@ public class AutoRefreshController
     }
 
     [HttpPost("RunAll")]
-    public async Task RunAll()
+    public ActionResult<bool> RunAll()
     {
         logger.LogDebug("Run All Auto Refresh");
-        await autoRefreshManager.RefreshAll();
+        _ = Task.Run(autoRefreshService.StartRefresh);
+        return true;
     }
 }

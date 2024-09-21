@@ -248,15 +248,13 @@ function opacityWithElderness(fiber: FiberPointDTO) {
     if (fiber.eligibilitesFtth.length === 0) {
         mostRecentDate = dayjs(fiber.lastUpdated);
     }
-    let result = 1;
+    let result = 0.2;
     if (mostRecentDate >= date.add(-1, 'day')) {
         result = 1;
     } else if (mostRecentDate >= date.add(-2, 'day')) {
         result = 0.7;
     } else if (mostRecentDate >= date.add(-3, 'day')) {
         result = 0.55;
-    } else if (mostRecentDate >= date.add(-4, 'day')) {
-        result = 0.2;
     }
     return result;
 }

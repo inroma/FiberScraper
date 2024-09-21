@@ -1,22 +1,31 @@
-﻿using FiberEvolutionScraper.Api.Data;
-using Quartz;
+﻿using Quartz;
 
 namespace FiberEvolutionScraper.Api.Services;
 
-public class AutoRefreshService : IJob
+public class AutoRefreshService : BackgroundService, IJob
 {
     #region Private Fields
 
-    private readonly AutoRefreshManager AutoRefreshManager;
-    private readonly ILogger<AutoRefreshService> logger;
+    private readonly ILogger<AutoRefreshService> Logger;
+    private readonly IServiceProvider ServiceProvider;
 
     #endregion Private Fields
 
-    public AutoRefreshService(ILogger<AutoRefreshService> logger, AutoRefreshManager autoRefreshManager)
+    public AutoRefreshService(IServiceProvider services, ILogger<AutoRefreshService> logger)
     {
-        this.logger = logger;
-        AutoRefreshManager = autoRefreshManager;
+        ServiceProvider = services;
+        Logger = logger;
     }
 
-    public async Task Execute(IJobExecutionContext context) => await AutoRefreshManager.RefreshAll();
+    public async Task Execute(IJobExecutionContext context) => await ExecuteAsync();
+
+    public async Task StartRefresh() => await ExecuteAsync();
+
+    protected override async Task ExecuteAsync(CancellationToken stoppingToken = default)
+    {
+        Logger.LogInformation("Executing Refresh Service");
+        using var scope = ServiceProvider.CreateScope();
+        var manager = scope.ServiceProvider.GetRequiredService<AutoRefreshManager>();
+        await manager.RefreshAll();
+    }
 }
