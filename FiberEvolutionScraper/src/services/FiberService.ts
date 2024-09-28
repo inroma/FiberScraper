@@ -6,24 +6,24 @@ export default class FiberService {
     private static readonly endpoint = '/api/v1/fiber/';
     private static readonly headers = { 'Content-Type': 'application/json' };
 
-    static getCloseAreaFibers(lat: number, lng: number): AxiosPromise<FiberPointDTO[]> {
+    static getCloseAreaFibers(coord: Array<number>): AxiosPromise<FiberPointDTO[]> {
         return axios.get<FiberPointDTO[]>(`${this.endpoint}GetCloseArea`, { headers: this.headers,
-            params: { coordX: lng, coordY: lat }});
+            params: { coordX: coord.at(0), coordY: coord.at(1) }});
     }
     
-    static updateWideArea(lat: number, lng: number): AxiosPromise<number> {
+    static updateWideArea(coord: Array<number>): AxiosPromise<number> {
         return axios.get<number>(`${this.endpoint}UpdateWideArea`, { headers: this.headers,
-        params: { coordX: lng, coordY: lat }});
+        params: { coordX: coord.at(0), coordY: coord.at(1) }});
     }
 
-    static getWideArea(lat: number, lng: number): AxiosPromise<FiberPointDTO[]> {
+    static getWideArea(coord: Array<number>): AxiosPromise<FiberPointDTO[]> {
         return axios.get<FiberPointDTO[]>(`${this.endpoint}GetWideArea`, { headers: this.headers,
-        params: { coordX: lng, coordY: lat }});
+        params: { coordX: coord.at(0), coordY: coord.at(1) }});
     }
 
-    static getDbFibers(lat: number, lng: number): AxiosPromise<FiberPointDTO[]> {
+    static getDbFibers(coord: Array<number>): AxiosPromise<FiberPointDTO[]> {
         return axios.get<FiberPointDTO[]>(`${this.endpoint}GetFibers`, { headers: this.headers,
-        params: { coordX: lng, coordY: lat }});
+        params: { coordX: coord.at(0), coordY: coord.at(1) }});
     }
 
     static getNewestPoints(bounds: string): AxiosPromise<FiberPointDTO[]> {

@@ -20,7 +20,6 @@ const controlOpened = ref(false);
 const loadingHistory = ref(false);
 const map = ref<{ map: Map }>(null);
 const view = ref<View>();
-const userLocation = ref<Array<number>>(MapHelper.defaultLocation);
 const fibers: Ref<FiberPointDTO[]> = ref([]);
 const zoom = ref(11);
 const tileLayers = MapHelper.getTileLayers();
@@ -79,7 +78,7 @@ function getCloseAreaFibers() {
     recentResult.value = resultFromDb.value = false;
     loading.value = true;
     layers.value = [];
-    FiberService.getCloseAreaFibers(userLocation.value.at(0), userLocation.value.at(1))
+    FiberService.getCloseAreaFibers(view.value.getCenter())
     .then((response) => {
         fibers.value = response.data;
         mapFibersToLayer();
@@ -94,7 +93,7 @@ function getCloseAreaFibers() {
 
 function updateFibers() {
     loading.value = true;
-    FiberService.updateWideArea(userLocation.value.at(0), userLocation.value.at(1))
+    FiberService.updateWideArea(view.value.getCenter())
     .then((response) => {
         toastStore.createToastMessage({ message: response.data + " points créés / mis à jour." });
     })
@@ -108,7 +107,7 @@ function getFibers() {
     recentResult.value = resultFromDb.value = false;
     loading.value = true;
     layers.value = [];
-    FiberService.getWideArea(userLocation.value.at(0), userLocation.value.at(1))
+    FiberService.getWideArea(view.value.getCenter())
     .then((response) => {
         fibers.value = response.data;
         mapFibersToLayer();
@@ -125,7 +124,7 @@ function getDbFibers() {
     resultFromDb.value = loading.value = true;
     recentResult.value = false;
     layers.value = [];
-    FiberService.getDbFibers(userLocation.value.at(0), userLocation.value.at(1))
+    FiberService.getDbFibers(view.value.getCenter())
     .then((response) => {
         fibers.value = response.data;
         mapFibersToLayer();
@@ -295,7 +294,7 @@ const mapHeight = computed(() => mdAndDown.value ? "50vh" : "75vh");
             <VContainer class="pa-0" :width="mdAndDown ? '100%' : '80%'">
             <VLayout>
                 <OlMap.OlMap ref="map" :style="{ height:mapHeight, width: '100%' }" @click="controlOpened = false">
-                    <OlMap.OlView ref="view" :center="userLocation" :zoom="zoom" :extent="MapHelper.maxBounds" :max-zoom="20" smoothExtentConstraint @change="boundsUpdated"/>
+                    <OlMap.OlView ref="view" :center="MapHelper.defaultLocation" :zoom="zoom" :extent="MapHelper.maxBounds" :max-zoom="20" smoothExtentConstraint @change="boundsUpdated"/>
                     <Layers.OlTileLayer v-for="tile, i in tileLayers" :title="tile.name" :visible="tile.visible" :key="'tileLayer_'+i">
                         <Sources.OlSourceOsm :url="tile.url" :attributions="tile.attribution"/>
                     </Layers.OlTileLayer>
