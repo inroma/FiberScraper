@@ -18,15 +18,15 @@ public class FiberController
     [HttpGet()]
     public IList<FiberPointDTO> GetFibers([FromQuery] FibersGetModel parameters)
     {
-        var fibers = FiberManager.GetDbFibersForLoc(parameters.CoordY, parameters.CoordX);
+        var fibers = FiberManager.GetDbFibersForLoc(parameters.CoordX, parameters.CoordY);
         return fibers;
     }
 
     [HttpGet()]
     public async Task<IList<FiberPointDTO>> GetWideArea([FromQuery] FibersGetModel parameters)
     {
-        var fibers = FiberManager.GetFibersForLoc(parameters.CoordY, parameters.CoordX);
-        await FiberManager.SaveToDB(fibers.ToList());
+        var fibers = FiberManager.GetFibersForLoc(parameters.CoordX, parameters.CoordY);
+        await FiberManager.SaveToDB([.. fibers]);
 
         return fibers;
     }
@@ -34,8 +34,8 @@ public class FiberController
     [HttpGet()]
     public async Task<IList<FiberPointDTO>> GetCloseArea([FromQuery] FibersGetModel parameters)
     {
-        var fibers = FiberManager.GetFibersForLoc(parameters.CoordY, parameters.CoordX, 1);
-        await FiberManager.SaveToDB(fibers.ToList());
+        var fibers = FiberManager.GetFibersForLoc(parameters.CoordX, parameters.CoordY, 1);
+        await FiberManager.SaveToDB([.. fibers]);
 
         return fibers;
     }
@@ -57,7 +57,7 @@ public class FiberController
     [HttpGet]
     public int UpdateWideArea([FromQuery] FibersGetModel parameters)
     {
-        var result = FiberManager.UpdateDbFibers(parameters.CoordY, parameters.CoordX);
+        var result = FiberManager.UpdateDbFibers(parameters.CoordX, parameters.CoordY);
 
         return result.Result;
     }
