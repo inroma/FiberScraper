@@ -29,7 +29,8 @@ const date = dayjs();
 const recentResult = ref(false);
 const resultFromDb = ref(false);
 const layers: Ref<{ markers: FiberPointDTO[], visible: boolean, name: string }[]> = ref([]);
-const icons = [{code: EtapeFtth[EtapeFtth.ELIGIBLE], title: "Éligible", icon: MapHelper.greenIcon, order: 20},
+const icons = [{code: EtapeFtth[EtapeFtth.ELLIGIBLE_PIF_XGSPON], title: "Éligible 10Gb/s", icon: MapHelper.greenestIcon, order: 21},
+    {code: EtapeFtth[EtapeFtth.ELIGIBLE], title: "Éligible", icon: MapHelper.greenIcon, order: 20},
     {code: EtapeFtth[EtapeFtth.PROCHE_CLIENT], title: "Proche Client", icon: MapHelper.yellowIcon, order: 19},
     {code: EtapeFtth[EtapeFtth.EN_COURS_IMMEUBLE], title: "Déploiement Immeuble", icon: MapHelper.purpleIcon, order: 18},
     {code: EtapeFtth[EtapeFtth.TERMINE_QUARTIER], title: "Quartier Terminé", icon: MapHelper.blueInvertedIcon, order: 17},

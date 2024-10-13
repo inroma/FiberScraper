@@ -31,6 +31,7 @@ export class MapHelper {
     static redIcon = '/icons/marker-red.png';
     static pinkIcon = '/icons/marker-pink.png';
     static greenIcon = '/icons/marker-green.png';
+    static greenestIcon = '/icons/marker-ultimate-green.png'
     static yellowIcon = '/icons/marker-yellow.png';
     static purpleIcon = '/icons/marker-purple.png';
     static brownIcon = '/icons/marker-orange.png';

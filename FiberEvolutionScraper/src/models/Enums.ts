@@ -9,5 +9,6 @@ export enum EtapeFtth
     DEBUG,
     PROCHE_CLIENT,
     NON_PREVU,
+    ELLIGIBLE_PIF_XGSPON,
     UNKNOWN = 999
 }
