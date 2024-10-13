@@ -33,8 +33,8 @@ public class FiberManager
     {
         var result = context.FiberPoints.Include(f => f.EligibilitesFtth.OrderByDescending(e => e.LastUpdated))
             .GroupBy(e => e.Signature).Select(g => g.First()).ToList()
-            .GroupBy(x => Math.Pow((coordX - x.X), 2) + Math.Pow((coordY - x.Y), 2))
-            .OrderBy(x => x.Key).SelectMany(g => g.ToList()).Take(700);
+            .GroupBy(x => Math.Pow((coordX - x.X), 2) + Math.Pow(coordY - x.Y, 2))
+            .OrderBy(x => x.Key).SelectMany(g => g.ToList()).Take(1500);
 
         return result.ToList();
     }
@@ -56,7 +56,7 @@ public class FiberManager
             .ToList();
 
         return result
-            .GroupBy(x => x.Signature).Select(a => a.OrderBy(a => a.LastUpdated).First()).Take(800).ToList();
+            .GroupBy(x => x.Signature).Select(a => a.OrderBy(a => a.LastUpdated).First()).Take(2000).ToList();
     }
 
     internal async Task<int> UpdateDbFibers(double coordX, double coordY, int squareSize = 5)
