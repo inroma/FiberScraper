@@ -187,7 +187,11 @@ function centerMapOnPoint(_: PointerEvent, row: any) {
 
 function setIcon(fiber: FiberPointDTO) {
     if (fiber.eligibilitesFtth?.length > 0) {
-        const icon = icons.filter(a => a.code === EtapeFtth[fiber.eligibilitesFtth[0].etapeFtth])[0]?.icon;
+        let etape = EtapeFtth[fiber.eligibilitesFtth[0].etapeFtth];
+        if (etape === EtapeFtth[EtapeFtth.ELLIGIBLE_PIF_XGSPON]) {
+            etape = EtapeFtth[EtapeFtth.ELLIGIBLE_XGSPON];
+        }
+        const icon = icons.filter(a => a.code === etape)[0]?.icon;
         if (icon === undefined) {
             fiber.iconUrl = MapHelper.blackIcon;
         }
@@ -217,13 +221,16 @@ function mapFibersToLayer() {
             return;
         }
         let markers = [];
+        // Group all XGSPON together
         if (EtapeFtth[value] === EtapeFtth.ELLIGIBLE_XGSPON) {
             markers = fibers.value.filter(f => (f.eligibilitesFtth.at(0)?.etapeFtth ?? EtapeFtth._) === EtapeFtth.ELLIGIBLE_XGSPON
                 || (f.eligibilitesFtth.at(0)?.etapeFtth ?? EtapeFtth._) === EtapeFtth.ELLIGIBLE_PIF_XGSPON);
+        } else {
+            markers = fibers.value.filter(f => EtapeFtth[(f.eligibilitesFtth.at(0)?.etapeFtth ?? EtapeFtth._)] === value);
         }
         layers.value.push(
             {
-                markers: fibers.value.filter(f => EtapeFtth[(f.eligibilitesFtth.at(0)?.etapeFtth ?? EtapeFtth._)] === value),
+                markers: markers,
                 name: value,
                 visible: true,
             }
