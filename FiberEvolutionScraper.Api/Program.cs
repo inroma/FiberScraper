@@ -3,7 +3,6 @@ using FiberEvolutionScraper.Api.Data;
 using FiberEvolutionScraper.Api.Models;
 using FiberEvolutionScraper.Api.Services;
 using Microsoft.EntityFrameworkCore;
-using Quartz.AspNetCore;
 using Quartz;
 
 namespace FiberEvolutionScraper.Api;
@@ -41,10 +40,13 @@ public class Program
                 .ForMember(dest => dest.X, act => act.MapFrom(src => src.Address.BestCoords.Coord.X))
                 .ForMember(dest => dest.Y, act => act.MapFrom(src => src.Address.BestCoords.Coord.Y))
                 .ForMember(dest => dest.LibAdresse, act => act.MapFrom(src => src.Address.LibAdresse))
-                .ForMember(dest => dest.EligibilitesFtth, act => act.MapFrom(src => src.EligibilitesFtth))
-                .ReverseMap()
-            ;
-            cfg.CreateMap<EligibilitesFtth, EligibiliteFtthDTO>().ReverseMap();
+            .ReverseMap();
+            cfg.CreateMap<EligibilitesFtth, EligibiliteFtthDTO>()
+                .ForMember(d => d.EtapeFtth, src => {
+                    EtapeFtth result;
+                    src.MapFrom(s => Enum.TryParse(s.EtapeFtth, true, out result) ? result : EtapeFtth.UNKNOWN);
+                })
+            .ReverseMap();
         });
 
         builder.Services.AddQuartz(q =>

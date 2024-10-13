@@ -11,7 +11,7 @@ public class FiberResponseModel
     public string ZoneSize { get; set; }
 
     [JsonPropertyName("results")]
-    public List<FiberPoint> Results { get; set; } = new();
+    public List<FiberPoint> Results { get; set; } = [];
 }
 
 public class FiberPoint
@@ -23,7 +23,7 @@ public class FiberPoint
     public bool FtthLoaded { get; set; }
 
     [JsonPropertyName("eligibilitesFtth")]
-    public List<EligibilitesFtth> EligibilitesFtth { get; set; } = new();
+    public List<EligibilitesFtth> EligibilitesFtth { get; set; } = [];
 }
 
 public class Address
