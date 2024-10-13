@@ -12,5 +12,6 @@ public enum EtapeFtth
     PROCHE_CLIENT,
     NON_PREVU,
     ELLIGIBLE_PIF_XGSPON,
+    ELLIGIBLE_XGSPON,
     UNKNOWN = 999
 }
