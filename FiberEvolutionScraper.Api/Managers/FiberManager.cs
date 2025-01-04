@@ -130,10 +130,18 @@ public class FiberManager
                 dbFiber.EligibilitesFtth.Add(item);
             }
             // Dans le cas où le statut repasse sur un statut connu en BDD
-            else if (dbE != null && dbE.Batiment != item.Batiment)
+            else
             {
-                dbE.LastUpdated = DateTime.UtcNow;
-                dbE.Batiment = item.Batiment;
+                var mostRecent = dbFiber.EligibilitesFtth.OrderByDescending(dbe => dbe.LastUpdated).FirstOrDefault(dbE => dbE.CodeImb == item.CodeImb);
+                if (mostRecent != null && mostRecent.EtapeFtth != item.EtapeFtth)
+                {
+                    dbE.LastUpdated = DateTime.UtcNow;
+                }
+                if (dbE.Batiment != item.Batiment)
+                {
+                    dbE.LastUpdated = DateTime.UtcNow;
+                    dbE.Batiment = item.Batiment;
+                }
             }
         }
     }
