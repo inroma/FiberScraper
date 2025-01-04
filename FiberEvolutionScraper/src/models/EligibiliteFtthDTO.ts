@@ -1,4 +1,4 @@
-import BaseModelDTO from "./BaseModelDTO";
+import type BaseModelDTO from "./BaseModelDTO";
 import { EtapeFtth } from "./Enums";
 
 export default class EligibiliteFtth implements BaseModelDTO

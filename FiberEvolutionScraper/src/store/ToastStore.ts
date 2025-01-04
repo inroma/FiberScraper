@@ -1,4 +1,5 @@
-import { ISnackbar, ISnackbarColor, Snackbar } from "@/models/SnackbarInterface";
+import { ISnackbarColor, Snackbar } from "@/models/SnackbarInterface";
+import type { ISnackbar } from "@/models/SnackbarInterface";
 import { defineStore } from 'pinia';
 
 const defaultState = {

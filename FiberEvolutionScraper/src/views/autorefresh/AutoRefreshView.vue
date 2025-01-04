@@ -3,31 +3,26 @@ import { ISnackbarColor } from '@/models/SnackbarInterface';
 import AutoRefreshInput from '@/models/AutoRefreshInput';
 import AutoRefreshService from '@/services/AutoRefreshService';
 import { useToastStore } from '@/store/ToastStore';
-import { Ref, computed, onMounted, ref } from 'vue';
-import { useDisplay } from 'vuetify'
-import { View } from 'ol';
-import { Map, Layers, Sources, MapControls, Styles, Geometries } from 'vue3-openlayers';
-import { MapHelper } from '@/helpers/MapHelper';
+import { useDisplay } from 'vuetify';
+import { Map, Layers, Sources, Styles, Geometries } from 'vue3-openlayers';
+import { storeToRefs } from 'pinia';
+import { useMapStore } from '@/store/mapStore';
 
 //#region Public Properties
 const loading = ref(false);
-const userLocation = ref<[number, number]>(MapHelper.defaultLocation);
-const zoom = ref(11);
-const tileLayers = MapHelper.getTileLayers();
-const autoRefreshItems = ref([]) as Ref<AutoRefreshInput[]>;
+const autoRefreshItems = ref<AutoRefreshInput[]>([]);
 const deleteDialog = ref(false);
-const popupDeleteItem = ref(undefined) as Ref<AutoRefreshInput | undefined>;
+const popupDeleteItem = ref<AutoRefreshInput>(undefined);
 const toastStore = useToastStore();
-const { mdAndDown } = useDisplay();
+const { view, location } = storeToRefs(useMapStore());
+const { mdAndDown, mobile } = useDisplay();
 
 const rectangles = computed<number[][][][]>(() => autoRefreshItems.value?.filter(a => a.enabled && !a.isEditing)?.flatMap(item => getRectangleFromInput(item)));
 const smallRectangles = computed<number[][][][]>(() => autoRefreshItems.value?.filter(a => a.enabled && !a.isEditing)?.flatMap(item => getRectangleFromInput(item, true)));
 const disabledRectangles = computed(() => {
-    let value: number[][][][] = [];
-    autoRefreshItems.value?.filter(a => !a.enabled)?.forEach(item => {
-        value = getRectangleFromInput(item).concat(getRectangleFromInput(item, true));
-    });
-    return value;
+    return autoRefreshItems.value?.filter(a => !a.enabled)?.map(item => 
+        getRectangleFromInput(item).at(0).concat(getRectangleFromInput(item, true).at(0))
+    );
 });
 const newRectangle = computed<number[][][][]>(() => {
     let value: number[][][][] = [];
@@ -37,8 +32,6 @@ const newRectangle = computed<number[][][][]>(() => {
     return value;
 });
 const lineDash = [7, 7];
-
-const view = ref<View>();
 
 const headers = [
     { title: 'Id', value: 'id', sortable: true, width: '65px', key: "id" },
@@ -60,22 +53,16 @@ onMounted(() => {
 function getAutoRefreshInputs() {
     loading.value = true;
     AutoRefreshService.getAll()
-    .then((response) => {
-        autoRefreshItems.value = response.data;
-    })
-    .catch((errors) => {
-        toastStore.createToastMessage({ color: ISnackbarColor.Error, message: errors });
-    })
-    .finally(() => {
-        loading.value = false;
-    });
+    .then((response) => autoRefreshItems.value = response.data)
+    .catch((errors) => toastStore.createToastMessage({ color: ISnackbarColor.Error, message: errors }))
+    .finally(() => loading.value = false);
 }
 
 function createItem() {
     const item = new AutoRefreshInput();
     item.isEditing = true;
-    item.coordX = userLocation.value.at(0)!;
-    item.coordY = userLocation.value.at(1)!;
+    item.coordX = location.value.at(0);
+    item.coordY = location.value.at(1);
     autoRefreshItems.value.push(item);
     centerUpdate();
 }
@@ -103,9 +90,7 @@ function addItem(item: AutoRefreshInput) {
     .catch((errors) => {
         toastStore.createToastMessage({ color: ISnackbarColor.Error, message: errors });
     })
-    .finally(() => {
-        loading.value = false;
-    });
+    .finally(() => loading.value = false);
 }
 
 function updateItem(item: AutoRefreshInput) {
@@ -165,11 +150,10 @@ function centerMapOnLocation() {
 }
 
 function centerUpdate() {
-    const center = view.value?.getCenter();
     if(autoRefreshItems.value.some(x => x.isEditing)) {
         const item = autoRefreshItems.value.find(x => x.isEditing);
-        item!.coordX = center![0];
-        item!.coordY = center![1];
+        item!.coordX = location.value[0];
+        item!.coordY = location.value[1];
     }
 }
 
@@ -196,14 +180,12 @@ function runAll() {
     })
 }
 
-const mapHeight = computed(() => mdAndDown.value ? "55vh" : "70vh");
-
 /** AreaSizes disponibles pour alimenter le champ */
 const areaSizes =  [1, 3, 5];
 
 </script>
 <template>
-    <VCard key="main-card" class="mx-0 mb-0">
+    <VCard key="main-card" :class="mobile ? 'mx-0' : 'mx-10'">
         <VDialog v-model="deleteDialog" width="auto" @click:outside="deleteDialog = false">
             <VCard>
                 <VCardTitle class="pa-3">
@@ -219,161 +201,153 @@ const areaSizes =  [1, 3, 5];
                 </VCardActions>
             </VCard>
         </VDialog>
-        <VCardActions ref="menu">
-        </VCardActions>
-            <VRow class="ml-10 mr-10" no-gutters>
-                <VResponsive min-width="200">
-                    <Map.OlMap :style="{ height:mapHeight, width:'100%' }" loadTilesWhileAnimating loadTilesWhileInteracting @moveend="centerUpdate">
-                        <Map.OlView ref="view" :center="userLocation" :zoom="zoom" :rotation="0" :extent="MapHelper.maxBounds" smoothExtentConstraint/>
-                        <Layers.OlTileLayer v-for="tile, i in tileLayers" :title="tile.name" :visible="tile.visible" :key="'tileLayer_'+i">
-                            <Sources.OlSourceOsm :url="tile.url" :attribution="tile.attribution" />
-                        </Layers.OlTileLayer>
-                        <MapControls.OlLayerswitcherimageControl mouseover/>
-                        <Layers.OlVectorLayer title="Zones" base-layer>
-                            <Sources.OlSourceVector>
-                                <Map.OlFeature>
-                                    <Geometries.OlGeomMultiPolygon :coordinates="rectangles" />
-                                    <Styles.OlStyle>
-                                        <Styles.OlStyleStroke color="red" :width="2" />
-                                        <Styles.OlStyleFill color="rgba(186,236,255,0.18)" />
-                                    </Styles.OlStyle>
-                                </Map.OlFeature>
-                                <Map.OlFeature>
-                                    <Geometries.OlGeomMultiPolygon :coordinates="smallRectangles" />
-                                    <Styles.OlStyle>
-                                        <Styles.OlStyleStroke color="blue" :width="2" />
-                                        <Styles.OlStyleFill color="rgba(186,236,255,0.18)" />
-                                    </Styles.OlStyle>
-                                </Map.OlFeature>
-                                <Map.OlFeature>
-                                    <Geometries.OlGeomMultiPolygon :coordinates="disabledRectangles" />
-                                    <Styles.OlStyle>
-                                        <Styles.OlStyleStroke color="grey" :width="2" :lineDash="lineDash" />
-                                        <Styles.OlStyleFill color="rgba(0,0,0,0)" />
-                                    </Styles.OlStyle>
-                                </Map.OlFeature>
-                                <Map.OlFeature v-if="newRectangle?.length > 0">
-                                    <Geometries.OlGeomMultiPolygon :coordinates="[newRectangle.at(0)]" />
-                                    <Styles.OlStyle>
-                                        <Styles.OlStyleStroke color="red" :width="2" :lineDash="lineDash" />
-                                        <Styles.OlStyleFill color="rgba(186,236,255,0.18)" />
-                                    </Styles.OlStyle>
-                                </Map.OlFeature>
-                                <Map.OlFeature v-if="newRectangle?.length > 0">
-                                    <Geometries.OlGeomMultiPolygon :coordinates="[newRectangle.at(1)]" />
-                                    <Styles.OlStyle>
-                                        <Styles.OlStyleStroke color="blue" :width="2" :lineDash="lineDash" />
-                                        <Styles.OlStyleFill color="rgba(186,236,255,0.18)" />
-                                    </Styles.OlStyle>
-                                </Map.OlFeature>
-                            </Sources.OlSourceVector>
-                        </Layers.OlVectorLayer>
-                        <div class="overlay right">
-                            <div class="custom-control text-caption px-2 ma-2 mb-6">
-                                <div class="mb-1"><VIcon color="red">mdi-square-outline</VIcon><span class="text-black mx-2">Taille d'un refresh hors ville</span></div>
-                                <div><VIcon color="blue-darken-3">mdi-square-outline</VIcon><span class="text-black mx-2">Taille d'un refresh exclusivement en ville</span></div>
-                            </div>
+        <VRow justify="center">
+            <VCol lg="4">
+                <AddressLookup />
+            </VCol>
+        </VRow>
+        <MapComponent class="py-5" :loading="loading" force-move-end-event @callback="centerUpdate">
+            <template #ui>
+                <div class="overlay right">
+                    <div class="custom-control text-caption px-2 ma-2 mb-6">
+                        <div class="mb-1"><VIcon color="red">mdi-square-outline</VIcon><span class="text-black mx-2">Taille d'un refresh hors ville</span></div>
+                        <div><VIcon color="blue-darken-3">mdi-square-outline</VIcon><span class="text-black mx-2">Taille d'un refresh exclusivement en ville</span></div>
+                    </div>
+                </div>
+            </template>
+            <template #vectorLayers>
+                <Layers.OlVectorLayer title="Zones" base-layer>
+                    <Sources.OlSourceVector>
+                        <Map.OlFeature>
+                            <Geometries.OlGeomMultiPolygon :coordinates="rectangles" />
+                            <Styles.OlStyle>
+                                <Styles.OlStyleStroke color="red" :width="2" />
+                                <Styles.OlStyleFill color="rgba(186,236,255,0.18)" />
+                            </Styles.OlStyle>
+                        </Map.OlFeature>
+                        <Map.OlFeature>
+                            <Geometries.OlGeomMultiPolygon :coordinates="smallRectangles" />
+                            <Styles.OlStyle>
+                                <Styles.OlStyleStroke color="blue" :width="2" />
+                                <Styles.OlStyleFill color="rgba(186,236,255,0.18)" />
+                            </Styles.OlStyle>
+                        </Map.OlFeature>
+                        <Map.OlFeature>
+                            <Geometries.OlGeomMultiPolygon :coordinates="disabledRectangles" />
+                            <Styles.OlStyle>
+                                <Styles.OlStyleStroke color="grey" :width="2" :lineDash="lineDash" />
+                            </Styles.OlStyle>
+                        </Map.OlFeature>
+                        <Map.OlFeature v-if="newRectangle?.length > 0">
+                            <Geometries.OlGeomMultiPolygon :coordinates="[newRectangle.at(0)]"/>
+                            <Styles.OlStyle>
+                                <Styles.OlStyleStroke color="red" :width="2" :lineDash="lineDash" />
+                                <Styles.OlStyleFill color="rgba(186,236,255,0.18)" />
+                            </Styles.OlStyle>
+                        </Map.OlFeature>
+                        <Map.OlFeature v-if="newRectangle?.length > 0">
+                            <Geometries.OlGeomMultiPolygon :coordinates="[newRectangle.at(1)]"/>
+                            <Styles.OlStyle>
+                                <Styles.OlStyleStroke color="blue" :width="2" :lineDash="lineDash" />
+                                <Styles.OlStyleFill color="rgba(186,236,255,0.18)" />
+                            </Styles.OlStyle>
+                        </Map.OlFeature>
+                    </Sources.OlSourceVector>
+                </Layers.OlVectorLayer>
+            </template>
+        </MapComponent>
+        <VRow align="center">
+            <VCol>
+                <VBtn color="primary" @click="runAll()" :icon="mdAndDown">
+                    <template #prepend>
+                        Refresh manuel des zones
+                    </template>
+                    <template #default>
+                        <VIcon class="ml-1">mdi-play-outline</VIcon>
+                    </template>
+                </VBtn>
+            </VCol>
+            <VCol>
+                <VBtn color="primary" @click="createItem()" :disabled="autoRefreshItems.some(x => x.isEditing)" :icon="mdAndDown">
+                    <template #prepend>
+                        Ajouter une zone
+                    </template>
+                    <template #default>
+                        <VIcon>mdi-plus</VIcon>
+                    </template>
+                </VBtn>
+            </VCol>
+            <VCol>
+                <VBtn icon @click="getAutoRefreshInputs()" variant="outlined">
+                    <VIcon>mdi-reload</VIcon>
+                </VBtn>
+            </VCol>
+        </VRow>
+        <VRow key="main-card-content" justify="center">
+            <VCol md="11">
+                <VDataTable class="mt-5 mb-10" :headers="headers" :header-props="{ align: 'center' }" key="list-details"
+                :items="autoRefreshItems" fixed-header height="650px" :mobile='null' mobile-breakpoint="md"
+                items-per-page="25" :loading="loading" @click:row="centerMapOnPoint" :sort-by="[{ key: 'id', order: true }]">
+                    <template #item.enabled="{ item }">
+                        <VCheckbox :disabled="!item.isEditing" v-model="item.enabled" @click.stop hide-details/>
+                    </template>
+                    <template #item.label="{ item }">
+                        <VTextField :readonly="!item.isEditing" v-model="item.label" @click.stop solo flat hide-details/>
+                    </template>
+                    <template #item.coordX="{ item }">
+                        <VTextField :readonly="!item.isEditing" v-model="item.coordX" @click.stop solo flat hide-details/>
+                    </template>
+                    <template #item.coordY="{ item }">
+                        <VTextField :readonly="!item.isEditing" v-model="item.coordY" @click.stop solo flat hide-details/>
+                    </template>
+                    <template #item.lastRun="{ item }">
+                        <td>
+                            {{ item.lastRun !== null ? new Date(item.lastRun).toLocaleString() : 'Jamais exécuté' }}
+                        </td>
+                    </template>
+                    <template #item.areaSize="{ item }">
+                        <VSelect :readonly="!item.isEditing" :items="areaSizes" v-model="item.areaSize" @click.stop
+                        solo flat hide-details/>
+                    </template>
+                    <template #item.actions="{ item }">
+                        <div v-if="item.isEditing" class="d-inline">
+                            <VBtn class="mr-1" v-if="item.id === 0" icon density="compact" @click.stop="addItem(item)" flat>
+                                <VIcon color="primary">mdi-send-variant-outline</VIcon>
+                                <VTooltip activator="parent" bottom>
+                                    <span>Créer l'auto-refresh</span>
+                                </VTooltip>
+                            </VBtn>
+                            <VBtn class="mr-1" icon density="compact" @click.stop="updateItem(item)" flat>
+                                <VIcon color="green">mdi-content-save</VIcon>
+                                <VTooltip activator="parent" bottom>
+                                    <span>Enregistrer</span>
+                                </VTooltip>
+                            </VBtn>
+                            <VBtn class="mr-1" icon density="compact" @click.stop="getAutoRefreshInputs" flat>
+                                <VIcon color="grey">mdi-cancel</VIcon>
+                                <VTooltip activator="parent" bottom>
+                                    <span>Annuler</span>
+                                </VTooltip>
+                            </VBtn>
                         </div>
-                        <!-- <div class="overlay left">
-                            <div class="custom-control ma-2">
-                                <VIcon size="28" @click="centerMapOnLocation()" color="primary" class="mx-2" icon="mdi-crosshairs-gps" />
-                            </div>
-                        </div> -->
-                    </Map.OlMap>
-                </VResponsive>
-            </VRow>
-            <VRow align="center">
-                <VCol>
-                    <VBtn color="primary" @click="runAll()" :icon="mdAndDown">
-                        <template #prepend>
-                            Refresh manuel des zones
-                        </template>
-                        <template #default>
-                            <VIcon class="ml-1">mdi-play-outline</VIcon>
-                        </template>
-                    </VBtn>
-                </VCol>
-                <VCol>
-                    <VBtn color="primary" @click="createItem()" :disabled="autoRefreshItems.some(x => x.isEditing)" :icon="mdAndDown">
-                        <template #prepend>
-                            Ajouter une zone
-                        </template>
-                        <template #default>
-                            <VIcon>mdi-plus</VIcon>
-                        </template>
-                    </VBtn>
-                </VCol>
-                <VCol>
-                    <VBtn icon @click="getAutoRefreshInputs()" variant="outlined">
-                        <VIcon>mdi-reload</VIcon>
-                    </VBtn>
-                </VCol>
-            </VRow>
-            <VRow key="main-card-content" justify="center">
-                <VCol md="11">
-                    <VDataTable class="mt-5 mb-10" :headers="headers" :header-props="{ align: 'center' }" key="list-details"
-                    :items="autoRefreshItems" fixed-header height="650px" :mobile='null' mobile-breakpoint="md"
-                    items-per-page="25" :loading="loading" @click:row="centerMapOnPoint" :sort-by="[{ key: 'id', order: true }]">
-                        <template #item.enabled="{ item }">
-                            <VCheckbox :disabled="!item.isEditing" v-model="item.enabled" @click.stop hide-details/>
-                        </template>
-                        <template #item.label="{ item }">
-                            <VTextField :readonly="!item.isEditing" v-model="item.label" @click.stop solo flat hide-details/>
-                        </template>
-                        <template #item.coordX="{ item }">
-                            <VTextField :readonly="!item.isEditing" v-model="item.coordX" @click.stop solo flat hide-details/>
-                        </template>
-                        <template #item.coordY="{ item }">
-                            <VTextField :readonly="!item.isEditing" v-model="item.coordY" @click.stop solo flat hide-details/>
-                        </template>
-                        <template #item.lastRun="{ item }">
-                            <td>
-                                {{ item.lastRun !== null ? new Date(item.lastRun).toLocaleString() : 'Jamais exécuté' }}
-                            </td>
-                        </template>
-                        <template #item.areaSize="{ item }">
-                            <VSelect :readonly="!item.isEditing" :items="areaSizes" v-model="item.areaSize" @click.stop
-                            solo flat hide-details/>
-                        </template>
-                        <template #item.actions="{ item }">
-                            <div v-if="item.isEditing" class="d-inline">
-                                <VBtn class="mr-1" v-if="item.id === 0" icon density="compact" @click.stop="addItem(item)" flat>
-                                    <VIcon color="primary">mdi-send-variant-outline</VIcon>
-                                    <VTooltip activator="parent" bottom>
-                                        <span>Créer l'auto-refresh</span>
-                                    </VTooltip>
-                                </VBtn>
-                                <VBtn class="mr-1" icon density="compact" @click.stop="updateItem(item)" flat>
-                                    <VIcon color="green">mdi-content-save</VIcon>
-                                    <VTooltip activator="parent" bottom>
-                                        <span>Enregistrer</span>
-                                    </VTooltip>
-                                </VBtn>
-                                <VBtn class="mr-1" icon density="compact" @click.stop="getAutoRefreshInputs" flat>
-                                    <VIcon color="grey">mdi-cancel</VIcon>
-                                    <VTooltip activator="parent" bottom>
-                                        <span>Annuler</span>
-                                    </VTooltip>
-                                </VBtn>
-                            </div>
-                            <div v-else class="d-inline">
-                                <VBtn class="mr-1" icon density="compact" @click.stop="editItem(item)" flat>
-                                    <VIcon>mdi-pencil</VIcon>
-                                    <VTooltip activator="parent" bottom>
-                                        <span>Éditer l'auto-refresh</span>
-                                    </VTooltip>
-                                </VBtn>
-                            </div>
-                                <VBtn icon density="compact" @click.stop="popupDeleteItem = item; deleteDialog = true" flat>
-                                    <VIcon color="red">mdi-delete-outline</VIcon>
-                                    <VTooltip activator="parent" bottom>
-                                        <span>Supprimer cet auto-refresh</span>
-                                    </VTooltip>
-                                </VBtn>
-                        </template>
-                    </VDataTable>
-                </VCol>
-            </VRow>
+                        <div v-else class="d-inline">
+                            <VBtn class="mr-1" icon density="compact" @click.stop="editItem(item)" flat>
+                                <VIcon>mdi-pencil</VIcon>
+                                <VTooltip activator="parent" bottom>
+                                    <span>Éditer l'auto-refresh</span>
+                                </VTooltip>
+                            </VBtn>
+                        </div>
+                            <VBtn icon density="compact" @click.stop="popupDeleteItem = item; deleteDialog = true" flat>
+                                <VIcon color="red">mdi-delete-outline</VIcon>
+                                <VTooltip activator="parent" bottom>
+                                    <span>Supprimer cet auto-refresh</span>
+                                </VTooltip>
+                            </VBtn>
+                    </template>
+                </VDataTable>
+            </VCol>
+        </VRow>
     </VCard>
 </template>
 <style src="@/assets/css/main.css" scoped/>

@@ -12,6 +12,7 @@ import 'vue3-openlayers/dist/vue3-openlayers.css';
 import OpenLayersMap from "vue3-openlayers";
 import { useGeographic } from 'ol/proj';
 import minMax from 'dayjs/plugin/minMax';
+import piniaPluginPersistedState from "pinia-plugin-persistedstate"
 import dayjs from 'dayjs'
 import isLeapYear from 'dayjs/plugin/isLeapYear'
 import 'dayjs/locale/fr'
@@ -21,7 +22,8 @@ dayjs.extend(isLeapYear) // use plugin
 dayjs.locale('fr') // use locale
 
 const pinia = createPinia();
-const app = createApp(App).use(pinia);
+pinia.use(piniaPluginPersistedState);
+const app = createApp(App);
 
 const vuetify = createVuetify({
   components,
@@ -46,9 +48,10 @@ const vuetify = createVuetify({
     }
   }
 });
-useGeographic();
 
 app
+  .use(vuetify)
   .use(router)
-  .use(OpenLayersMap)
-  .use(vuetify).mount("#app");
+  .use(pinia)
+  .use(OpenLayersMap, useGeographic())
+  .mount("#app");

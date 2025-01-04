@@ -1,5 +1,5 @@
 import FiberPointDTO from '@/models/FiberPointDTO';
-import axios, { AxiosPromise } from 'axios';
+import axios, { type AxiosPromise } from 'axios';
 
 export default class FiberService {
 

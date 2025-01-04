@@ -1,5 +1,5 @@
 import FiberMapVue from "@/views/fibers/FiberMap.vue";
-import { RouteRecordRaw, createRouter, createWebHistory } from "vue-router";
+import { type RouteRecordRaw, createRouter, createWebHistory } from "vue-router";
 import HomeView from "@/views/HomeView.vue";
 import AutoRefreshView from "@/views/autorefresh/AutoRefreshView.vue";
 

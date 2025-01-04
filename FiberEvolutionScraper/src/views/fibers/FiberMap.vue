@@ -1,34 +1,29 @@
 <script setup lang="ts">
-import { Ref, computed, onMounted, ref } from 'vue';
 import { ISnackbarColor } from '@/models/SnackbarInterface';
-import FiberPointDTO from '@/models/FiberPointDTO';
+import type FiberPointDTO from '@/models/FiberPointDTO';
 import { EtapeFtth } from '@/models/Enums';
-import MapPopupComponent from '@/components/MapPopupComponent.vue';
 import FiberService from '@/services/FiberService';
-import HeaderButtonsComponent from '@/components/HeaderButtonsComponent.vue';
 import { useToastStore } from '@/store/ToastStore';
-import { useDisplay, useTheme } from 'vuetify/lib/framework.mjs';
-import { View } from 'ol';
-import { Map as OlMap, Layers, Sources, MapControls, Styles, Geometries } from 'vue3-openlayers';
+import { Map, Layers, Sources, Styles, Geometries, Interactions } from 'vue3-openlayers';
 import { MapHelper } from '@/helpers/MapHelper';
-import type Map from "ol/Map";
 import dayjs from 'dayjs';
+import { useDisplay } from 'vuetify';
+import type { SelectEvent } from 'ol/interaction/Select';
+import { useMapStore } from '@/store/mapStore';
+import { storeToRefs } from 'pinia';
 
 //#region Public Properties
 const loading = ref(false);
-const controlOpened = ref(false);
-const loadingHistory = ref(false);
-const map = ref<{ map: Map }>(null);
-const view = ref<View>();
 const fibers: Ref<FiberPointDTO[]> = ref([]);
-const zoom = ref(11);
-const tileLayers = MapHelper.getTileLayers();
-const bounds = ref<Array<number>>([]);
 const selectedFiber = ref<FiberPointDTO>(null);
+const selectedPosition = ref<number[]>();
 const date = dayjs();
 const recentResult = ref(false);
 const resultFromDb = ref(false);
-const layers: Ref<{ markers: FiberPointDTO[], visible: boolean, name: string }[]> = ref([]);
+const extent = inject("ol-extent");
+const layers = ref<{ markers: FiberPointDTO[], name: string, visible: boolean }[]>(
+    Array.from(Object.values(EtapeFtth).filter(a => typeof(a) === 'string').map(l => ({ markers: [] as FiberPointDTO[], name: l, visible: true  })))
+);
 const icons = [{code: EtapeFtth[EtapeFtth.ELLIGIBLE_XGSPON], title: "Éligible 10Gb/s", icon: MapHelper.greenestIcon, order: 21},
     {code: EtapeFtth[EtapeFtth.ELIGIBLE], title: "Éligible", icon: MapHelper.greenIcon, order: 20},
     {code: EtapeFtth[EtapeFtth.PROCHE_CLIENT], title: "Proche Client", icon: MapHelper.yellowIcon, order: 19},
@@ -40,9 +35,8 @@ const icons = [{code: EtapeFtth[EtapeFtth.ELLIGIBLE_XGSPON], title: "Éligible 1
     {code: EtapeFtth[EtapeFtth._], title: "Aucune donnée", icon: MapHelper.redIcon, order: 13},
     {code: EtapeFtth[EtapeFtth.UNKNOWN], title: "Statut inconnu", icon: MapHelper.blackIcon, order: 2}
 ];
-
-const { mdAndDown } = useDisplay();
-const { current } = useTheme();
+const { view } = storeToRefs(useMapStore());
+const { mobile } = useDisplay();
 
 const headers = [
     { title: 'Adresse', value: 'libAdresse' },
@@ -55,30 +49,11 @@ const headers = [
 
 const toastStore = useToastStore();
 
-const isDarkTheme = computed(() => current.value.dark)
-
 //#endregion
-
-onMounted(() => {
-    map.value.map.on('click', function (evt) {
-        const feature = map.value.map.forEachFeatureAtPixel(evt.pixel, function (feature) {
-            return feature;
-        });
-        if (!feature) {
-            selectedFiber.value = null;
-            return;
-        }
-        const fiber = fibers.value.find(f => f.signature === feature.get("signature"));
-        selectedFiber.value = fiber;
-        getHistorique();
-    });
-    // centerMapOnLocation();
-});
 
 function getCloseAreaFibers() {
     recentResult.value = resultFromDb.value = false;
     loading.value = true;
-    layers.value = [];
     FiberService.getCloseAreaFibers(view.value.getCenter())
     .then((response) => {
         fibers.value = response.data;
@@ -107,7 +82,6 @@ function updateFibers() {
 function getFibers() {
     recentResult.value = resultFromDb.value = false;
     loading.value = true;
-    layers.value = [];
     FiberService.getWideArea(view.value.getCenter())
     .then((response) => {
         fibers.value = response.data;
@@ -124,7 +98,6 @@ function getFibers() {
 function getDbFibers() {
     resultFromDb.value = loading.value = true;
     recentResult.value = false;
-    layers.value = [];
     FiberService.getDbFibers(view.value.getCenter())
     .then((response) => {
         fibers.value = response.data;
@@ -139,9 +112,7 @@ function getDbFibers() {
 }
 
 function getNewestFibers() {
-    recentResult.value = resultFromDb.value = true;
-    loading.value = true;
-    layers.value = [];
+    recentResult.value = resultFromDb.value = loading.value = true;
     FiberService.getNewestPoints(view.value?.calculateExtent().join(','))
     .then((response) => {
         fibers.value = response.data;
@@ -155,34 +126,12 @@ function getNewestFibers() {
     });
 }
 
-function getHistorique() {
-    if (!resultFromDb.value) {
-        loadingHistory.value = true;
-        FiberService.getHistorique(selectedFiber.value.signature)
-        .then((response) => {
-            selectedFiber.value.created = response.data.created;
-            selectedFiber.value.lastUpdated = response.data.lastUpdated;
-            selectedFiber.value.eligibilitesFtth = response.data.eligibilitesFtth.sort((a, b) => (a.batiment < b.batiment && a.etapeFtth < b.etapeFtth ? -1 : 1));
-        })
-        .catch((errors) => {
-            toastStore.createToastMessage({ color:ISnackbarColor.Error, message: errors });
-        })
-        .finally(() => {
-            loadingHistory.value = false;
-        });
-    }
-}
-
-function clearData() {
-    fibers.value = [];
-    layers.value = [];
-}
-
 function centerMapOnPoint(_: PointerEvent, row: any) {
-    view.value?.setZoom(18);
-    view.value?.setCenter([row.item.x, row.item.y]);
+    const position = [row.item.x, row.item.y];
+    view.value?.setZoom(17);
+    view.value?.setCenter(position);
     selectedFiber.value = row.item;
-    getHistorique();
+    selectedPosition.value = position;
 }
 
 function setIcon(fiber: FiberPointDTO) {
@@ -202,39 +151,26 @@ function setIcon(fiber: FiberPointDTO) {
     fiber.opacity = opacityWithElderness(fiber);
 }
 
-function showHideLayer(code: string) {
-    const curr = map.value.map.getAllLayers().find(l => l.get('title') === icons.find(n => n.code === code).title);
-    curr.setVisible(!curr.getVisible());
-    const selectedLayer = layers.value.filter(l => l.name === code)[0];
-    selectedLayer.visible = !selectedLayer.visible;
-}
-
-function boundsUpdated() {
-    bounds.value = view.value?.calculateExtent().map(x => x);
+function clearFibers() {
+    fibers.value = [];
+    layers.value.forEach(l => l.markers = []);
 }
 
 function mapFibersToLayer() {
     fibers.value.forEach(fiber => setIcon(fiber));
-    layers.value = [];
     Object.values(EtapeFtth).filter(a => typeof(a) === 'string').forEach((value: string) => {
-        if (EtapeFtth[value] === EtapeFtth.ELLIGIBLE_PIF_XGSPON) {
+        if (EtapeFtth[value as keyof typeof EtapeFtth] === EtapeFtth.ELLIGIBLE_PIF_XGSPON) {
             return;
         }
         let markers = [];
         // Group all XGSPON together
-        if (EtapeFtth[value] === EtapeFtth.ELLIGIBLE_XGSPON) {
-            markers = fibers.value.filter(f => (f.eligibilitesFtth.at(0)?.etapeFtth ?? EtapeFtth._) === EtapeFtth.ELLIGIBLE_XGSPON
-                || (f.eligibilitesFtth.at(0)?.etapeFtth ?? EtapeFtth._) === EtapeFtth.ELLIGIBLE_PIF_XGSPON);
+        if (EtapeFtth[value as keyof typeof EtapeFtth] === EtapeFtth.ELLIGIBLE_XGSPON) {
+            markers = fibers.value.filter(f => f.eligibilitesFtth.at(0)?.etapeFtth === EtapeFtth.ELLIGIBLE_XGSPON
+                || f.eligibilitesFtth.at(0)?.etapeFtth === EtapeFtth.ELLIGIBLE_PIF_XGSPON);
         } else {
             markers = fibers.value.filter(f => EtapeFtth[(f.eligibilitesFtth.at(0)?.etapeFtth ?? EtapeFtth._)] === value);
         }
-        layers.value.push(
-            {
-                markers: markers,
-                name: value,
-                visible: true,
-            }
-        );
+        layers.value.find(l => l.name === value).markers = markers;
     });
     const debugLayer = layers.value.filter(l => l.name === EtapeFtth[EtapeFtth.UNKNOWN])[0];
     debugLayer.markers = debugLayer.markers?.concat(
@@ -274,12 +210,20 @@ function opacityWithElderness(fiber: FiberPointDTO) {
     return result;
 }
 
-const reverseOrderedIcons = computed(() => icons.sort((a, b) => a.order + b.order));
+function featureSelected(event: SelectEvent) {
+    if (event.selected.length == 1) {
+        selectedPosition.value = extent.getCenter(
+            event.selected.at(0).getGeometry().getExtent(),
+        );
+        selectedFiber.value = event.selected.at(0).get("fiber");
+    } else {
+        selectedFiber.value = null;
+    }
+};
 
-const mapHeight = computed(() => mdAndDown.value ? "50vh" : "75vh");
 </script>
 <template>
-    <VCard key="main-card" class="mx-0 mb-0">
+    <VCard key="main-card" :class="mobile ? 'mx-0' : 'mx-10'">
         <template #title>
             <VCardActions ref="menu">
                 <VBtn icon @click="centerMapOnLocation()" color="primary" class="ml-5">
@@ -302,57 +246,41 @@ const mapHeight = computed(() => mdAndDown.value ? "50vh" : "75vh");
                         </VList>
                     </VMenu>
                 </VBtn>
-                <VBtn class="mr-5" @click="clearData()" color="error" text="Clear" :disabled="!fibers.length" :variant="!fibers.length ? 'outlined' : 'flat'" />
+                <VBtn class="mr-5" @click="clearFibers()" color="error" text="Clear" :disabled="!fibers.length" :variant="!fibers.length ? 'outlined' : 'flat'" />
             </VCardActions>
         </template>
-        <template #default>
+        <VRow justify="center">
+            <VCol lg="4">
+                <AddressLookup />
+            </VCol>
+        </VRow>
+        <MapComponent :loading="loading" :popup-position="selectedPosition" :show-popup="!!selectedPosition">
+            <template #vectorLayers>
+                <Layers.OlVectorLayer v-for="layer in layers.filter(l => l.markers.length && icons.map(i => i.code).find(a => a === l.name))" 
+                    :title="icons.find(i => i.code === layer.name).title" :key="'layer_'+layer.name" :preview="layer.markers.at(0)?.iconUrl">
+                    <Sources.OlSourceVector>
+                        <Map.OlFeature v-for="item in layer.markers" :key="'marker_'+item.signature" :properties="{ fiber: item, icon: item.iconUrl }">
+                            <Geometries.OlGeomPoint :coordinates="[item.x, item.y]"/>
+                            <Styles.OlStyle>
+                                <Styles.OlStyleIcon :src="item.iconUrl" :anchor="[12.5, 0]" :opacity="item.opacity"
+                                    anchor-x-units="pixels" anchor-y-units="pixels" :scale="1" anchor-origin="bottom-left"/>
+                            </Styles.OlStyle>
+                        </Map.OlFeature>
+                    </Sources.OlSourceVector>
+                </Layers.OlVectorLayer>
+                <Interactions.OlInteractionSelect @select="featureSelected">
+                    <Styles.OlStyle>
+                        <Styles.OlStyleIcon v-if="selectedFiber" :src="selectedFiber.iconUrl" :anchor="[12.5, 0]"
+                            anchor-x-units="pixels" anchor-y-units="pixels" :scale="1" anchor-origin="bottom-left"/>
+                    </Styles.OlStyle>
+                </Interactions.OlInteractionSelect>
+            </template>
+            <template #popup>
+                <MapPopupComponent :fiber="selectedFiber" :resultFromDb="resultFromDb" />
+            </template>
+        </MapComponent>
+
         <div class="ml-10 mr-10 justify-center">
-            <VContainer class="pa-0" :width="mdAndDown ? '100%' : '80%'">
-            <VLayout>
-                <OlMap.OlMap ref="map" :style="{ height:mapHeight, width: '100%' }" @click="controlOpened = false">
-                    <OlMap.OlView ref="view" :center="MapHelper.defaultLocation" :zoom="zoom" :extent="MapHelper.maxBounds" :max-zoom="20" smoothExtentConstraint @change="boundsUpdated"/>
-                    <Layers.OlTileLayer v-for="tile, i in tileLayers" :title="tile.name" :visible="tile.visible" :key="'tileLayer_'+i">
-                        <Sources.OlSourceOsm :url="tile.url" :attributions="tile.attribution"/>
-                    </Layers.OlTileLayer>
-                    <MapControls.OlLayerswitcherimageControl mouseover />
-                    <Layers.OlVectorLayer v-for="layer in layers.filter(l => icons.map(i => i.code).find(a => a === l.name))" 
-                    :title="icons.find(i => i.code === layer.name).title" :key="'layer_'+layer.name">
-                        <Sources.OlSourceVector>
-                            <OlMap.OlFeature v-for="item in layer.markers" :key="'marker_'+item.signature" :properties="{ signature: item.signature }">
-                                <Geometries.OlGeomPoint :coordinates="[item.x, item.y]" />
-                                <Styles.OlStyle>
-                                    <Styles.OlStyleIcon :src="item.iconUrl" :opacity="item.opacity" anchor-x-units="pixels"
-                                    anchor-y-units="pixels" anchor-origin="bottom-left" :anchor="[12.5, 0]"/>
-                                </Styles.OlStyle>
-                            </OlMap.OlFeature>
-                        </Sources.OlSourceVector>
-                    </Layers.OlVectorLayer>
-                    <VOverlay class="justify-end align-end" persistent model-value contained :scrim="false" no-click-animation>
-                        <VExpandTransition>
-                            <MapPopupComponent :fiber="selectedFiber" :loading="loadingHistory"/>
-                        </VExpandTransition>
-                    </VOverlay>
-                    <!-- Layers visibility controls -->
-                    <div class="overlay bottom">
-                        <div v-if="mdAndDown && !controlOpened" :class="['custom-control', { 'custom-control-dark': isDarkTheme }]">
-                            <VBtn size="small" variant="text" :ripple="false" @click.stop="controlOpened = true">
-                                <VIcon size="24" color="black" icon="mdi-map-marker-multiple-outline" />
-                            </VBtn>
-                        </div>
-                        <div v-else :class="['custom-control', { 'custom-control-dark': isDarkTheme }]">
-                            <VBtn style="z-index:2;" class="my-1 mx-2" size="comfortable"
-                            v-for="icon in reverseOrderedIcons"
-                            :key="'control-custom-btn-'+icon.code" @click="showHideLayer(icon.code)"
-                            :variant="layers.find(l => l.name === icon.code)?.visible ? 'text' : 'plain'"
-                            :disabled="!layers.find(l => l.name === icon.code)?.markers?.length">
-                                <VImg :key="'control-custom-btn-img-'+icon.code" height="27" width="20" :src="icon.icon"/>
-                                <p :key="'control-custom-btn-span-'+icon.code" class="pl-2 text-overline">{{ icon.title }}</p>
-                            </VBtn>
-                        </div>
-                    </div>
-                </OlMap.OlMap>
-            </VLayout>
-            </VContainer>
             <VRow key="main-card-content" justify="center">
                 <VCol md="10">
                     <VDataTable class="mt-5 mb-10" :headers="headers" key="list-details" :items="fibers" fixed-header height="650px"
@@ -377,7 +305,6 @@ const mapHeight = computed(() => mdAndDown.value ? "50vh" : "75vh");
                 </VCol>
             </VRow>
         </div>
-        </template>
     </VCard>
 </template>
 <style src="@/assets/css/main.css" />

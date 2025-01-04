@@ -1,4 +1,4 @@
-import BaseModelDTO from "./BaseModelDTO";
+import type BaseModelDTO from "./BaseModelDTO";
 import EligibiliteFtthDTO from "./EligibiliteFtthDTO";
 
 export default class FiberPointDTO implements BaseModelDTO

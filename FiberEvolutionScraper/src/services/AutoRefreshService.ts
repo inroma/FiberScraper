@@ -1,5 +1,5 @@
 import AutoRefreshInput from '@/models/AutoRefreshInput';
-import axios, { AxiosPromise, AxiosResponse } from 'axios';
+import axios, { type AxiosPromise, type AxiosResponse } from 'axios';
 
 export default class AutoRefreshService {
 

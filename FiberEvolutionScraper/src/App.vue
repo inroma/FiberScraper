@@ -13,7 +13,7 @@
       <template #append>
         <VListItem class="pl-10 pr-10">
           <VBtn @click="changeTheme()" color="primary" text="Theme Switch" #prepend>
-            <VIcon>mdi-theme-light-dark</VIcon>
+            <VIcon icon="mdi-theme-light-dark"/>
           </VBtn>
         </VListItem>
       </template>
@@ -28,7 +28,7 @@
 <script setup lang="ts">
 import { ref, watchEffect } from 'vue';
 import ToastComponent from './components/ToastComponent.vue';
-import { useDisplay, useTheme } from 'vuetify/lib/framework.mjs';
+import { useDisplay, useTheme } from 'vuetify';
 
 const headers = [
 	{
