@@ -7,13 +7,14 @@ import { useToastStore } from '@/store/ToastStore';
 import { Map, Layers, Sources, Styles, Geometries, Interactions } from 'vue3-openlayers';
 import { MapHelper } from '@/helpers/MapHelper';
 import dayjs from 'dayjs';
-import { useDisplay } from 'vuetify';
+import { useDisplay, useTheme } from 'vuetify';
 import type { SelectEvent } from 'ol/interaction/Select';
 import { useMapStore } from '@/store/mapStore';
 import { storeToRefs } from 'pinia';
 
 //#region Public Properties
 const loading = ref(false);
+const controlOpened = ref(false);
 const fibers: Ref<FiberPointDTO[]> = ref([]);
 const selectedFiber = ref<FiberPointDTO>(null);
 const selectedPosition = ref<number[]>();
@@ -37,6 +38,9 @@ const icons = [{code: EtapeFtth[EtapeFtth.ELLIGIBLE_XGSPON], title: "Éligible 1
 ];
 const { view } = storeToRefs(useMapStore());
 const { mobile } = useDisplay();
+const { mdAndDown } = useDisplay();
+const { current } = useTheme();
+const isDarkTheme = computed(() => current.value.dark)
 
 const headers = [
     { title: 'Adresse', value: 'libAdresse' },
@@ -254,7 +258,7 @@ function featureSelected(event: SelectEvent) {
                 <AddressLookup />
             </VCol>
         </VRow>
-        <MapComponent :loading="loading" :popup-position="selectedPosition" :show-popup="!!selectedPosition">
+        <MapComponent :loading="loading" :popup-position="selectedPosition" :show-popup="!!selectedPosition" @click="controlOpened = false">
             <template #vectorLayers>
                 <Layers.OlVectorLayer v-for="layer in layers.filter(l => l.markers.length && icons.map(i => i.code).find(a => a === l.name))" 
                     :title="icons.find(i => i.code === layer.name).title" :key="'layer_'+layer.name" :preview="layer.markers.at(0)?.iconUrl">
@@ -277,6 +281,22 @@ function featureSelected(event: SelectEvent) {
             </template>
             <template #popup>
                 <MapPopupComponent :fiber="selectedFiber" :resultFromDb="resultFromDb" />
+            </template>
+            <template #ui>
+                <div class="overlay bottom" @click.stop>
+                    <div v-if="mdAndDown && !controlOpened" :class="['custom-control', { 'custom-control-dark': isDarkTheme }]">
+                        <VBtn size="small" variant="text" :ripple="false" @click.stop="controlOpened = true">
+                            <VIcon size="22" color="white" icon="mdi-map-marker-multiple-outline" />
+                        </VBtn>
+                    </div>
+                    <div v-else :class="['custom-control', { 'custom-control-dark': isDarkTheme }]">
+                        <VBtn style="z-index:2;" class="my-1 mx-2" size="comfortable" readonly
+                        v-for="icon in icons" :key="'control-custom-btn-'+icon.code" variant="text">
+                            <VImg height="27" width="20" :src="icon.icon"/>
+                            <p class="pl-2 text-overline">{{ icon.title }}</p>
+                        </VBtn>
+                    </div>
+                </div>
             </template>
         </MapComponent>
 
