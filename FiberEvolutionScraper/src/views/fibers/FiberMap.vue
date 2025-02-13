@@ -260,8 +260,8 @@ function featureSelected(event: SelectEvent) {
         </VRow>
         <MapComponent :loading="loading" :popup-position="selectedPosition" :show-popup="!!selectedPosition" @click="controlOpened = false">
             <template #vectorLayers>
-                <Layers.OlVectorLayer v-for="layer in layers.filter(l => l.markers.length && icons.map(i => i.code).find(a => a === l.name))" 
-                    :title="icons.find(i => i.code === layer.name).title" :key="'layer_'+layer.name" :preview="layer.markers.at(0)?.iconUrl">
+                <Layers.OlVectorLayer v-for="layer in layers.filter((l: any) => l.markers.length && icons.map((i: any) => i.code).find((a: string) => a === l.name))" 
+                    :title="icons.find((i: any) => i.code === layer.name).title" :key="'layer_'+layer.name" :preview="layer.markers.at(0)?.iconUrl">
                     <Sources.OlSourceVector>
                         <Map.OlFeature v-for="item in layer.markers" :key="'marker_'+item.signature" :properties="{ fiber: item, icon: item.iconUrl }">
                             <Geometries.OlGeomPoint :coordinates="[item.x, item.y]"/>

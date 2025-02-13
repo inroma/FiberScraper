@@ -1,5 +1,5 @@
 # PROD
-FROM arm64v8/node:lts-alpine AS build-stage
+FROM --platform=linux/arm64 arm64v8/node:lts-alpine AS build-stage
 
 WORKDIR /app
 COPY ./package*.json .
@@ -9,7 +9,7 @@ COPY . .
 RUN npm run build
 
 # production stage
-FROM arm64v8/nginx:stable-alpine AS production-stage
+FROM --platform=linux/arm64 arm64v8/nginx:stable-alpine AS production-stage
 
 COPY ./nginx.conf /etc/nginx/nginx.conf
 COPY --from=build-stage /app/dist /usr/share/nginx/html

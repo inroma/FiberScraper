@@ -268,7 +268,7 @@ const areaSizes =  [1, 3, 5];
                 </VBtn>
             </VCol>
             <VCol>
-                <VBtn color="primary" @click="createItem()" :disabled="autoRefreshItems.some(x => x.isEditing)" :icon="mdAndDown">
+                <VBtn color="primary" @click="createItem()" :disabled="autoRefreshItems.some((x: any) => x.isEditing)" :icon="mdAndDown">
                     <template #prepend>
                         Ajouter une zone
                     </template>
