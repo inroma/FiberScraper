@@ -8,7 +8,8 @@ import * as components from 'vuetify/components'
 import * as directives from 'vuetify/directives'
 import 'vuetify/dist/vuetify.min.css';
 import '@mdi/font/css/materialdesignicons.css';
-import 'vue3-openlayers/dist/vue3-openlayers.css';
+import 'vue3-openlayers/vue3-openlayers.css';
+import 'ol/ol.css';
 import OpenLayersMap from "vue3-openlayers";
 import { useGeographic } from 'ol/proj';
 import minMax from 'dayjs/plugin/minMax';
