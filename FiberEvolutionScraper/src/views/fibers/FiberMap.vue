@@ -4,7 +4,13 @@ import type FiberPointDTO from '@/models/FiberPointDTO';
 import { EtapeFtth } from '@/models/Enums';
 import FiberService from '@/services/FiberService';
 import { useToastStore } from '@/store/ToastStore';
-import { Map, Layers, Sources, Styles, Geometries, Interactions } from 'vue3-openlayers';
+import * as extent from 'ol/extent';
+import type { OlFeature } from "vue3-openlayers/map";
+import type { OlVectorLayer } from "vue3-openlayers/layers";
+import type { OlSourceVector } from "vue3-openlayers/sources";
+import type { OlGeomPoint } from "vue3-openlayers/geometries";
+import type { OlInteractionSelect } from "vue3-openlayers/interactions";
+import type { OlStyle, OlStyleIcon } from "vue3-openlayers/styles";
 import { MapHelper } from '@/helpers/MapHelper';
 import dayjs from 'dayjs';
 import { useDisplay, useTheme } from 'vuetify';
@@ -21,7 +27,6 @@ const selectedPosition = ref<number[]>();
 const date = dayjs();
 const recentResult = ref(false);
 const resultFromDb = ref(false);
-const extent = inject("ol-extent");
 const layers = ref<{ markers: FiberPointDTO[], name: string, visible: boolean }[]>(
     Array.from(Object.values(EtapeFtth).filter(a => typeof(a) === 'string').map(l => ({ markers: [] as FiberPointDTO[], name: l, visible: true  })))
 );
@@ -233,7 +238,7 @@ function featureSelected(event: SelectEvent) {
                 <VBtn icon @click="centerMapOnLocation()" color="primary" class="ml-5">
                     <VIcon>mdi-crosshairs-gps</VIcon>
                 </VBtn>
-                <HeaderButtonsComponent class="hidden-sm-and-down py-0" :loading="loading" @updateFibers="updateFibers" @getDbFibers="getDbFibers"
+                <HeaderButtonsComponent class="hidden-sm-and-down py-0" :loading @updateFibers="updateFibers" @getDbFibers="getDbFibers"
                 @getFibers="getFibers" @getCloseAreaFibers="getCloseAreaFibers" @getNewestFibers="getNewestFibers"/>
                 
                 <VBtn class="hidden-md-and-up mx-auto" color="primary" variant="flat">Actions
@@ -242,7 +247,7 @@ function featureSelected(event: SelectEvent) {
                             <VListItem>
                                 <VRow no-gutters @click="$emit('close')" style="width: min-content;">
                                     <VCol cols="6">
-                                        <HeaderButtonsComponent class="d-flex" :loading="loading" @updateFibers="updateFibers" @getDbFibers="getDbFibers"
+                                        <HeaderButtonsComponent class="d-flex" :loading @updateFibers="updateFibers" @getDbFibers="getDbFibers"
                                         @getFibers="getFibers" @getCloseAreaFibers="getCloseAreaFibers" @getNewestFibers="getNewestFibers"/>
                                     </VCol>
                                 </VRow>
@@ -258,29 +263,29 @@ function featureSelected(event: SelectEvent) {
                 <AddressLookup />
             </VCol>
         </VRow>
-        <MapComponent :loading="loading" :popup-position="selectedPosition" :show-popup="!!selectedPosition" @click="controlOpened = false">
+        <MapComponent :loading :popup-position="selectedPosition" :show-popup="!!selectedPosition" @click="controlOpened = false">
             <template #vectorLayers>
-                <Layers.OlVectorLayer v-for="layer in layers.filter((l: any) => l.markers.length && icons.map((i: any) => i.code).find((a: string) => a === l.name))" 
+                <OlVectorLayer v-for="layer in layers.filter((l: any) => l.markers.length && icons.map((i: any) => i.code).find((a: string) => a === l.name))" 
                     :title="icons.find((i: any) => i.code === layer.name).title" :key="'layer_'+layer.name" :preview="layer.markers.at(0)?.iconUrl">
-                    <Sources.OlSourceVector>
-                        <Map.OlFeature v-for="item in layer.markers" :key="'marker_'+item.signature" :properties="{ fiber: item, icon: item.iconUrl }">
-                            <Geometries.OlGeomPoint :coordinates="[item.x, item.y]"/>
-                            <Styles.OlStyle>
-                                <Styles.OlStyleIcon :src="item.iconUrl" :anchor="[12.5, 0]" :opacity="item.opacity"
+                    <OlSourceVector>
+                        <OlFeature v-for="item in layer.markers" :key="'marker_'+item.signature" :properties="{ fiber: item, icon: item.iconUrl }">
+                            <OlGeomPoint :coordinates="[item.x, item.y]"/>
+                            <OlStyle>
+                                <OlStyleIcon :src="item.iconUrl" :anchor="[12.5, 0]" :opacity="item.opacity"
                                     anchor-x-units="pixels" anchor-y-units="pixels" :scale="1" anchor-origin="bottom-left"/>
-                            </Styles.OlStyle>
-                        </Map.OlFeature>
-                    </Sources.OlSourceVector>
-                </Layers.OlVectorLayer>
-                <Interactions.OlInteractionSelect @select="featureSelected">
-                    <Styles.OlStyle>
-                        <Styles.OlStyleIcon v-if="selectedFiber" :src="selectedFiber.iconUrl" :anchor="[12.5, 0]"
+                            </OlStyle>
+                        </OlFeature>
+                    </OlSourceVector>
+                </OlVectorLayer>
+                <OlInteractionSelect @select="featureSelected">
+                    <OlStyle>
+                        <OlStyleIcon v-if="selectedFiber" :src="selectedFiber.iconUrl" :anchor="[12.5, 0]"
                             anchor-x-units="pixels" anchor-y-units="pixels" :scale="1" anchor-origin="bottom-left"/>
-                    </Styles.OlStyle>
-                </Interactions.OlInteractionSelect>
+                    </OlStyle>
+                </OlInteractionSelect>
             </template>
             <template #popup>
-                <MapPopupComponent :fiber="selectedFiber" :resultFromDb="resultFromDb" />
+                <MapPopupComponent :fiber="selectedFiber" :resultFromDb />
             </template>
             <template #ui>
                 <div class="overlay bottom" @click.stop>

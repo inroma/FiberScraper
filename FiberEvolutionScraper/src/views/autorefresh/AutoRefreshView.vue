@@ -4,7 +4,11 @@ import AutoRefreshInput from '@/models/AutoRefreshInput';
 import AutoRefreshService from '@/services/AutoRefreshService';
 import { useToastStore } from '@/store/ToastStore';
 import { useDisplay } from 'vuetify';
-import { Map, Layers, Sources, Styles, Geometries } from 'vue3-openlayers';
+import type { OlFeature } from "vue3-openlayers/map";
+import type { OlVectorLayer } from "vue3-openlayers/layers";
+import type { OlSourceVector } from "vue3-openlayers/sources";
+import type { OlGeomMultiPolygon } from "vue3-openlayers/geometries";
+import type { OlStyle, OlStyleStroke, OlStyleFill } from "vue3-openlayers/styles";
 import { storeToRefs } from 'pinia';
 import { useMapStore } from '@/store/mapStore';
 
@@ -216,44 +220,44 @@ const areaSizes =  [1, 3, 5];
                 </div>
             </template>
             <template #vectorLayers>
-                <Layers.OlVectorLayer title="Zones" base-layer>
-                    <Sources.OlSourceVector>
-                        <Map.OlFeature>
-                            <Geometries.OlGeomMultiPolygon :coordinates="rectangles" />
-                            <Styles.OlStyle>
-                                <Styles.OlStyleStroke color="red" :width="2" />
-                                <Styles.OlStyleFill color="rgba(186,236,255,0.18)" />
-                            </Styles.OlStyle>
-                        </Map.OlFeature>
-                        <Map.OlFeature>
-                            <Geometries.OlGeomMultiPolygon :coordinates="smallRectangles" />
-                            <Styles.OlStyle>
-                                <Styles.OlStyleStroke color="blue" :width="2" />
-                                <Styles.OlStyleFill color="rgba(186,236,255,0.18)" />
-                            </Styles.OlStyle>
-                        </Map.OlFeature>
-                        <Map.OlFeature>
-                            <Geometries.OlGeomMultiPolygon :coordinates="disabledRectangles" />
-                            <Styles.OlStyle>
-                                <Styles.OlStyleStroke color="grey" :width="2" :lineDash="lineDash" />
-                            </Styles.OlStyle>
-                        </Map.OlFeature>
-                        <Map.OlFeature v-if="newRectangle?.length > 0">
-                            <Geometries.OlGeomMultiPolygon :coordinates="[newRectangle.at(0)]"/>
-                            <Styles.OlStyle>
-                                <Styles.OlStyleStroke color="red" :width="2" :lineDash="lineDash" />
-                                <Styles.OlStyleFill color="rgba(186,236,255,0.18)" />
-                            </Styles.OlStyle>
-                        </Map.OlFeature>
-                        <Map.OlFeature v-if="newRectangle?.length > 0">
-                            <Geometries.OlGeomMultiPolygon :coordinates="[newRectangle.at(1)]"/>
-                            <Styles.OlStyle>
-                                <Styles.OlStyleStroke color="blue" :width="2" :lineDash="lineDash" />
-                                <Styles.OlStyleFill color="rgba(186,236,255,0.18)" />
-                            </Styles.OlStyle>
-                        </Map.OlFeature>
-                    </Sources.OlSourceVector>
-                </Layers.OlVectorLayer>
+                <OlVectorLayer title="Zones" base-layer>
+                    <OlSourceVector>
+                        <OlFeature>
+                            <OlGeomMultiPolygon :coordinates="rectangles" />
+                            <OlStyle>
+                                <OlStyleStroke color="red" :width="2" />
+                                <OlStyleFill color="rgba(186,236,255,0.18)" />
+                            </OlStyle>
+                        </OlFeature>
+                        <OlFeature>
+                            <OlGeomMultiPolygon :coordinates="smallRectangles" />
+                            <OlStyle>
+                                <OlStyleStroke color="blue" :width="2" />
+                                <OlStyleFill color="rgba(186,236,255,0.18)" />
+                            </OlStyle>
+                        </OlFeature>
+                        <OlFeature>
+                            <OlGeomMultiPolygon :coordinates="disabledRectangles" />
+                            <OlStyle>
+                                <OlStyleStroke color="grey" :width="2" :lineDash="lineDash" />
+                            </OlStyle>
+                        </OlFeature>
+                        <OlFeature v-if="newRectangle?.length > 0">
+                            <OlGeomMultiPolygon :coordinates="[newRectangle.at(0)]"/>
+                            <OlStyle>
+                                <OlStyleStroke color="red" :width="2" :lineDash="lineDash" />
+                                <OlStyleFill color="rgba(186,236,255,0.18)" />
+                            </OlStyle>
+                        </OlFeature>
+                        <OlFeature v-if="newRectangle?.length > 0">
+                            <OlGeomMultiPolygon :coordinates="[newRectangle.at(1)]"/>
+                            <OlStyle>
+                                <OlStyleStroke color="blue" :width="2" :lineDash="lineDash" />
+                                <OlStyleFill color="rgba(186,236,255,0.18)" />
+                            </OlStyle>
+                        </OlFeature>
+                    </OlSourceVector>
+                </OlVectorLayer>
             </template>
         </MapComponent>
         <VRow align="center">

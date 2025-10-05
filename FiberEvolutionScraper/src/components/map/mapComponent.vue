@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import { useMapStore } from '@/store/mapStore';
-import { Map, Layers, Sources, MapControls } from 'vue3-openlayers';
+import { OlMap, OlOverlay, OlView } from "vue3-openlayers/map";
+import { OlTileLayer, OlVectorLayer } from "vue3-openlayers/layers";
+import { OlSourceOSM } from "vue3-openlayers/sources";
+import { OlLayerSwitcherImageControl } from "vue3-openlayers/controls"
 import { storeToRefs } from 'pinia';
 
 const popupPosition = defineModel<number[]>("popupPosition");
@@ -85,32 +88,32 @@ function coordinatesNeedNewCall() {
 <template>
     <div align="center">
         <VResponsive :aspect-ratio="16/9" max-width="85%" max-height="75vh" min-height="480px">
-            <Map.OlMap ref="map" style="height: 100%;" loadTilesWhileAnimating loadTilesWhileInteracting @moveend="moveEnd()">
-                <Map.OlView ref="view" :extent="mapStore.maxBounds" :max-zoom="20" smoothExtentConstraint style="min-width: 400px; min-height: 400px;"/>
-                <Layers.OlTileLayer v-for="tile, i in layers" :title="tile.name" :visible="tile.visible" :key="'tileLayer_'+i">
-                    <Sources.OlSourceOsm :url="tile.url" :attributions="tile.attribution"/>
-                </Layers.OlTileLayer>
-                <MapControls.OlLayerswitcherimageControl mouseover />
+            <OlMap ref="map" style="height: 100%;" loadTilesWhileAnimating loadTilesWhileInteracting @moveend="moveEnd()">
+                <OlView ref="view" :extent="mapStore.maxBounds" :max-zoom="20" smoothExtentConstraint style="min-width: 400px; min-height: 400px;"/>
+                <OlTileLayer v-for="tile, i in layers" :title="tile.name" :visible="tile.visible" :key="'tileLayer_'+i">
+                    <OlSourceOSM :url="tile.url" :attributions="tile.attribution"/>
+                </OlTileLayer>
+                <OlLayerSwitcherImageControl mouseover />
                 <slot name="vectorLayers">
-                    <Layers.OlVectorLayer v-if="$slots.features">
-                        <Sources.OlSourceVector>
+                    <OlVectorLayer v-if="$slots.features">
+                        <OlSourceVector>
                             <slot name="features"></slot>
-                        </Sources.OlSourceVector>
-                    </Layers.OlVectorLayer>
+                        </OlSourceVector>
+                    </OlVectorLayer>
                 </slot>
-                <Map.OlOverlay key="map-popup" v-if="showPopup" :position="popupPosition" :offset="[0, -42]">
+                <OlOverlay key="map-popup" v-if="showPopup" :position="popupPosition" :offset="[0, -42]">
                     <VOverlay class="align-center d-flex flex-column-reverse" persistent model-value contained no-click-animation>
                         <VExpandTransition>
                             <slot name="popup"></slot>
                         </VExpandTransition>
                     </VOverlay>
-                </Map.OlOverlay>
+                </OlOverlay>
                 <VOverlay model-value contained persistent :scrim="false" no-click-animation height="100%" width="100%" z-index="1" style="position: relative;">
                     <slot name="overlay">
                         <VProgressLinear v-if="mapLoading" indeterminate color="primary"/>
                     </slot>
                 </VOverlay>
-            </Map.OlMap>
+            </OlMap>
             <slot name="ui"></slot>
         </VResponsive>
     </div>
