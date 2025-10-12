@@ -1,4 +1,4 @@
-﻿namespace FiberEvolutionScraper.Api.Services;
+﻿namespace FiberEvolutionScraper.Api.Managers;
 
 public class TokenParser
 {

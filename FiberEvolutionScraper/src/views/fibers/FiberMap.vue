@@ -2,7 +2,7 @@
 import { ISnackbarColor } from '@/models/SnackbarInterface';
 import type FiberPointDTO from '@/models/FiberPointDTO';
 import { EtapeFtth } from '@/models/Enums';
-import FiberService from '@/services/FiberService';
+import { fiberService } from '@/services/FiberService';
 import { useToastStore } from '@/store/ToastStore';
 import * as extent from 'ol/extent';
 import type { OlFeature } from "vue3-openlayers/map";
@@ -63,7 +63,7 @@ const toastStore = useToastStore();
 function getCloseAreaFibers() {
     recentResult.value = resultFromDb.value = false;
     loading.value = true;
-    FiberService.getCloseAreaFibers(view.value.getCenter())
+    fiberService.getCloseAreaFibers(view.value.getCenter())
     .then((response) => {
         fibers.value = response.data;
         mapFibersToLayer();
@@ -78,7 +78,7 @@ function getCloseAreaFibers() {
 
 function updateFibers() {
     loading.value = true;
-    FiberService.updateWideArea(view.value.getCenter())
+    fiberService.updateWideArea(view.value.getCenter())
     .then((response) => {
         toastStore.createToastMessage({ message: response.data + " points créés / mis à jour." });
     })
@@ -91,7 +91,7 @@ function updateFibers() {
 function getFibers() {
     recentResult.value = resultFromDb.value = false;
     loading.value = true;
-    FiberService.getWideArea(view.value.getCenter())
+    fiberService.getWideArea(view.value.getCenter())
     .then((response) => {
         fibers.value = response.data;
         mapFibersToLayer();
@@ -107,7 +107,7 @@ function getFibers() {
 function getDbFibers() {
     resultFromDb.value = loading.value = true;
     recentResult.value = false;
-    FiberService.getDbFibers(view.value.getCenter())
+    fiberService.getDbFibers(view.value.getCenter())
     .then((response) => {
         fibers.value = response.data;
         mapFibersToLayer();
@@ -122,7 +122,7 @@ function getDbFibers() {
 
 function getNewestFibers() {
     recentResult.value = resultFromDb.value = loading.value = true;
-    FiberService.getNewestPoints(view.value?.calculateExtent().join(','))
+    fiberService.getNewestPoints(view.value?.calculateExtent().join(','))
     .then((response) => {
         fibers.value = response.data;
         mapFibersToLayer();

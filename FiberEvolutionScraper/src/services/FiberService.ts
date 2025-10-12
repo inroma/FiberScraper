@@ -1,38 +1,37 @@
 import FiberPointDTO from '@/models/FiberPointDTO';
-import axios, { type AxiosPromise } from 'axios';
+import { type AxiosPromise } from 'axios';
+import { AbstractApiService } from './AbstractApiService';
 
-export default class FiberService {
+class FiberService extends AbstractApiService {
 
-    private static readonly endpoint = '/api/v1/fiber/';
-    private static readonly headers = { 'Content-Type': 'application/json' };
+    constructor() {
+        super();
+        this.url = '/api/v1/fiber/';
+    }
 
-    static getCloseAreaFibers(coord: Array<number>): AxiosPromise<FiberPointDTO[]> {
-        return axios.get<FiberPointDTO[]>(`${this.endpoint}GetCloseArea`, { headers: this.headers,
-            params: { coordX: coord.at(0), coordY: coord.at(1) }});
+    getCloseAreaFibers(coord: Array<number>): AxiosPromise<FiberPointDTO[]> {
+        return this.httpClient.get<FiberPointDTO[]>(`${this.url}GetCloseArea`, { params: { coordX: coord.at(0), coordY: coord.at(1) }});
     }
     
-    static updateWideArea(coord: Array<number>): AxiosPromise<number> {
-        return axios.get<number>(`${this.endpoint}UpdateWideArea`, { headers: this.headers,
-        params: { coordX: coord.at(0), coordY: coord.at(1) }});
+    updateWideArea(coord: Array<number>): AxiosPromise<number> {
+        return this.httpClient.get<number>(`${this.url}UpdateWideArea`, { params: { coordX: coord.at(0), coordY: coord.at(1) }});
     }
 
-    static getWideArea(coord: Array<number>): AxiosPromise<FiberPointDTO[]> {
-        return axios.get<FiberPointDTO[]>(`${this.endpoint}GetWideArea`, { headers: this.headers,
-        params: { coordX: coord.at(0), coordY: coord.at(1) }});
+    getWideArea(coord: Array<number>): AxiosPromise<FiberPointDTO[]> {
+        return this.httpClient.get<FiberPointDTO[]>(`${this.url}GetWideArea`, { params: { coordX: coord.at(0), coordY: coord.at(1) }});
     }
 
-    static getDbFibers(coord: Array<number>): AxiosPromise<FiberPointDTO[]> {
-        return axios.get<FiberPointDTO[]>(`${this.endpoint}GetFibers`, { headers: this.headers,
-        params: { coordX: coord.at(0), coordY: coord.at(1) }});
+    getDbFibers(coord: Array<number>): AxiosPromise<FiberPointDTO[]> {
+        return this.httpClient.get<FiberPointDTO[]>(`${this.url}GetFibers`, { params: { coordX: coord.at(0), coordY: coord.at(1) }});
     }
 
-    static getNewestPoints(bounds: string): AxiosPromise<FiberPointDTO[]> {
-        return axios.get<FiberPointDTO[]>(`${this.endpoint}GetNewestPoints`, { headers: this.headers,
-            params: { data: bounds }});
+    getNewestPoints(bounds: string): AxiosPromise<FiberPointDTO[]> {
+        return this.httpClient.get<FiberPointDTO[]>(`${this.url}GetNewestPoints`, { params: { data: bounds }});
     }
   
-    static getHistorique(signature: string): AxiosPromise<FiberPointDTO> {
-        return axios.get<FiberPointDTO>(`${this.endpoint}GetSameSignaturePoints`, 
-            { headers: this.headers, params: { signature: signature }});
+    getHistorique(signature: string): AxiosPromise<FiberPointDTO> {
+        return this.httpClient.get<FiberPointDTO>(`${this.url}GetSameSignaturePoints`, { params: { signature: signature }});
     }
 }
+
+export const fiberService = new FiberService();

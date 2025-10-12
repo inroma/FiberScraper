@@ -1,11 +1,12 @@
-﻿using FiberEvolutionScraper.Api.Models;
-using FiberEvolutionScraper.Api.Services;
+﻿using FiberEvolutionScraper.Api.Managers;
+using FiberEvolutionScraper.Api.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace FiberEvolutionScraper.Api.Controllers;
 
 [ApiController]
-[Route("api/[controller]/[action]")]
+[Route("[controller]/[action]")]
 public class FiberController
 {
     private readonly FiberManager FiberManager;
@@ -16,14 +17,15 @@ public class FiberController
     }
 
     [HttpGet()]
-    public IList<FiberPointDTO> GetFibers([FromQuery] FibersGetModel parameters)
+    [AllowAnonymous]
+    public IList<FiberPoint> GetFibers([FromQuery] FibersGetModel parameters)
     {
         var fibers = FiberManager.GetDbFibersForLoc(parameters.CoordX, parameters.CoordY);
         return fibers;
     }
 
     [HttpGet()]
-    public async Task<IList<FiberPointDTO>> GetWideArea([FromQuery] FibersGetModel parameters)
+    public async Task<IList<FiberPoint>> GetWideArea([FromQuery] FibersGetModel parameters)
     {
         var fibers = await FiberManager.GetFibersForLocAsync(parameters.CoordX, parameters.CoordY);
         await FiberManager.SaveToDB([.. fibers]);
@@ -32,7 +34,7 @@ public class FiberController
     }
 
     [HttpGet()]
-    public async Task<IList<FiberPointDTO>> GetCloseArea([FromQuery] FibersGetModel parameters)
+    public async Task<IList<FiberPoint>> GetCloseArea([FromQuery] FibersGetModel parameters)
     {
         var fibers = await FiberManager.GetFibersForLocAsync(parameters.CoordX, parameters.CoordY, 1);
         await FiberManager.SaveToDB([.. fibers]);
@@ -41,14 +43,16 @@ public class FiberController
     }
 
     [HttpGet()]
-    public IList<FiberPointDTO> GetNewestPoints([FromQuery] string data)
+    [AllowAnonymous]
+    public IList<FiberPoint> GetNewestPoints([FromQuery] string data)
     {
         var fibers = FiberManager.GetNewestPoints(data);
         return fibers;
     }
 
     [HttpGet()]
-    public FiberPointDTO GetSameSignaturePoints([FromQuery] string signature)
+    [AllowAnonymous]
+    public FiberPoint GetSameSignaturePoints([FromQuery] string signature)
     {
         var fibers = FiberManager.GetSameSignaturePoints(signature);
         return fibers;

@@ -2,7 +2,7 @@
 using FiberEvolutionScraper.Api.Models;
 using Microsoft.EntityFrameworkCore;
 
-namespace FiberEvolutionScraper.Api.Services;
+namespace FiberEvolutionScraper.Api.Managers;
 
 public class AutoRefreshManager
 {

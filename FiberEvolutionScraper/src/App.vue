@@ -3,19 +3,23 @@
     <VAppBar density="default" scroll-threshold="80" scroll-behavior="hide">
       <VAppBarNavIcon v-if="smAndDown" @click.stop="drawer = !drawer"/>
       <VToolbarTitle align="left" text="Fiber Evolution Scraper" />
+      <template #append>
+        <VBtn v-if="!isLoggedIn" text="Connexion" to="/auth/login"/>
+      </template>
     </VAppBar>
-    <VNavigationDrawer :model-value="drawer" expand-on-hover class="px-0 pt-0 nav-bar" :rail="mdAndUp" permanent>
+    <VNavigationDrawer v-model:model-value="drawer" expand-on-hover class="px-0 pt-0 nav-bar" :rail="mdAndUp" permanent
+      @update:rail="(v) => isExpanded = !v">
       <VList>
         <VListItem v-for="header in headers" link :to="header.url" :prepend-icon="header.icon"
         :title="header.title" :key="'header'+header.title" :disabled="header.disabled" density="default">
         </VListItem>
       </VList>
       <template #append>
-        <VListItem class="pl-10 pr-10">
-          <VBtn @click="changeTheme()" color="primary" text="Theme Switch" #prepend>
+        <VFadeTransition>
+          <VBtn v-if="isExpanded || smAndDown" @click="changeTheme()">
             <VIcon icon="mdi-theme-light-dark"/>
           </VBtn>
-        </VListItem>
+        </VFadeTransition>
       </template>
     </VNavigationDrawer>
     <VMain>
@@ -26,17 +30,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watchEffect } from 'vue';
 import ToastComponent from './components/ToastComponent.vue';
 import { useDisplay, useTheme } from 'vuetify';
+import { auth } from './shared/services/auth/OAuthService';
 
 const headers = [
-	{
-		title: 'Accueil',
-		icon: 'mdi-home-outline',
-		url: '/home',
-		disabled: false
-	},
 	{
 		title: 'Déploiements',
 		icon: 'mdi-connection',
@@ -53,10 +51,12 @@ const headers = [
 
 const { smAndDown, mdAndUp } = useDisplay();
 const { current, global } = useTheme();
-
+const isExpanded = ref(false);
 const drawer = ref(!smAndDown.value);
 
 watchEffect(() => drawer.value = !smAndDown.value);
+
+const isLoggedIn = computed(() => auth().isConnected);
 
 function changeTheme() {
 	global.name.value = current.value.dark ? 'light' : 'dark';

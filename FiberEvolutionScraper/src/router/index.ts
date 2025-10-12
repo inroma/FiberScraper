@@ -1,7 +1,8 @@
 import FiberMapVue from "@/views/fibers/FiberMap.vue";
 import { type RouteRecordRaw, createRouter, createWebHistory } from "vue-router";
-import HomeView from "@/views/HomeView.vue";
 import AutoRefreshView from "@/views/autorefresh/AutoRefreshView.vue";
+import Callback from "@/views/auth/Callback.vue";
+import Login from "@/views/auth/Login.vue";
 
 const routes: Array<RouteRecordRaw> = [
   {
@@ -13,11 +14,17 @@ const routes: Array<RouteRecordRaw> = [
     path: "/auto-refresh",
     name: "autorefresh",
     component: AutoRefreshView,
+    meta: { requireAuth: true },
   },
   {
-    path: "/home",
-    name: "home",
-    component: HomeView,
+    path: "/auth/callback",
+    name: "authCallback",
+    component: Callback,
+  },
+  {
+    path: "/auth/login",
+    name: "login",
+    component: Login,
   }
 ];
 

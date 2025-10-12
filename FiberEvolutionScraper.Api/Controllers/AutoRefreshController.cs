@@ -1,11 +1,13 @@
-﻿using FiberEvolutionScraper.Api.Models;
+﻿using FiberEvolutionScraper.Api.Managers;
+using FiberEvolutionScraper.Api.Models;
 using FiberEvolutionScraper.Api.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace FiberEvolutionScraper.Api.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
+[Route("[controller]")]
 public class AutoRefreshController
 {
     #region Private Fields

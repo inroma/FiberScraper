@@ -9,8 +9,10 @@
     "lint": "eslint --ext .js,.ts,.vue --ignore-path .gitignore --fix src"
   },
   "dependencies": {
+    "@vueuse/core": "^13.9.0",
     "axios": "1.12.2",
     "dayjs": "^1.11.18",
+    "oidc-client-ts": "^3.3.0",
     "ol": "^10.6.1",
     "ol-contextmenu": "^5.5.0",
     "ol-ext": "^4.0.35",

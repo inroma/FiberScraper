@@ -3,7 +3,7 @@ import FiberPointDTO from '@/models/FiberPointDTO';
 import { EtapeFtth } from '@/models/Enums';
 import { useToastStore } from '@/store/ToastStore';
 import { ISnackbarColor } from '@/models/SnackbarInterface';
-import FiberService from '@/services/FiberService';
+import { fiberService } from '@/services/FiberService';
 import type EligibiliteFtth from '@/models/EligibiliteFtthDTO';
 import dayjs from 'dayjs';
 
@@ -22,7 +22,7 @@ function getHistorique() {
         return;
     }
     loading.value = true;
-    FiberService.getHistorique(fiber.value.signature)
+    fiberService.getHistorique(fiber.value.signature)
     .then((response) => {
         fiber.value.created = response.data.created;
         fiber.value.lastUpdated = response.data.lastUpdated;

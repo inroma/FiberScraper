@@ -1,4 +1,5 @@
-﻿using Quartz;
+﻿using FiberEvolutionScraper.Api.Managers;
+using Quartz;
 
 namespace FiberEvolutionScraper.Api.Services;
 

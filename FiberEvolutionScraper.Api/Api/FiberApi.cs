@@ -2,6 +2,8 @@
 using FiberEvolutionScraper.Api.Services;
 using System.Globalization;
 using System.Text.Json;
+using FiberEvolutionScraper.Api.Managers;
+using AutoMapper;
 
 namespace FiberEvolutionScraper.Api.Api;
 
@@ -9,16 +11,17 @@ public class FiberApi
 {
     private readonly HttpClient client;
     private readonly TokenParser tokenParser;
+    private readonly IMapper mapper;
     private readonly double offsetX = 0.006929;
     private readonly double offsetY = 0.004457;
     private readonly double offsetCityX = 0.006929 * .25;
     private readonly double offsetCityY = 0.004457 * .25;
 
-    public FiberApi(IServiceProvider serviceProvider)
+    public FiberApi(TokenParser tokenParser, HttpClient httpClient, IMapper mapper)
     {
-        tokenParser = serviceProvider.GetRequiredService<TokenParser>();
-
-        client = serviceProvider.GetRequiredService<HttpClient>();
+        this.tokenParser = tokenParser;
+        this.mapper = mapper;
+        client = httpClient;
         client.DefaultRequestHeaders.Accept.Add(new("application/json"));
         client.DefaultRequestHeaders.Accept.Add(new("text/plain"));
         client.DefaultRequestHeaders.Accept.Add(new("*/*"));
@@ -83,9 +86,9 @@ public class FiberApi
             {
                 Address = new()
                 {
-                    BestCoords = new BestCoords()
+                    BestCoords = new()
                     {
-                        Coord = new Coord()
+                        Coord = new()
                         {
                             X = startPoint.X + k * currentOffsetX,
                             Y = startPoint.Y + j * currentOffsetY

@@ -1,4 +1,5 @@
-import type { AxiosError, AxiosInstance, AxiosResponse } from 'axios';
+import httpClient from '@/shared/HttpClient';
+import type { AxiosError, AxiosResponse } from 'axios';
 import axios from 'axios';
 
 export function isAxiosError(value: any): value is AxiosError {
@@ -6,7 +7,8 @@ export function isAxiosError(value: any): value is AxiosError {
 }
 
 export abstract class AbstractApiService {
-	protected readonly http: AxiosInstance = axios;
+	protected httpClient = httpClient;
+	protected axios = axios;
 	protected url: string = "/api/test";
 
 	protected createParams(record: Record<string, any>): URLSearchParams {
