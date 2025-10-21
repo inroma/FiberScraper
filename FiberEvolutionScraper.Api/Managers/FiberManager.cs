@@ -4,7 +4,6 @@ using FiberEvolutionScraper.Api.Data;
 using FiberEvolutionScraper.Api.Models;
 using Microsoft.EntityFrameworkCore;
 using System.Globalization;
-using System.Threading.Tasks;
 
 namespace FiberEvolutionScraper.Api.Managers;
 
