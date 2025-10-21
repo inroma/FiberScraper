@@ -152,8 +152,9 @@ function setIcon(fiber: FiberPointDTO) {
         const icon = icons.filter(a => a.code === etape)[0]?.icon;
         if (icon === undefined) {
             fiber.iconUrl = MapHelper.blackIcon;
+        } else {
+            fiber.iconUrl = icon;
         }
-        fiber.iconUrl = icon;
     } else {
         fiber.iconUrl = MapHelper.redIcon;
     }

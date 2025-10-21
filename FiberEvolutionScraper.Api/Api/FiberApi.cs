@@ -7,12 +7,12 @@ namespace FiberEvolutionScraper.Api.Api;
 
 public class FiberApi
 {
-    HttpClient client;
-    TokenParser tokenParser;
-    readonly double offsetX = 0.006929;
-    readonly double offsetY = 0.004457;
-    readonly double offsetCityX = 0.006929 * .25;
-    readonly double offsetCityY = 0.004457 * .25;
+    private readonly HttpClient client;
+    private readonly TokenParser tokenParser;
+    private readonly double offsetX = 0.006929;
+    private readonly double offsetY = 0.004457;
+    private readonly double offsetCityX = 0.006929 * .25;
+    private readonly double offsetCityY = 0.004457 * .25;
 
     public FiberApi(IServiceProvider serviceProvider)
     {
@@ -25,7 +25,7 @@ public class FiberApi
         client.BaseAddress = new("https://couverture-eligibilite.orange.fr/");
     }
 
-    public IEnumerable<FiberPoint> GetFibersForLoc(double x, double y, int squareSize = 5, bool canIterate = true)
+    public async Task<IEnumerable<FiberPoint>> GetFibersForLocAsync(double x, double y, int squareSize = 5, bool canIterate = true)
     {
         SetToken();
         if (!client.DefaultRequestHeaders.Any(h => h.Key == "AppAuthorization"))
@@ -41,28 +41,27 @@ public class FiberApi
         var modul = squareSize % 2 == 1 ? squareSize / 2 : squareSize / 2 - 0.5;
         (double startX, double startY) = (x - modul * currentOffsetX, y - modul * currentOffsetY);
 
-        Parallel.For(0, squareSize, j =>
+        await Parallel.ForAsync(0, squareSize, async (j, m) =>
         {
-            Parallel.For(0, squareSize, (k, state) =>
+            await Parallel.ForAsync(0, squareSize, async (k, state) =>
             {
-                httpResponse = client.GetAsync($"api/eligibilite/zoneAdresse?" +
+                httpResponse = await client.GetAsync($"api/eligibilite/zoneAdresse?" +
                     $"x={(startX + (k * currentOffsetX)).ToString(CultureInfo.InvariantCulture)}&" +
-                    $"y={(startY + (j * currentOffsetY)).ToString(CultureInfo.InvariantCulture)}&extendedZone=false")
-                    .GetAwaiter().GetResult();
+                    $"y={(startY + (j * currentOffsetY)).ToString(CultureInfo.InvariantCulture)}&extendedZone=false", state);
                 if (httpResponse.IsSuccessStatusCode)
                 {
                     // On override le Header car Orange l'envoi parfois en double
                     httpResponse.Content.Headers.ContentType = new("application/json");
-                    var tempResult = JsonSerializer.Deserialize<FiberResponseModel>(httpResponse.Content.ReadAsStringAsync().Result);
+                    var tempResult = JsonSerializer.Deserialize<FiberResponseModel>(await httpResponse.Content.ReadAsStringAsync());
                     lock (fibers)
                     {
-                        fibers.AddRange(tempResult.Results);
+                        fibers.AddRange(tempResult.Result.Results);
                     }
-                    if (tempResult.ZoneSize != "GTC" && canIterate)
+                    if (tempResult.Result.ZoneSize != "GTC" && canIterate)
                     {
-                        fibers.AddRange(GetFibersForLoc(startX + (k * currentOffsetX), startY + (j * currentOffsetY), 3, false));
+                        fibers.AddRange(await GetFibersForLocAsync(startX + (k * currentOffsetX), startY + (j * currentOffsetY), 3, false));
                     }
-                    //AddDebugMarker(fibers, startPoint, j, k, currentOffsetY, currentOffsetX, squareSize, modul, tempResult.ZoneSize);
+                    // AddDebugMarker(fibers, (startX, startY), j, k, currentOffsetY, currentOffsetX, squareSize, modul, tempResult.Result.ZoneSize);
                 }
                 else if (httpResponse.StatusCode == System.Net.HttpStatusCode.Forbidden)
                 {
@@ -74,11 +73,11 @@ public class FiberApi
         return fibers;
     }
 
-    private void AddDebugMarker(FiberResponseModel fibers, (double X, double Y) startPoint, int j, int k, double currentOffsetY, double currentOffsetX, int squareSize, double modul, string zoneSize)
+    private static void AddDebugMarker(List<FiberPoint> fibers, (double X, double Y) startPoint, int j, int k, double currentOffsetY, double currentOffsetX, int squareSize, double modul, string zoneSize)
     {
-        lock(fibers.Results)
+        lock(fibers)
         {
-            fibers.Results.Add(new FiberPoint()
+            fibers.Add(new FiberPoint()
             {
                 Address = new()
                 {
@@ -93,7 +92,7 @@ public class FiberApi
                     Signature = $"{startPoint.X + k * currentOffsetX + startPoint.Y + j * currentOffsetY + modul + squareSize + j + k}",
                     LibAdresse = "DEBUG_" + zoneSize
                 },
-                EligibilitesFtth = new() { new() { EtapeFtth = EtapeFtth.DEBUG.ToString() } }
+                EligibilitesFtth = [new() { EtapeFtth = EtapeFtth.DEBUG.ToString() }]
             });
         }
     }

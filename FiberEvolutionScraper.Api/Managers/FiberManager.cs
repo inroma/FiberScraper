@@ -20,11 +20,11 @@ public class FiberManager
         mapper = serviceProvider.GetRequiredService<IMapper>();
     }
 
-    internal IList<FiberPointDTO> GetFibersForLoc(double coordX, double coordY, int squareSize = 5, bool canIterate = true)
+    internal async Task<IList<FiberPointDTO>> GetFibersForLocAsync(double coordX, double coordY, int squareSize = 5, bool canIterate = true)
     {
-        var fibers = fiberApi.GetFibersForLoc(coordX, coordY, squareSize, canIterate);
+        var fibers = await fiberApi.GetFibersForLocAsync(coordX, coordY, squareSize, canIterate);
         var mapped = mapper.Map<IList<FiberPointDTO>>(fibers).ToList();
-        mapped = mapped.DistinctBy(m => m.Signature).ToList();
+        mapped = [.. mapped.DistinctBy(m => m.Signature)];
 
         return mapped;
     }
@@ -36,7 +36,7 @@ public class FiberManager
             .GroupBy(x => Math.Pow((coordX - x.X), 2) + Math.Pow(coordY - x.Y, 2))
             .OrderBy(x => x.Key).SelectMany(g => g.ToList()).Take(1500);
 
-        return result.ToList();
+        return [.. result];
     }
 
     internal FiberPointDTO GetSameSignaturePoints(string signature)
@@ -55,13 +55,13 @@ public class FiberManager
                     || f.EligibilitesFtth.Count == 0 && f.Created >= DateTime.UtcNow.AddDays(-6) || f.LastUpdated >= DateTime.UtcNow.AddDays(-3))
             .ToList();
 
-        return result
-            .GroupBy(x => x.Signature).Select(a => a.OrderBy(a => a.LastUpdated).First()).Take(2000).ToList();
+        return [.. result
+            .GroupBy(x => x.Signature).Select(a => a.OrderBy(a => a.LastUpdated).First()).Take(2000)];
     }
 
     internal async Task<int> UpdateDbFibers(double coordX, double coordY, int squareSize = 5)
     {
-        var fibers = GetFibersForLoc(coordX, coordY, squareSize);
+        var fibers = await GetFibersForLocAsync(coordX, coordY, squareSize);
 
         return await SaveToDB([.. fibers]);
     }
