@@ -1,5 +1,5 @@
-﻿using FiberEvolutionScraper.Api.Services;
-using FiberEvolutionScraper.Api.Models;
+﻿using FiberEvolutionScraper.Api.Models;
+using FiberEvolutionScraper.Api.Services;
 using System.Globalization;
 using System.Text.Json;
 
@@ -28,49 +28,51 @@ public class FiberApi
     public async Task<IEnumerable<FiberPoint>> GetFibersForLocAsync(double x, double y, int squareSize = 3, bool canIterate = true)
     {
         SetToken();
-        if (!client.DefaultRequestHeaders.Any(h => h.Key == "AppAuthorization"))
-        {
-            client.DefaultRequestHeaders.Add("AppAuthorization", $"Bearer {tokenParser.Token}");
-        }
         var fibers = new List<FiberPoint>();
-        HttpResponseMessage httpResponse;
 
-        double currentOffsetX = canIterate ? offsetX : offsetCityX;
-        double currentOffsetY = canIterate ? offsetY : offsetCityY;
+        var currentOffset = (X: canIterate ? offsetX : offsetCityX, Y: canIterate ? offsetY : offsetCityY);
 
         var modul = squareSize % 2 == 1 ? squareSize / 2 : squareSize / 2 - 0.5;
-        (double startX, double startY) = (x - modul * currentOffsetX, y - modul * currentOffsetY);
+        var start = (X: x - modul * currentOffset.X, Y: y - modul * currentOffset.Y);
 
         await Parallel.ForAsync(0, squareSize, async (j, m) =>
         {
             await Parallel.ForAsync(0, squareSize, async (k, state) =>
             {
-                httpResponse = await client.GetAsync($"api/eligibilite/zoneAdresse?" +
-                    $"x={(startX + (k * currentOffsetX)).ToString(CultureInfo.InvariantCulture)}&" +
-                    $"y={(startY + (j * currentOffsetY)).ToString(CultureInfo.InvariantCulture)}&extendedZone=false", state);
-                if (httpResponse.IsSuccessStatusCode)
-                {
-                    // On override le Header car Orange l'envoi parfois en double
-                    httpResponse.Content.Headers.ContentType = new("application/json");
-                    var tempResult = JsonSerializer.Deserialize<FiberResponseModel>(await httpResponse.Content.ReadAsStringAsync());
-                    lock (fibers)
-                    {
-                        fibers.AddRange(tempResult.Result.Results);
-                    }
-                    if (tempResult.Result.ZoneSize != "GTC" && canIterate)
-                    {
-                        fibers.AddRange(await GetFibersForLocAsync(startX + (k * currentOffsetX), startY + (j * currentOffsetY), 3, false));
-                    }
-                    // AddDebugMarker(fibers, (startX, startY), j, k, currentOffsetY, currentOffsetX, squareSize, modul, tempResult.Result.ZoneSize);
-                }
-                else if (httpResponse.StatusCode == System.Net.HttpStatusCode.Forbidden)
-                {
-                    throw new Exception($"Erreur lors d'une requête API, {httpResponse.ReasonPhrase ?? httpResponse.StatusCode.ToString()}");
-                }
+                await ProcessCurrentArea(fibers, start, currentOffset, j, k, canIterate, state);
             });
         });
 
         return fibers;
+    }
+
+    private async Task ProcessCurrentArea(List<FiberPoint> fibers, (double X, double Y) start,
+        (double X, double Y) currentOffset, int j, int k, bool canIterate, CancellationToken cancellationToken, bool tokenAlreadyRenewed = false)
+    {
+        var httpResponse = await client.GetAsync($"api/eligibilite/zoneAdresse?" +
+                    $"x={(start.X + (k * currentOffset.X)).ToString(CultureInfo.InvariantCulture)}&" +
+                    $"y={(start.Y + (j * currentOffset.Y)).ToString(CultureInfo.InvariantCulture)}&extendedZone=false", cancellationToken);
+        if (httpResponse.IsSuccessStatusCode)
+        {
+            // On override le Header car Orange l'envoi parfois en double
+            httpResponse.Content.Headers.ContentType = new("application/json");
+            var tempResult = JsonSerializer.Deserialize<FiberResponseModel>(await httpResponse.Content.ReadAsStringAsync(cancellationToken));
+            lock (fibers)
+            {
+                fibers.AddRange(tempResult.Result.Results);
+            }
+            if (tempResult.Result.ZoneSize != "GTC" && canIterate)
+            {
+                fibers.AddRange(await GetFibersForLocAsync(start.X + (k * currentOffset.X), start.Y + (j * currentOffset.Y), 3, false));
+            }
+            // AddDebugMarker(fibers, (startX, startY), j, k, currentOffsetY, currentOffsetX, squareSize, modul, tempResult.Result.ZoneSize);
+        }
+        // Cas du token qui expire pendant le process, on le refresh et on relance l'iteration actuelle
+        else if (httpResponse.StatusCode == System.Net.HttpStatusCode.Forbidden && !tokenAlreadyRenewed)
+        {
+            SetToken();
+            await ProcessCurrentArea(fibers, start, currentOffset, j, k, false, cancellationToken, true);
+        }
     }
 
     private static void AddDebugMarker(List<FiberPoint> fibers, (double X, double Y) startPoint, int j, int k, double currentOffsetY, double currentOffsetX, int squareSize, double modul, string zoneSize)
@@ -99,9 +101,16 @@ public class FiberApi
 
     private void SetToken()
     {
-        if (tokenParser.Token == null || tokenParser.TokenAge < DateTime.Now.AddHours(-1))
+        lock (tokenParser)
         {
-            tokenParser.GetToken(GetOrangeToken(tokenParser.GenerateAppId()));
+            if (tokenParser.Token == null || tokenParser.TokenAge < DateTime.Now.AddHours(-1))
+            {
+                tokenParser.GetToken(GetOrangeToken(tokenParser.GenerateAppId()));
+            }
+            if (client.DefaultRequestHeaders.Contains("AppAuthorization"))
+            {
+                client.DefaultRequestHeaders.Remove("AppAuthorization");
+            }
             client.DefaultRequestHeaders.Add("AppAuthorization", $"Bearer {tokenParser.Token}");
         }
     }
