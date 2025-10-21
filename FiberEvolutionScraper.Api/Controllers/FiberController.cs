@@ -25,7 +25,7 @@ public class FiberController
     [HttpGet()]
     public async Task<IList<FiberPointDTO>> GetWideArea([FromQuery] FibersGetModel parameters)
     {
-        var fibers = FiberManager.GetFibersForLoc(parameters.CoordX, parameters.CoordY);
+        var fibers = await FiberManager.GetFibersForLocAsync(parameters.CoordX, parameters.CoordY);
         await FiberManager.SaveToDB([.. fibers]);
 
         return fibers;
@@ -34,7 +34,7 @@ public class FiberController
     [HttpGet()]
     public async Task<IList<FiberPointDTO>> GetCloseArea([FromQuery] FibersGetModel parameters)
     {
-        var fibers = FiberManager.GetFibersForLoc(parameters.CoordX, parameters.CoordY, 1);
+        var fibers = await FiberManager.GetFibersForLocAsync(parameters.CoordX, parameters.CoordY, 1);
         await FiberManager.SaveToDB([.. fibers]);
 
         return fibers;

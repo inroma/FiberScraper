@@ -4,6 +4,21 @@ namespace FiberEvolutionScraper.Api.Models;
 
 public class FiberResponseModel
 {
+    [JsonPropertyName("result")]
+    public Result Result { get; set; }
+
+    [JsonPropertyName("controller")]
+    public string Controller { get; set; }
+
+    [JsonPropertyName("date")]
+    public string Date { get; set; }
+
+    [JsonPropertyName("serviceCalls")]
+    public List<object> ServiceCalls { get; set; }
+}
+
+public class Result
+{
     [JsonPropertyName("partialResult")]
     public bool PartialResult { get; set; }
 
