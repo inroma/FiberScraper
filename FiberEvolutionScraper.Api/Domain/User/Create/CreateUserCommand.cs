@@ -3,8 +3,9 @@
 using ErrorOr;
 using FiberEvolutionScraper.Api.Models.User;
 using MediatR;
+using System.Security.Claims;
 
-public class CreateUserCommand(User user) : IRequest<ErrorOr<User>>
+public class CreateOrUpdateUserCommand(ClaimsPrincipal claims) : IRequest<ErrorOr<UserModel>>
 {
-    public User User { get; set; } = user;
+    public ClaimsPrincipal Claims { get; set; } = claims;
 }

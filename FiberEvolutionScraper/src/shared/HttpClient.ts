@@ -1,13 +1,21 @@
 import type { Axios } from "axios";
 import axios from "axios";
-import { auth } from "./services/auth/OAuthService";
 import router from "@/router";
+import { useAuth } from "./composables/OAuthComposable";
 
 let httpClient: Axios = axios.create({
   headers: {
     "Content-Type": "application/json"
   }
 });
+
+httpClient.interceptors.request.use(
+  async (request) => {
+    const auth = useAuth();
+    request.headers.Authorization = 'Bearer ' + (await auth.getUser()).access_token
+    return request;
+  }
+);
 
 httpClient.interceptors.response.use(
   (response) => response,
@@ -21,12 +29,5 @@ httpClient.interceptors.response.use(
     return Promise.reject(error)
   },
 );
-
-export class HttpClient {
-
-  public static setTokenHeader = (token: string) => {
-    httpClient.defaults.headers.common.Authorization = 'Bearer ' + token;
-  }
-}
 
 export default httpClient;

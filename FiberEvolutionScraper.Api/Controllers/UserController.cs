@@ -7,27 +7,27 @@ using Microsoft.AspNetCore.Mvc;
 
 [ApiController]
 [Route("[controller]")]
-public class AuthController
+public class UserController : ControllerBase
 {
     private readonly ISender mediator;
-    private readonly ILogger<AuthController> logger;
+    private readonly ILogger<UserController> logger;
 
-    public AuthController(ISender sender, ILogger<AuthController> logger)
+    public UserController(ISender sender, ILogger<UserController> logger)
     {
         mediator = sender;
         this.logger = logger;
     }
 
-    [HttpPost("createOrUpdateUser")]
-    public async Task<IActionResult> CreateAccount(User user)
+    [HttpPost("syncUser")]
+    public async Task<ActionResult<UserModel>> CreateAccount()
     {
         logger.LogInformation("Create new User");
-        var command = new CreateUserCommand(user);
+        var command = new CreateOrUpdateUserCommand(User);
         var result = await mediator.Send(command);
         if (result.IsError)
         {
-            return new BadRequestObjectResult(result);
+            return new BadRequestObjectResult(result.Errors);
         }
-        return new ObjectResult(result);
+        return result.Value;
     }
 }

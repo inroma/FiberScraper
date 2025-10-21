@@ -3,7 +3,6 @@ using FiberEvolutionScraper.Api.Data;
 using FiberEvolutionScraper.Api.Managers;
 using FiberEvolutionScraper.Api.Models;
 using FiberEvolutionScraper.Api.Services;
-using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Quartz;

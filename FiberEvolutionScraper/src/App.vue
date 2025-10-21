@@ -2,9 +2,9 @@
   <VApp>
     <VAppBar density="default" scroll-threshold="80" scroll-behavior="hide">
       <VAppBarNavIcon v-if="smAndDown" @click.stop="drawer = !drawer"/>
-      <VToolbarTitle align="left" text="Fiber Evolution Scraper" />
+      <VToolbarTitle align="left" :text="appTitle" />
       <template #append>
-        <VBtn v-if="!isLoggedIn" text="Connexion" to="/auth/login"/>
+        <VBtn v-if="!loggedIn" text="Connexion" to="/auth/login"/>
       </template>
     </VAppBar>
     <VNavigationDrawer v-model:model-value="drawer" expand-on-hover class="px-0 pt-0 nav-bar" :rail="mdAndUp" permanent
@@ -28,11 +28,10 @@
     </VMain>
   </VApp>
 </template>
-
 <script setup lang="ts">
 import ToastComponent from './components/ToastComponent.vue';
 import { useDisplay, useTheme } from 'vuetify';
-import { auth } from './shared/services/auth/OAuthService';
+import { useAuth } from '@/shared/composables/OAuthComposable';
 
 const headers = [
 	{
@@ -53,17 +52,18 @@ const { smAndDown, mdAndUp } = useDisplay();
 const { current, global } = useTheme();
 const isExpanded = ref(false);
 const drawer = ref(!smAndDown.value);
+const appTitle = import.meta.env.VITE_APP_TITLE;
+const auth = useAuth();
 
 watchEffect(() => drawer.value = !smAndDown.value);
 
-const isLoggedIn = computed(() => auth().isConnected);
+const loggedIn = computed(() => auth?.isConnected.value);
 
 function changeTheme() {
 	global.name.value = current.value.dark ? 'light' : 'dark';
 }
 
 </script>
-
 <style>
 #app {
   font-family: Avenir, Helvetica, Arial, sans-serif;

@@ -8,7 +8,7 @@ namespace FiberEvolutionScraper.Api.Controllers;
 
 [ApiController]
 [Route("[controller]")]
-public class AutoRefreshController
+public class AutoRefreshController : ControllerBase
 {
     #region Private Fields
 

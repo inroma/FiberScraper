@@ -6,14 +6,14 @@ using FiberEvolutionScraper.Api.Models.User;
 public class UnitOfWork : IDisposable
 {
     private readonly ApplicationDbContext context = new();
-    private GenericRepository<User> userRepository;
+    private GenericRepository<UserModel> userRepository;
     private GenericRepository<FiberPoint> fiberRepository;
 
-    public GenericRepository<User> UserRepository
+    public GenericRepository<UserModel> UserRepository
     {
         get
         {
-            userRepository ??= new GenericRepository<User>(context);
+            userRepository ??= new GenericRepository<UserModel>(context);
             return userRepository;
         }
     }

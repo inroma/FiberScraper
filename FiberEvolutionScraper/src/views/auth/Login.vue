@@ -1,19 +1,24 @@
 <script setup lang="ts">
 import router from '@/router';
-import { HttpClient } from '@/shared/HttpClient';
-import { auth } from '@/shared/services/auth/OAuthService';
+import { useAuth } from '@/shared/composables/OAuthComposable';
+
+const auth = useAuth();
 
 onMounted(async () => {
-  const user = await auth().getUser();
+  const user = await auth.getUser();
   if (!user) {
-    await auth().signInRedirect();
+    await auth.signInRedirect();
   } else {
-    HttpClient.setTokenHeader(user.access_token);
+	  auth.isConnected.value = true;
     router.push("/");
   }
 });
 
 </script>
 <template>
-
+  <VDialog persistent no-click-animation :scrim="false" :model-value="true" location="center" width="auto">
+    <VCard class="px-10 py-3">
+      Connexion en cours...
+    </VCard>
+  </VDialog>
 </template>

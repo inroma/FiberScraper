@@ -7,7 +7,7 @@ namespace FiberEvolutionScraper.Api.Controllers;
 
 [ApiController]
 [Route("[controller]/[action]")]
-public class FiberController
+public class FiberController : ControllerBase
 {
     private readonly FiberManager FiberManager;
 
