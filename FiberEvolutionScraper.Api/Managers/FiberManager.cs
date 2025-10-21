@@ -20,7 +20,7 @@ public class FiberManager
         mapper = serviceProvider.GetRequiredService<IMapper>();
     }
 
-    internal async Task<IList<FiberPointDTO>> GetFibersForLocAsync(double coordX, double coordY, int squareSize = 5, bool canIterate = true)
+    internal async Task<IList<FiberPointDTO>> GetFibersForLocAsync(double coordX, double coordY, int squareSize = 3, bool canIterate = true)
     {
         var fibers = await fiberApi.GetFibersForLocAsync(coordX, coordY, squareSize, canIterate);
         var mapped = mapper.Map<IList<FiberPointDTO>>(fibers).ToList();

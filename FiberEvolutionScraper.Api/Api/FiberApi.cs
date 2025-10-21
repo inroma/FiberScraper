@@ -25,7 +25,7 @@ public class FiberApi
         client.BaseAddress = new("https://couverture-eligibilite.orange.fr/");
     }
 
-    public async Task<IEnumerable<FiberPoint>> GetFibersForLocAsync(double x, double y, int squareSize = 5, bool canIterate = true)
+    public async Task<IEnumerable<FiberPoint>> GetFibersForLocAsync(double x, double y, int squareSize = 3, bool canIterate = true)
     {
         SetToken();
         if (!client.DefaultRequestHeaders.Any(h => h.Key == "AppAuthorization"))
