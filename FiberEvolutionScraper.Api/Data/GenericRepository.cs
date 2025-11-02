@@ -1,11 +1,12 @@
 ﻿namespace FiberEvolutionScraper.Api.Data;
 
 using FiberEvolutionScraper.Api.Data.Interfaces;
+using FiberEvolutionScraper.Api.Models;
 using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
 
 public class GenericRepository<TEntity> : IGenericRepository<TEntity>
-    where TEntity : class
+    where TEntity : BaseModel
 {
     internal ApplicationDbContext context;
     internal DbSet<TEntity> dbSet;

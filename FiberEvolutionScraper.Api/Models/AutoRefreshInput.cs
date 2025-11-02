@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using FiberEvolutionScraper.Api.Models.User;
+using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace FiberEvolutionScraper.Api.Models;
@@ -20,4 +21,8 @@ public class AutoRefreshInput
     public int AreaSize { get; set; } = 5;
 
     public DateTime? LastRun { get; set; }
+
+    public int UserId { get; set; }
+
+    public virtual UserModel User { get; set; }
 }

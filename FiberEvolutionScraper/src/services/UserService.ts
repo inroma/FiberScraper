@@ -10,7 +10,11 @@ class UserService extends AbstractApiService {
     }
     
     syncUser(): AxiosPromise<UserModel> {
-        return this.httpClient.get<UserModel>(`${this.url}syncUser`);
+        return this.httpClient.post<UserModel>(`${this.url}syncUser`);
+    }
+
+    deleteAccount(): AxiosPromise<boolean> {
+        return this.httpClient.delete<boolean>(`${this.url}`);
     }
 }
 

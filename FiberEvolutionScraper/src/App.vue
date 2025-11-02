@@ -4,29 +4,28 @@
       <VAppBarNavIcon v-if="smAndDown" @click.stop="drawer = !drawer"/>
       <VToolbarTitle align="left" :text="appTitle" />
       <template #append>
-        <VBtn v-if="!loggedIn" text="Connexion" to="/auth/login"/>
+        <VBtn v-if="!userStore.isConnected" text="Connexion" to="/auth/login" :loading="userStore.loginLoading"/>
       </template>
     </VAppBar>
-    <NavigationDrawer v-model:drawer="drawer" />
+    <NavigationDrawer v-model:drawer="drawer" key="nav-drawer" />
     <VMain>
       <ToastComponent/>
-      <RouterView key="router-view" class="ma-5"/>
+      <RouterView :key="router.currentRoute.value.path"/>
     </VMain>
   </VApp>
 </template>
 <script setup lang="ts">
 import ToastComponent from './components/ToastComponent.vue';
 import { useDisplay } from 'vuetify';
-import { useAuth } from '@/shared/composables/OAuthComposable';
+import router from './router';
+import { useUserStore } from './store/userStore';
 
 const { smAndDown } = useDisplay();
 const drawer = ref(!smAndDown.value);
 const appTitle = import.meta.env.VITE_APP_TITLE;
-const auth = useAuth();
+const userStore = useUserStore();
 
 watchEffect(() => drawer.value = !smAndDown.value);
-
-const loggedIn = computed(() => auth?.isConnected.value);
 
 </script>
 <style>

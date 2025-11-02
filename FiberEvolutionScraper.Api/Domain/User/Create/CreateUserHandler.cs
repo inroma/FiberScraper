@@ -2,46 +2,44 @@
 
 using ErrorOr;
 using FiberEvolutionScraper.Api.Data;
+using FiberEvolutionScraper.Api.Data.Interfaces;
 using FiberEvolutionScraper.Api.Models.User;
 using MediatR;
+using System.Security.Claims;
 using System.Threading;
 using System.Threading.Tasks;
 
-public class CreateOrUpdateUserHandler : IRequestHandler<CreateOrUpdateUserCommand, ErrorOr<UserModel>>
+public class CreateOrUpdateUserHandler(IUnitOfWork<ApplicationDbContext> unitOfWork)
+    : IRequestHandler<CreateOrUpdateUserCommand, ErrorOr<UserModel>>
 {
     #region Private Properties
 
-    private readonly UnitOfWork unitOfWork;
+    private readonly IUnitOfWork<ApplicationDbContext> unitOfWork = unitOfWork;
 
     #endregion Private Properties
 
     #region Public Constructor
 
-    public CreateOrUpdateUserHandler(UnitOfWork unitOfWork)
-    {
-        this.unitOfWork = unitOfWork;
-    }
-
     #endregion Public Constructor
 
     public Task<ErrorOr<UserModel>> Handle(CreateOrUpdateUserCommand request, CancellationToken cancellationToken)
     {
-        var uid = request.Claims.FindFirst(c => c.Type == "uid")?.Value;
-        UserModel user = unitOfWork.UserRepository.Get(a => a.UId == uid).FirstOrDefault();
+        var uid = request.Claims.FindFirst(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
+        UserModel user = unitOfWork.GetRepository<UserModel>().Get(a => a.UId == uid).FirstOrDefault();
 
         if (user == null)
         {
-            user = new UserModel()
+            user = new()
             {
                 UId = uid,
                 UserName = request.Claims.FindFirst("name")?.Value
             };
-            unitOfWork.UserRepository.Update(user);
+            unitOfWork.GetRepository<UserModel>().Insert(user);
         }
         else
         {
             user.UserName = request.Claims.FindFirst("name")?.Value;
-            unitOfWork.UserRepository.Insert(user);
+            unitOfWork.GetRepository<UserModel>().Update(user);
         }
 
         unitOfWork.Save();

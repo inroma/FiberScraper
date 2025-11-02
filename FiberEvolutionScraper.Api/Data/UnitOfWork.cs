@@ -1,37 +1,28 @@
 ﻿namespace FiberEvolutionScraper.Api.Data;
 
+using FiberEvolutionScraper.Api.Data.Interfaces;
 using FiberEvolutionScraper.Api.Models;
 using FiberEvolutionScraper.Api.Models.User;
 
-public class UnitOfWork : IDisposable
+public class UnitOfWork<TContext>(TContext context) : IUnitOfWork<TContext>
+    where TContext: ApplicationDbContext
 {
-    private readonly ApplicationDbContext context = new();
-    private GenericRepository<UserModel> userRepository;
-    private GenericRepository<FiberPoint> fiberRepository;
+    private readonly ApplicationDbContext context = context;
+    private Dictionary<Type, object> _repositories;
 
-    public GenericRepository<UserModel> UserRepository
+    public IGenericRepository<TEntity> GetRepository<TEntity>() where TEntity : BaseModel
     {
-        get
+        _repositories ??= [];
+        var type = typeof(TEntity);
+        if (!_repositories.TryGetValue(type, out object value))
         {
-            userRepository ??= new GenericRepository<UserModel>(context);
-            return userRepository;
+            value = new GenericRepository<TEntity>(context);
+            _repositories[type] = value;
         }
+        return (IGenericRepository<TEntity>)value;
     }
 
-    public GenericRepository<FiberPoint> CourseRepository
-    {
-        get
-        {
-
-            fiberRepository ??= new GenericRepository<FiberPoint>(context);
-            return fiberRepository;
-        }
-    }
-
-    public void Save()
-    {
-        context.SaveChanges();
-    }
+    public int Save() => context.SaveChanges();
 
     private bool disposed = false;
 

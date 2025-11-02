@@ -1,16 +1,15 @@
 <script setup lang="ts">
 import router from '@/router';
-import { useAuth } from '@/shared/composables/OAuthComposable';
+import { useUserStore } from '@/store/userStore';
 
-const auth = useAuth();
+const userStore = useUserStore();
 
 onMounted(async () => {
-  const user = await auth.getUser();
+  const user = await userStore.getUser();
   if (!user) {
-    await auth.signInRedirect();
+    await userStore.signInRedirect();
   } else {
-	  auth.isConnected.value = true;
-    router.push("/");
+    router.push("/auth/callback");
   }
 });
 

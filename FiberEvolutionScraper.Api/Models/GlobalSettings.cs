@@ -10,4 +10,6 @@ public class GlobalSettings
 public class OAuth
 {
     public string Issuer { get; set; }
+
+    public string Audience { get; set; }
 }

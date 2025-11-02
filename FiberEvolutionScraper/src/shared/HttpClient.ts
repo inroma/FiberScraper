@@ -1,7 +1,7 @@
 import type { Axios } from "axios";
 import axios from "axios";
 import router from "@/router";
-import { useAuth } from "./composables/OAuthComposable";
+import { useUserStore } from "@/store/userStore";
 
 let httpClient: Axios = axios.create({
   headers: {
@@ -11,8 +11,8 @@ let httpClient: Axios = axios.create({
 
 httpClient.interceptors.request.use(
   async (request) => {
-    const auth = useAuth();
-    request.headers.Authorization = 'Bearer ' + (await auth.getUser()).access_token
+    const userStore = useUserStore();
+    request.headers.Authorization = 'Bearer ' + (await userStore.getUser()).access_token
     return request;
   }
 );

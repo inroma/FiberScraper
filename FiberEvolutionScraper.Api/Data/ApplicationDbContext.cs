@@ -1,4 +1,5 @@
 ﻿using FiberEvolutionScraper.Api.Models;
+using FiberEvolutionScraper.Api.Models.User;
 using Microsoft.EntityFrameworkCore;
 
 namespace FiberEvolutionScraper.Api.Data;
@@ -10,6 +11,8 @@ public class ApplicationDbContext : DbContext
     public DbSet<EligibiliteFtth> EligibiliteFtth { get; set; }
 
     public DbSet<AutoRefreshInput> AutoRefreshInputs { get; set; }
+
+    public DbSet<UserModel> Users { get; set; }
 
     public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
     : base(options)
@@ -39,6 +42,11 @@ public class ApplicationDbContext : DbContext
             .HasOne(e => e.FiberPoint)
             .WithMany(b => b.EligibilitesFtth)
             .HasForeignKey(e => e.FiberPointDTOSignature);
+
+        modelBuilder.Entity<UserModel>()
+            .HasMany(u => u.AutoRefreshs)
+            .WithOne(a => a.User)
+            .HasForeignKey(a => a.UserId);
 
         base.OnModelCreating(modelBuilder);
     }

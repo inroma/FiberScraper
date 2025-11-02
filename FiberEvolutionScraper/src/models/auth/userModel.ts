@@ -1,7 +1,9 @@
-export default class UserModel {
+import type BaseModelDTO from "../BaseModelDTO";
+
+export default class UserModel implements BaseModelDTO {
   id: number;
-  dateCreation: Date;
-  dateModification: Date;
-  uid: string;
+  created: Date;
+  lastUpdated: Date;
+  uId: string;
   userName: string;
 }

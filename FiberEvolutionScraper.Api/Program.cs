@@ -1,5 +1,6 @@
 using FiberEvolutionScraper.Api.Api;
 using FiberEvolutionScraper.Api.Data;
+using FiberEvolutionScraper.Api.Data.Interfaces;
 using FiberEvolutionScraper.Api.Managers;
 using FiberEvolutionScraper.Api.Models;
 using FiberEvolutionScraper.Api.Services;
@@ -28,6 +29,7 @@ public class Program
             builder.AddConfiguration(configuration.GetSection("Logging"))
             .AddConsole());
         builder.Services
+            .AddMediatR(cfg => cfg.RegisterServicesFromAssemblyContaining<Program>())
             .AddScoped<FiberApi>()
             .AddScoped<FiberManager>()
             .AddScoped<AutoRefreshManager>()
@@ -36,6 +38,7 @@ public class Program
             .AddSingleton<IHttpContextAccessor, HttpContextAccessor>()
             .AddSingleton<TokenParser>()
             .AddDbContext<ApplicationDbContext>(options => options.UseNpgsql(dbConnectionString))
+            .AddScoped<IUnitOfWork<ApplicationDbContext>, UnitOfWork<ApplicationDbContext>>()
             .AddAutoMapper(cfg => {
                 cfg.AllowNullCollections = true;
                 cfg.CreateMap<FiberPointResponse, FiberPoint>()
@@ -76,6 +79,7 @@ public class Program
             }).AddJwtBearer(options =>
             {
                 options.Authority = globalConfiguration.OAuth.Issuer;
+                options.Audience = globalConfiguration.OAuth.Audience;
             });
         builder.Services.AddControllers();
 

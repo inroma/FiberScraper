@@ -21,7 +21,7 @@ public class UserController : ControllerBase
     [HttpPost("syncUser")]
     public async Task<ActionResult<UserModel>> CreateAccount()
     {
-        logger.LogInformation("Create new User");
+        logger.LogInformation("Create or Update User");
         var command = new CreateOrUpdateUserCommand(User);
         var result = await mediator.Send(command);
         if (result.IsError)

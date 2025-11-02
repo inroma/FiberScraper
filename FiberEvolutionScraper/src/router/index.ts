@@ -3,6 +3,7 @@ import { type RouteRecordRaw, createRouter, createWebHistory } from "vue-router"
 import AutoRefreshView from "@/views/autorefresh/AutoRefreshView.vue";
 import Callback from "@/views/auth/Callback.vue";
 import Login from "@/views/auth/Login.vue";
+import Account from "@/views/account/Account.vue";
 
 const routes: Array<RouteRecordRaw> = [
   {
@@ -17,14 +18,26 @@ const routes: Array<RouteRecordRaw> = [
     meta: { requireAuth: true },
   },
   {
-    path: "/auth/callback",
-    name: "authCallback",
-    component: Callback,
+    path: "/account",
+    name: "account",
+    component: Account,
+    meta: { requireAuth: true }
   },
   {
-    path: "/auth/login",
-    name: "login",
-    component: Login,
+    path: '/auth',
+    redirect: '/',
+    children: [
+      {
+        path: "callback",
+        name: "authCallback",
+        component: Callback,
+      },
+      {
+        path: "login",
+        name: "login",
+        component: Login,
+      }
+    ]
   }
 ];
 
