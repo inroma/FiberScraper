@@ -4,6 +4,7 @@ import AutoRefreshView from "@/views/autorefresh/AutoRefreshView.vue";
 import Callback from "@/views/auth/Callback.vue";
 import Login from "@/views/auth/Login.vue";
 import Account from "@/views/account/Account.vue";
+import { useUserStore } from "@/store/userStore";
 
 const routes: Array<RouteRecordRaw> = [
   {
@@ -36,6 +37,7 @@ const routes: Array<RouteRecordRaw> = [
         path: "login",
         name: "login",
         component: Login,
+        meta: { allowAnonymous: true },
       }
     ]
   }
@@ -44,6 +46,17 @@ const routes: Array<RouteRecordRaw> = [
 const router = createRouter({
   history: createWebHistory(),
   routes,
+});
+
+router.beforeEach((to, _, next) => {
+  if (to.meta?.allowAnonymous) {
+    return next();
+  }
+  const userStore = useUserStore();
+  if (to.meta?.requireAuth && !userStore.isConnected) {
+    return next({ name: 'login' });
+  }
+  return next();
 });
 
 export default router;

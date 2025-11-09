@@ -10,8 +10,8 @@
 				</VBtn>
 			</VCol>
 			<VCol>
-				<VBtn @click="updateFibers()" color="green-lighten-1" :loading="loading"
-				text="Actualiser zone étendue" variant="tonal" #append>
+				<VBtn @click="updateFibers()" color="green-lighten-1" :loading="loading" :disabled="!userStore.isConnected"
+							text="Actualiser zone étendue" variant="tonal" #append>
 					<VIcon>mdi-information-outline</VIcon>
 					<VTooltip activator="parent" location="bottom">
 						<span>Requête une grande zone de données sur l'API Orange <br/>
@@ -28,7 +28,8 @@
 				</VBtn>
 			</VCol>
 			<VCol>
-				<VBtn @click="getFibers()" color="primary" :loading="loading" variant="tonal" text="Charger zone étendue" #append>
+				<VBtn @click="getFibers()" color="primary" :loading="loading" variant="tonal"
+							:disabled="!userStore.isConnected" text="Charger zone étendue" #append>
 					<VIcon>mdi-information-outline</VIcon>
 					<VTooltip activator="parent" location="bottom">
 						<span>Affiche les données de raccordement depuis <br/>l'API Orange sur une zone large</span>
@@ -36,7 +37,8 @@
 				</VBtn>
 			</VCol>
 			<VCol>
-				<VBtn @click="getCloseAreaFibers()" color="primary" :loading="loading" variant="tonal" text="Charger zone proche" #append>
+				<VBtn @click="getCloseAreaFibers()" color="primary" :loading="loading" :disabled="!userStore.isConnected"
+							variant="tonal" text="Charger zone proche" #append>
 					<VIcon>mdi-information-outline</VIcon>
 					<VTooltip activator="parent" location="bottom">
 						<span>Affiche les données de raccordement depuis <br/>l'API Orange sur une zone restreinte</span>
@@ -47,9 +49,11 @@
 	</VContainer>
 </template>
 <script setup lang="ts">
+import { useUserStore } from '@/store/userStore';
 import { useDisplay } from 'vuetify';
 
 const { smAndDown } = useDisplay();
+const userStore = useUserStore();
 
 const props = defineProps({
 	loading: { type: Boolean }

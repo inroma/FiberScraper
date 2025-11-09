@@ -14,9 +14,13 @@ const settings = {
   scope: import.meta.env.VITE_CLIENT_SCOPE,
   userStore: new WebStorageStateStore(),
   loadUserInfo: true,
-  monitorSession: true
+  monitorSession: true,
+  automaticSilentRenew: true
 } as UserManagerSettings;
 const userManager = new UserManager(settings);
+userManager.events.addAccessTokenExpired(async () => {
+  await userManager.signinSilent();
+});
 
 export const useUserStore = defineStore('user', {
   state: () => ({
@@ -48,8 +52,15 @@ export const useUserStore = defineStore('user', {
         .catch(() => { this.user = null })
         .finally(() => this.loginLoading = false);
     },
-    renewToken() {
-      return userManager.signinSilentCallback()
+    async renewToken() {
+      await userManager.removeUser();
+      userManager.startSilentRenew();
+      
+      this.loginLoading = true;
+      if (await userManager.getUser()) {
+        this.user = (await userService.syncUser())?.data;
+        this.loginLoading = false;
+      }
     },
     logout() {
       this.user = null;

@@ -15,7 +15,6 @@
   </VApp>
 </template>
 <script setup lang="ts">
-import ToastComponent from './components/ToastComponent.vue';
 import { useDisplay } from 'vuetify';
 import router from './router';
 import { useUserStore } from './store/userStore';

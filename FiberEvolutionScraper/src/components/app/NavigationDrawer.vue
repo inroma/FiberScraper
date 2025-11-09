@@ -24,8 +24,8 @@
 </template>
 <script setup lang="ts">
 import { useUserStore } from '@/store/userStore';
-import { storeToRefs } from 'pinia';
 import { useDisplay, useTheme } from 'vuetify';
+
 
 const { smAndDown, mdAndUp } = useDisplay();
 const theme = useTheme();
@@ -45,7 +45,7 @@ const headers = computed(() => [
 		title: 'Auto-Refresh',
 		icon: 'mdi-timer-refresh-outline',
 		url: '/auto-refresh',
-		disabled: false
+		disabled: userStore.isConnected !== true
 	},
 	{
 		title: 'Compte',

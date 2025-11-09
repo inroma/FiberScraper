@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import router from '@/router';
 import { useUserStore } from '@/store/userStore';
 
 const userStore = useUserStore();
@@ -9,7 +8,7 @@ onMounted(async () => {
   if (!user) {
     await userStore.signInRedirect();
   } else {
-    router.push("/auth/callback");
+    await userStore.renewToken();
   }
 });
 

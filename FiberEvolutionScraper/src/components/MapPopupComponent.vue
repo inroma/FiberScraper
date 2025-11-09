@@ -33,6 +33,10 @@ function getHistorique() {
     .finally(() => loading.value = false);
 }
 
+function formatDate(date: Date): string {
+    return dayjs(date).format('DD/MM/YYYY');
+}
+
 const groupedItems = computed(() => Object.groupBy<string, EligibiliteFtth>(fiber.value.eligibilitesFtth, (f) => f.codeImb));
 
 </script>
@@ -52,8 +56,8 @@ const groupedItems = computed(() => Object.groupBy<string, EligibiliteFtth>(fibe
                             <div v-for="item, i of bat" :key="`popup-list-${codeImb}-${item.etapeFtth}-${i}`">
                                 <VListItem lines="two">
                                     <b>FTTH: </b>{{ EtapeFtth[item.etapeFtth] }}<br>
-                                    <b>Création: </b>{{ dayjs(item.created).format('DD/MM/YYYY') }}<br>
-                                    <b>MaJ: </b>{{ dayjs(item.lastUpdated).format('DD/MM/YYYY') }}
+                                    <b>Création: </b>{{ formatDate(item.created) }}<br>
+                                    <b>MaJ: </b>{{ formatDate(item.lastUpdated) }}
                                 </VListItem>
                                 <VDivider v-if="i < bat.length-1" thickness="2"/>
                             </div>
@@ -63,8 +67,8 @@ const groupedItems = computed(() => Object.groupBy<string, EligibiliteFtth>(fibe
             </VExpansionPanels>
             <div v-else>
                 <VListItem lines="two" :key="'popup-list-'+fiber?.signature">
-                    <b>Création: </b>{{ dayjs(fiber.created).format('DD/MM/YYYY') }}<br>
-                    <b>MaJ: </b>{{ dayjs(fiber.lastUpdated).format('DD/MM/YYYY') }}
+                    <b>Création: </b>{{ formatDate(fiber.created) }}<br>
+                    <b>MaJ: </b>{{ formatDate(fiber.lastUpdated) }}
                 </VListItem>
             </div>
         </VCardText>

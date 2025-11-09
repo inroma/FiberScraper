@@ -12,18 +12,20 @@ let httpClient: Axios = axios.create({
 httpClient.interceptors.request.use(
   async (request) => {
     const userStore = useUserStore();
-    request.headers.Authorization = 'Bearer ' + (await userStore.getUser()).access_token
+    request.headers.Authorization = 'Bearer ' + (await userStore.getUser())?.access_token
     return request;
   }
 );
 
 httpClient.interceptors.response.use(
   (response) => response,
-  (error) => {
+  async (error) => {
     if (error.response) {
       if (error.response.status === 401) {
+        const userStore = useUserStore();
+        await userStore.renewToken();
         // Redirect to login page
-        router.push('/auth/login')
+        router.push('/auth/login');
       }
     }
     return Promise.reject(error)
