@@ -11,7 +11,7 @@ import type { OlSourceVector } from "vue3-openlayers/sources";
 import type { OlGeomPoint } from "vue3-openlayers/geometries";
 import type { OlInteractionSelect } from "vue3-openlayers/interactions";
 import type { OlStyle, OlStyleIcon } from "vue3-openlayers/styles";
-import { MapHelper } from '@/helpers/MapHelper';
+import { MapConstants } from '@/shared/constants/MapConstants';
 import dayjs from 'dayjs';
 import { useDisplay, useTheme } from 'vuetify';
 import type { SelectEvent } from 'ol/interaction/Select';
@@ -31,16 +31,16 @@ const resultFromDb = ref(false);
 const layers = ref<{ markers: FiberPointDTO[], name: string, visible: boolean }[]>(
 	Array.from(Object.values(EtapeFtth).filter(a => typeof(a) === 'string').map(l => ({ markers: [] as FiberPointDTO[], name: l, visible: true  })))
 );
-const icons = [{code: EtapeFtth[EtapeFtth.ELLIGIBLE_XGSPON], title: "Éligible 10Gb/s", icon: MapHelper.greenestIcon, order: 21},
-	{code: EtapeFtth[EtapeFtth.ELIGIBLE], title: "Éligible", icon: MapHelper.greenIcon, order: 20},
-	{code: EtapeFtth[EtapeFtth.PROCHE_CLIENT], title: "Proche Client", icon: MapHelper.yellowIcon, order: 19},
-	{code: EtapeFtth[EtapeFtth.EN_COURS_IMMEUBLE], title: "Déploiement Immeuble", icon: MapHelper.purpleIcon, order: 18},
-	{code: EtapeFtth[EtapeFtth.TERMINE_QUARTIER], title: "Quartier Terminé", icon: MapHelper.blueInvertedIcon, order: 17},
-	{code: EtapeFtth[EtapeFtth.EN_COURS_QUARTIER], title: "Déploiement Quartier", icon: MapHelper.defaultIcon, order: 16},
-	{code: EtapeFtth[EtapeFtth.PREVU_QUARTIER], title: "Quartier Programmé", icon: MapHelper.brownIcon, order: 15},
-	{code: EtapeFtth[EtapeFtth.NON_PREVU], title: "Non prévu", icon: MapHelper.pinkIcon, order: 14},
-	{code: EtapeFtth[EtapeFtth._], title: "Aucune donnée", icon: MapHelper.redIcon, order: 13},
-	{code: EtapeFtth[EtapeFtth.UNKNOWN], title: "Statut inconnu", icon: MapHelper.blackIcon, order: 2}
+const icons = [{code: EtapeFtth[EtapeFtth.ELLIGIBLE_XGSPON], title: "Éligible 10Gb/s", icon: MapConstants.greenestIcon, order: 21},
+	{code: EtapeFtth[EtapeFtth.ELIGIBLE], title: "Éligible", icon: MapConstants.greenIcon, order: 20},
+	{code: EtapeFtth[EtapeFtth.PROCHE_CLIENT], title: "Proche Client", icon: MapConstants.yellowIcon, order: 19},
+	{code: EtapeFtth[EtapeFtth.EN_COURS_IMMEUBLE], title: "Déploiement Immeuble", icon: MapConstants.purpleIcon, order: 18},
+	{code: EtapeFtth[EtapeFtth.TERMINE_QUARTIER], title: "Quartier Terminé", icon: MapConstants.blueInvertedIcon, order: 17},
+	{code: EtapeFtth[EtapeFtth.EN_COURS_QUARTIER], title: "Déploiement Quartier", icon: MapConstants.defaultIcon, order: 16},
+	{code: EtapeFtth[EtapeFtth.PREVU_QUARTIER], title: "Quartier Programmé", icon: MapConstants.brownIcon, order: 15},
+	{code: EtapeFtth[EtapeFtth.NON_PREVU], title: "Non prévu", icon: MapConstants.pinkIcon, order: 14},
+	{code: EtapeFtth[EtapeFtth._], title: "Aucune donnée", icon: MapConstants.redIcon, order: 13},
+	{code: EtapeFtth[EtapeFtth.UNKNOWN], title: "Statut inconnu", icon: MapConstants.blackIcon, order: 2}
 ];
 const { view } = storeToRefs(useMapStore());
 const { mobile, mdAndDown, mdAndUp } = useDisplay();
@@ -128,12 +128,12 @@ function setIcon(fiber: FiberPointDTO) {
 		}
 		const icon = icons.filter(a => a.code === etape)[0]?.icon;
 		if (icon === undefined) {
-			fiber.iconUrl = MapHelper.blackIcon;
+			fiber.iconUrl = MapConstants.blackIcon;
 		} else {
 			fiber.iconUrl = icon;
 		}
 	} else {
-		fiber.iconUrl = MapHelper.redIcon;
+		fiber.iconUrl = MapConstants.redIcon;
 	}
 	fiber.opacity = opacityWithElderness(fiber);
 }

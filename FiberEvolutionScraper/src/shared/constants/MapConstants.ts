@@ -1,4 +1,4 @@
-export class MapHelper {
+export class MapConstants {
     static defaultIcon = '/icons/marker-blue.png';
     static redIcon = '/icons/marker-red.png';
     static pinkIcon = '/icons/marker-pink.png';
