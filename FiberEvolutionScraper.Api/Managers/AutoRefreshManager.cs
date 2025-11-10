@@ -1,5 +1,6 @@
 ﻿using ErrorOr;
 using FiberEvolutionScraper.Api.Data;
+using FiberEvolutionScraper.Api.Data.Interfaces;
 using FiberEvolutionScraper.Api.Models;
 using FiberEvolutionScraper.Api.Models.User;
 using Microsoft.EntityFrameworkCore;
@@ -8,56 +9,46 @@ namespace FiberEvolutionScraper.Api.Managers;
 
 public class AutoRefreshManager
 {
-    private readonly ApplicationDbContext context;
+    private readonly IUnitOfWork<ApplicationDbContext> unitOfWork;
     private readonly ILogger<AutoRefreshManager> logger;
     private readonly FiberManager fiberManager;
 
-    public AutoRefreshManager(ApplicationDbContext context, ILogger<AutoRefreshManager> logger, FiberManager fiberManager)
+    public AutoRefreshManager(IUnitOfWork<ApplicationDbContext> unitOfWork, ILogger<AutoRefreshManager> logger, FiberManager fiberManager)
     {
-        this.context = context;
+        this.unitOfWork = unitOfWork;
         this.logger = logger;
         this.fiberManager = fiberManager;
     }
 
-    public async Task<IEnumerable<AutoRefreshInput>> GetAll(UserModel user)
+    public IEnumerable<AutoRefreshInput> GetAll(UserModel user)
     {
-        var list = await context.AutoRefreshInputs.Where(a => a.UserId == user.Id).ToListAsync();
+        var list = unitOfWork.GetRepository<AutoRefreshInput>().Get(a => a.UserId == user.Id).ToList();
         return list;
     }
 
-    public async Task<int> Add(AutoRefreshInput input, UserModel user)
+    public int Add(AutoRefreshInput input, UserModel user)
     {
         input.UserId = user.Id;
-        await context.AutoRefreshInputs.AddAsync(input);
-        return await context.SaveChangesAsync();
+        unitOfWork.GetRepository<AutoRefreshInput>().Insert(input);
+        return unitOfWork.Save();
     }
 
-    public async Task<int> AddRange(IEnumerable<AutoRefreshInput> list, UserModel user)
+    public ErrorOr<int> Delete(int inputId, UserModel user)
     {
-        foreach (var input in list)
-        {
-            input.UserId = user.Id;
-        }
-        await context.AutoRefreshInputs.AddRangeAsync(list);
-        return await context.SaveChangesAsync();
-    }
-
-    public async Task<ErrorOr<int>> Delete(int inputId, UserModel user)
-    {
-        var item = await context.AutoRefreshInputs.FirstOrDefaultAsync(x => x.Id == inputId);
+        var item = unitOfWork.GetRepository<AutoRefreshInput>().Get(x => x.Id == inputId).FirstOrDefault();
         if (item != null)
         {
             if (item.UserId != user.Id)
             {
                 return Error.Validation(description: "User is not owner of the entity");
             }
-            context.AutoRefreshInputs.Remove(item);
-            return await context.SaveChangesAsync();
+            unitOfWork.GetRepository<AutoRefreshInput>().Delete(item);
+            return unitOfWork.Save();
         }
         return Error.NotFound(description: $"Aucun enregistrement en BDD avec cet Id: {inputId}");
     }
 
-    public async Task<ErrorOr<int>> Update(AutoRefreshInput input, UserModel user)
+    public ErrorOr<int> Update(AutoRefreshInput input, UserModel user)
     {
         try
         {
@@ -65,8 +56,8 @@ public class AutoRefreshManager
             {
                 return Error.Validation(description: "User is not owner of the entity");
             }
-            context.AutoRefreshInputs.Update(input);
-            return await context.SaveChangesAsync();
+            unitOfWork.GetRepository<AutoRefreshInput>().Update(input);
+            return unitOfWork.Save();
         }
         catch (Exception ex)
         {
@@ -78,7 +69,7 @@ public class AutoRefreshManager
     public async Task RefreshAll(UserModel user = null)
     {
         logger.LogInformation("Refreshing all areas");
-        var areas = context.AutoRefreshInputs.Where(a => a.Enabled);
+        var areas = unitOfWork.GetRepository<AutoRefreshInput>().Get(a => a.Enabled && a.LastRun < DateTime.Now.AddHours(-1));
         if (user != null)
         {
             areas = areas.Where(a => a.UserId == user.Id);
@@ -90,7 +81,7 @@ public class AutoRefreshManager
                 await fiberManager.UpdateDbFibers(area.CoordX, area.CoordY, area.AreaSize);
                 area.LastRun = DateTime.UtcNow;
 
-                await context.SaveChangesAsync();
+                unitOfWork.Save();
                 // On pause 20 sec pour pas se faire ban par l'API Orange
                 Thread.Sleep(TimeSpan.FromSeconds(20));
             }

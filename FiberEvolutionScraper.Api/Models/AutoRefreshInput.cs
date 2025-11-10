@@ -1,15 +1,12 @@
 ﻿using FiberEvolutionScraper.Api.Models.User;
-using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 
 namespace FiberEvolutionScraper.Api.Models;
 
 [Table("AutoRefreshInput")]
-[PrimaryKey(nameof(Id))]
-public class AutoRefreshInput
+public class AutoRefreshInput : BaseModel
 {
-    public int Id { get; set; }
-
     public bool Enabled { get; set; }
 
     public double CoordX { get; set; }
@@ -24,5 +21,6 @@ public class AutoRefreshInput
 
     public int UserId { get; set; }
 
+    [JsonIgnore]
     public virtual UserModel User { get; set; }
 }

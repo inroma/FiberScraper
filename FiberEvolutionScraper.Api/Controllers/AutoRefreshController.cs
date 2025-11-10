@@ -1,7 +1,6 @@
 ﻿using FiberEvolutionScraper.Api.Extensions;
 using FiberEvolutionScraper.Api.Managers;
 using FiberEvolutionScraper.Api.Models;
-using FiberEvolutionScraper.Api.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -15,41 +14,41 @@ public class AutoRefreshController : ControllerBase
     #region Private Fields
 
     private readonly AutoRefreshManager autoRefreshManager;
-    private readonly AutoRefreshService autoRefreshService;
+    private readonly IServiceProvider serviceProvider;
     private readonly ILogger<AutoRefreshController> logger;
 
     #endregion Private Fields
 
-    public AutoRefreshController(AutoRefreshManager autoRefreshManager, ILogger<AutoRefreshController> logger, AutoRefreshService autoRefreshService)
+    public AutoRefreshController(AutoRefreshManager autoRefreshManager, ILogger<AutoRefreshController> logger, IServiceProvider serviceProvider)
     {
         this.autoRefreshManager = autoRefreshManager;
         this.logger = logger;
-        this.autoRefreshService = autoRefreshService;
+        this.serviceProvider = serviceProvider;
     }
 
     [HttpGet("GetAll")]
-    public async Task<IEnumerable<AutoRefreshInput>> GetAll()
+    public IEnumerable<AutoRefreshInput> GetAll()
     {
         logger.LogDebug("Get All Auto Refresh Inputs in Db");
-        var list = await autoRefreshManager.GetAll(HttpContext.GetUser());
+        var list = autoRefreshManager.GetAll(HttpContext.GetUser());
 
         return list;
     }
 
     [HttpPost("Add")]
-    public async Task<int> AddAreaEntity(AutoRefreshInput refreshInput)
+    public int AddAreaEntity(AutoRefreshInput refreshInput)
     {
         logger.LogDebug("Add Auto Refresh Input in Db (x: {x}, y: {y})", refreshInput.CoordX, refreshInput.CoordY);
-        var result = await autoRefreshManager.Add(refreshInput, HttpContext.GetUser());
+        var result = autoRefreshManager.Add(refreshInput, HttpContext.GetUser());
 
         return result;
     }
 
     [HttpPatch("Update")]
-    public async Task<ActionResult<int>> UpdateAreaEntity(AutoRefreshInput refreshInput)
+    public ActionResult<int> UpdateAreaEntity(AutoRefreshInput refreshInput)
     {
         logger.LogDebug("Update Auto Refresh Input in Db (id: {id})", refreshInput.Id);
-        var result = await autoRefreshManager.Update(refreshInput, HttpContext.GetUser());
+        var result = autoRefreshManager.Update(refreshInput, HttpContext.GetUser());
 
         if (result.IsError)
         {
@@ -59,10 +58,10 @@ public class AutoRefreshController : ControllerBase
     }
 
     [HttpDelete("Delete")]
-    public async Task<ActionResult<int>> DeleteAreaEntity(int inputId)
+    public ActionResult<int> DeleteAreaEntity(int inputId)
     {
         logger.LogDebug("Delete Auto Refresh Input in Db (id: {id})", inputId);
-        var result = await autoRefreshManager.Delete(inputId, HttpContext.GetUser());
+        var result = autoRefreshManager.Delete(inputId, HttpContext.GetUser());
 
         if (result.IsError)
         {
@@ -74,8 +73,18 @@ public class AutoRefreshController : ControllerBase
     [HttpPost("RunAll")]
     public ActionResult<bool> RunAll()
     {
-        logger.LogDebug("Run All Auto Refresh");
-        _ = Task.Run(autoRefreshService.StartRefresh);
-        return true;
+        try
+        {
+            logger.LogDebug("Run All Auto Refresh");
+            var scope = serviceProvider.CreateAsyncScope();
+            var autoRefreshManager = scope.ServiceProvider.GetService<AutoRefreshManager>();
+            Task.Run(async () => await autoRefreshManager.RefreshAll(HttpContext.GetUser()));
+            return true;
+        }
+        catch (Exception e)
+        {
+            logger.LogError(e, "Erreur pendant le lancement des refreshs d'un User");
+            return false;
+        }
     }
 }
