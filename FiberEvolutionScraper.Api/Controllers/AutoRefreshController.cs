@@ -1,4 +1,5 @@
-﻿using FiberEvolutionScraper.Api.Managers;
+﻿using FiberEvolutionScraper.Api.Extensions;
+using FiberEvolutionScraper.Api.Managers;
 using FiberEvolutionScraper.Api.Models;
 using FiberEvolutionScraper.Api.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -8,6 +9,7 @@ namespace FiberEvolutionScraper.Api.Controllers;
 
 [ApiController]
 [Route("[controller]")]
+[Authorize]
 public class AutoRefreshController : ControllerBase
 {
     #region Private Fields
@@ -29,7 +31,7 @@ public class AutoRefreshController : ControllerBase
     public async Task<IEnumerable<AutoRefreshInput>> GetAll()
     {
         logger.LogDebug("Get All Auto Refresh Inputs in Db");
-        var list = await autoRefreshManager.GetAll();
+        var list = await autoRefreshManager.GetAll(HttpContext.GetUser());
 
         return list;
     }
@@ -38,27 +40,35 @@ public class AutoRefreshController : ControllerBase
     public async Task<int> AddAreaEntity(AutoRefreshInput refreshInput)
     {
         logger.LogDebug("Add Auto Refresh Input in Db (x: {x}, y: {y})", refreshInput.CoordX, refreshInput.CoordY);
-        var result = await autoRefreshManager.Add(refreshInput);
+        var result = await autoRefreshManager.Add(refreshInput, HttpContext.GetUser());
 
         return result;
     }
 
     [HttpPatch("Update")]
-    public async Task<int> UpdateAreaEntity(AutoRefreshInput refreshInput)
+    public async Task<ActionResult<int>> UpdateAreaEntity(AutoRefreshInput refreshInput)
     {
         logger.LogDebug("Update Auto Refresh Input in Db (id: {id})", refreshInput.Id);
-        var result = await autoRefreshManager.Update(refreshInput);
+        var result = await autoRefreshManager.Update(refreshInput, HttpContext.GetUser());
 
-        return result;
+        if (result.IsError)
+        {
+            return new BadRequestObjectResult(result.Errors);
+        }
+        return result.Value;
     }
 
     [HttpDelete("Delete")]
-    public async Task<int> DeleteAreaEntity(int inputId)
+    public async Task<ActionResult<int>> DeleteAreaEntity(int inputId)
     {
         logger.LogDebug("Delete Auto Refresh Input in Db (id: {id})", inputId);
-        var result = await autoRefreshManager.Delete(inputId);
+        var result = await autoRefreshManager.Delete(inputId, HttpContext.GetUser());
 
-        return result;
+        if (result.IsError)
+        {
+            return new BadRequestObjectResult(result.Errors);
+        }
+        return result.Value;
     }
 
     [HttpPost("RunAll")]

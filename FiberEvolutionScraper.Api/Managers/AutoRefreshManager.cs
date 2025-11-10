@@ -1,5 +1,7 @@
-﻿using FiberEvolutionScraper.Api.Data;
+﻿using ErrorOr;
+using FiberEvolutionScraper.Api.Data;
 using FiberEvolutionScraper.Api.Models;
+using FiberEvolutionScraper.Api.Models.User;
 using Microsoft.EntityFrameworkCore;
 
 namespace FiberEvolutionScraper.Api.Managers;
@@ -17,59 +19,70 @@ public class AutoRefreshManager
         this.fiberManager = fiberManager;
     }
 
-    public async Task<IEnumerable<AutoRefreshInput>> GetAll()
+    public async Task<IEnumerable<AutoRefreshInput>> GetAll(UserModel user)
     {
-        var list = await context.AutoRefreshInputs.ToListAsync();
+        var list = await context.AutoRefreshInputs.Where(a => a.UserId == user.Id).ToListAsync();
         return list;
     }
 
-    public async Task<int> Add(AutoRefreshInput input)
+    public async Task<int> Add(AutoRefreshInput input, UserModel user)
     {
+        input.UserId = user.Id;
         await context.AutoRefreshInputs.AddAsync(input);
         return await context.SaveChangesAsync();
     }
 
-    public async Task<int> AddRange(IEnumerable<AutoRefreshInput> list)
+    public async Task<int> AddRange(IEnumerable<AutoRefreshInput> list, UserModel user)
     {
+        foreach (var input in list)
+        {
+            input.UserId = user.Id;
+        }
         await context.AutoRefreshInputs.AddRangeAsync(list);
         return await context.SaveChangesAsync();
     }
 
-    public async Task<int> Delete(int inputId)
+    public async Task<ErrorOr<int>> Delete(int inputId, UserModel user)
     {
         var item = await context.AutoRefreshInputs.FirstOrDefaultAsync(x => x.Id == inputId);
         if (item != null)
         {
+            if (item.UserId != user.Id)
+            {
+                return Error.Validation(description: "User is not owner of the entity");
+            }
             context.AutoRefreshInputs.Remove(item);
             return await context.SaveChangesAsync();
         }
-        throw new($"Aucun enregistrement en BDD avec cet Id: {inputId}");
+        return Error.NotFound(description: $"Aucun enregistrement en BDD avec cet Id: {inputId}");
     }
 
-    public async Task<int> Delete(AutoRefreshInput input)
-    {
-        context.AutoRefreshInputs.Remove(input);
-        return await context.SaveChangesAsync();
-    }
-
-    public async Task<int> Update(AutoRefreshInput input)
+    public async Task<ErrorOr<int>> Update(AutoRefreshInput input, UserModel user)
     {
         try
         {
+            if (input.UserId != user.Id)
+            {
+                return Error.Validation(description: "User is not owner of the entity");
+            }
             context.AutoRefreshInputs.Update(input);
             return await context.SaveChangesAsync();
         }
         catch (Exception ex)
         {
-            logger.LogError(ex.InnerException.Message ?? ex.Message);
-            return -1;
+            logger.LogError(ex, "Erreur pendant l'update d'une zone");
+            return Error.Unexpected();
         }
     }
 
-    public async Task RefreshAll()
+    public async Task RefreshAll(UserModel user = null)
     {
         logger.LogInformation("Refreshing all areas");
-        var areas = context.AutoRefreshInputs.Where(a => a.Enabled).ToList();
+        var areas = context.AutoRefreshInputs.Where(a => a.Enabled);
+        if (user != null)
+        {
+            areas = areas.Where(a => a.UserId == user.Id);
+        }
         foreach (var area in areas)
         {
             try
