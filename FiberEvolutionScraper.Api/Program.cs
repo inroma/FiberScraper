@@ -2,6 +2,7 @@ using FiberEvolutionScraper.Api.Api;
 using FiberEvolutionScraper.Api.Data;
 using FiberEvolutionScraper.Api.Data.Interfaces;
 using FiberEvolutionScraper.Api.Managers;
+using FiberEvolutionScraper.Api.Middlewares;
 using FiberEvolutionScraper.Api.Models;
 using FiberEvolutionScraper.Api.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -99,6 +100,8 @@ public class Program
             .UseAuthorization();
         app.UseRouting();
         app.MapControllers().RequireAuthorization();
+
+        app.UseMiddleware<AuthenticatedUserMiddleware>();
 
         app.Run();
     }
