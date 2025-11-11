@@ -6,9 +6,11 @@ using FiberEvolutionScraper.Api.Middlewares;
 using FiberEvolutionScraper.Api.Models;
 using FiberEvolutionScraper.Api.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Quartz;
 using System.Text.Json.Serialization;
+using System.Threading.RateLimiting;
 
 namespace FiberEvolutionScraper.Api;
 
@@ -88,6 +90,23 @@ public class Program
                 opts.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
                 opts.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
             });
+        builder.Services.AddRateLimiter(_ => {
+            _.AddFixedWindowLimiter(policyName: "default", options =>
+            {
+                options.PermitLimit = 5;
+                options.Window = TimeSpan.FromMinutes(1);
+                options.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
+                options.QueueLimit = 2;
+            });
+            _.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(httpContext =>
+                RateLimitPartition.GetFixedWindowLimiter(
+                    partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+                    factory: _ => new FixedWindowRateLimiterOptions
+                    {
+                        PermitLimit = 50,
+                        Window = TimeSpan.FromMinutes(1)
+                    }));
+        });
 
         var app = builder.Build();
 
@@ -99,6 +118,7 @@ public class Program
         }
 
         app.UsePathBase(new("/api/"));
+        app.UseRateLimiter();
         app.UseHttpsRedirection()
             .UseCors()
             .UseAuthentication()

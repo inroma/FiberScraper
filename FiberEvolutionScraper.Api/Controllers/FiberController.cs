@@ -2,6 +2,7 @@
 using FiberEvolutionScraper.Api.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace FiberEvolutionScraper.Api.Controllers;
 
@@ -25,6 +26,7 @@ public class FiberController : ControllerBase
     }
 
     [HttpGet()]
+    [EnableRateLimiting("default")]
     public async Task<IList<FiberPoint>> GetWideArea([FromQuery] FibersGetModel parameters)
     {
         var fibers = await FiberManager.GetFibersForLocAsync(parameters.CoordX, parameters.CoordY);
@@ -34,6 +36,7 @@ public class FiberController : ControllerBase
     }
 
     [HttpGet()]
+    [EnableRateLimiting("default")]
     public async Task<IList<FiberPoint>> GetCloseArea([FromQuery] FibersGetModel parameters)
     {
         var fibers = await FiberManager.GetFibersForLocAsync(parameters.CoordX, parameters.CoordY, 1);
@@ -59,6 +62,7 @@ public class FiberController : ControllerBase
     }
 
     [HttpGet]
+    [EnableRateLimiting("default")]
     public int UpdateWideArea([FromQuery] FibersGetModel parameters)
     {
         var result = FiberManager.UpdateDbFibers(parameters.CoordX, parameters.CoordY);
