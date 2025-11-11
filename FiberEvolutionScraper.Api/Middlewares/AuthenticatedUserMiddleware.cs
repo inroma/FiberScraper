@@ -20,7 +20,7 @@ public class AuthenticatedUserMiddleware
 
         if (!string.IsNullOrEmpty(userId))
         {
-            context.Items["AuthenticatedUser"] = unitOfWork.GetRepository<UserModel>().Get(u => u.UId == userId).First();
+            context.Items["AuthenticatedUser"] = unitOfWork.GetRepository<UserModel>().Get(u => u.UId == userId).FirstOrDefault();
         }
 
         // Call the next delegate/middleware in the pipeline.
