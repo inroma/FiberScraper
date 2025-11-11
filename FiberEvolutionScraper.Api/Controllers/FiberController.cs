@@ -18,9 +18,9 @@ public class FiberController : ControllerBase
 
     [HttpGet()]
     [AllowAnonymous]
-    public IList<FiberPoint> GetFibers([FromQuery] FibersGetModel parameters)
+    public IList<FiberPoint> GetFibers([FromQuery] FibersBoundsGetModel bounds)
     {
-        var fibers = FiberManager.GetDbFibersForLoc(parameters.CoordX, parameters.CoordY);
+        var fibers = FiberManager.GetDbFibersForLoc(bounds.MinX, bounds.MinY, bounds.MaxX, bounds.MaxY);
         return fibers;
     }
 
@@ -44,9 +44,9 @@ public class FiberController : ControllerBase
 
     [HttpGet()]
     [AllowAnonymous]
-    public IList<FiberPoint> GetNewestPoints([FromQuery] string data)
+    public IList<FiberPoint> GetNewestPoints([FromQuery] FibersBoundsGetModel bounds)
     {
-        var fibers = FiberManager.GetNewestPoints(data);
+        var fibers = FiberManager.GetNewestPoints(bounds.MinX, bounds.MinY, bounds.MaxX, bounds.MaxY);
         return fibers;
     }
 

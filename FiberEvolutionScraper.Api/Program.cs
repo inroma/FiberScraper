@@ -8,6 +8,7 @@ using FiberEvolutionScraper.Api.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Quartz;
+using System.Text.Json.Serialization;
 
 namespace FiberEvolutionScraper.Api;
 
@@ -82,7 +83,11 @@ public class Program
                 options.Authority = globalConfiguration.OAuth.Issuer;
                 options.Audience = globalConfiguration.OAuth.Audience;
             });
-        builder.Services.AddControllers();
+        builder.Services.AddControllers()
+            .AddJsonOptions(opts => {
+                opts.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
+                opts.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
+            });
 
         var app = builder.Build();
 

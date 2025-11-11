@@ -18,6 +18,7 @@ import type { SelectEvent } from 'ol/interaction/Select';
 import { useMapStore } from '@/store/mapStore';
 import { storeToRefs } from 'pinia';
 import type { AxiosPromise } from 'axios';
+import MinMaxBounds from '@/models/MinMaxBounds';
 
 //#region Public Properties
 const loading = ref(false);
@@ -89,13 +90,15 @@ function getFibers() {
 function getDbFibers() {
 	resultFromDb.value = loading.value = true;
 	recentResult.value = false;
-	var promise = fiberService.getDbFibers(view.value.getCenter());
+	var data = new MinMaxBounds(view.value?.calculateExtent());
+	var promise = fiberService.getDbFibers(data);
 	handleApiResponse(promise);
 }
 
 function getNewestFibers() {
 	recentResult.value = resultFromDb.value = loading.value = true;
-	var promise = fiberService.getNewestPoints(view.value?.calculateExtent().join(','));
+	var data = new MinMaxBounds(view.value?.calculateExtent());
+	var promise = fiberService.getNewestPoints(data);
 	handleApiResponse(promise);
 }
 

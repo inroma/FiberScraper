@@ -1,6 +1,7 @@
 import FiberPointDTO from '@/models/FiberPointDTO';
 import { type AxiosPromise } from 'axios';
 import { AbstractApiService } from './AbstractApiService';
+import type MinMaxBounds from '@/models/MinMaxBounds';
 
 class FiberService extends AbstractApiService {
 
@@ -21,12 +22,12 @@ class FiberService extends AbstractApiService {
         return this.httpClient.get<FiberPointDTO[]>(`${this.url}GetWideArea`, { params: { coordX: coord.at(0), coordY: coord.at(1) }});
     }
 
-    getDbFibers(coord: Array<number>): AxiosPromise<FiberPointDTO[]> {
-        return this.httpClient.get<FiberPointDTO[]>(`${this.url}GetFibers`, { params: { coordX: coord.at(0), coordY: coord.at(1) }});
+    getDbFibers(bounds: MinMaxBounds): AxiosPromise<FiberPointDTO[]> {
+        return this.httpClient.get<FiberPointDTO[]>(`${this.url}GetFibers`, { params: bounds });
     }
 
-    getNewestPoints(bounds: string): AxiosPromise<FiberPointDTO[]> {
-        return this.httpClient.get<FiberPointDTO[]>(`${this.url}GetNewestPoints`, { params: { data: bounds }});
+    getNewestPoints(bounds: MinMaxBounds): AxiosPromise<FiberPointDTO[]> {
+        return this.httpClient.get<FiberPointDTO[]>(`${this.url}GetNewestPoints`, { params: bounds });
     }
   
     getHistorique(signature: string): AxiosPromise<FiberPointDTO> {

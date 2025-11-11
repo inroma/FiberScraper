@@ -3,7 +3,6 @@ using FiberEvolutionScraper.Api.Data;
 using FiberEvolutionScraper.Api.Data.Interfaces;
 using FiberEvolutionScraper.Api.Models;
 using FiberEvolutionScraper.Api.Models.User;
-using Microsoft.EntityFrameworkCore;
 
 namespace FiberEvolutionScraper.Api.Managers;
 
