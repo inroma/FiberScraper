@@ -12,7 +12,7 @@ class AddressService extends AbstractApiService {
 		if (!search) {
 			return Promise.reject("no query");
 		}
-		return this.http.get<AddressResponse>(this.url + 'search/',
+		return this.axios.get<AddressResponse>(this.url + 'search/',
 			{ params: { 'q': search, 'limit': '10', 'autocomplete': '1' } }
 		)
 		.then(this.handleResponse.bind(this))

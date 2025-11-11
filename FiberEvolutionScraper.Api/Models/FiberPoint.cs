@@ -5,7 +5,7 @@ namespace FiberEvolutionScraper.Api.Models;
 
 [Table("FiberPoint")]
 [PrimaryKey(nameof(Signature))]
-public class FiberPointDTO : BaseModelDTO
+public class FiberPoint : BaseModel
 {
     public string Signature { get; set; }
 
@@ -16,5 +16,5 @@ public class FiberPointDTO : BaseModelDTO
     public double Y { get; set; }
 
     [InverseProperty("FiberPoint")]
-    public List<EligibiliteFtthDTO> EligibilitesFtth { get; set; } = new List<EligibiliteFtthDTO>();
+    public List<EligibiliteFtth> EligibilitesFtth { get; set; } = new List<EligibiliteFtth>();
 }

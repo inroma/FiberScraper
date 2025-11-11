@@ -1,7 +1,8 @@
 ﻿using FiberEvolutionScraper.Api.Models;
-using FiberEvolutionScraper.Api.Services;
 using System.Globalization;
 using System.Text.Json;
+using FiberEvolutionScraper.Api.Managers;
+using AutoMapper;
 
 namespace FiberEvolutionScraper.Api.Api;
 
@@ -9,26 +10,27 @@ public class FiberApi
 {
     private readonly HttpClient client;
     private readonly TokenParser tokenParser;
+    private readonly IMapper mapper;
     private readonly double offsetX = 0.006929;
     private readonly double offsetY = 0.004457;
     private readonly double offsetCityX = 0.006929 * .25;
     private readonly double offsetCityY = 0.004457 * .25;
 
-    public FiberApi(IServiceProvider serviceProvider)
+    public FiberApi(TokenParser tokenParser, HttpClient httpClient, IMapper mapper)
     {
-        tokenParser = serviceProvider.GetRequiredService<TokenParser>();
-
-        client = serviceProvider.GetRequiredService<HttpClient>();
+        this.tokenParser = tokenParser;
+        this.mapper = mapper;
+        client = httpClient;
         client.DefaultRequestHeaders.Accept.Add(new("application/json"));
         client.DefaultRequestHeaders.Accept.Add(new("text/plain"));
         client.DefaultRequestHeaders.Accept.Add(new("*/*"));
         client.BaseAddress = new("https://couverture-eligibilite.orange.fr/");
     }
 
-    public async Task<IEnumerable<FiberPoint>> GetFibersForLocAsync(double x, double y, int squareSize = 3, bool canIterate = true)
+    public async Task<IEnumerable<FiberPointResponse>> GetFibersForLocAsync(double x, double y, int squareSize = 3, bool canIterate = true)
     {
         SetToken();
-        var fibers = new List<FiberPoint>();
+        var fibers = new List<FiberPointResponse>();
 
         var currentOffset = (X: canIterate ? offsetX : offsetCityX, Y: canIterate ? offsetY : offsetCityY);
 
@@ -46,7 +48,7 @@ public class FiberApi
         return fibers;
     }
 
-    private async Task ProcessCurrentArea(List<FiberPoint> fibers, (double X, double Y) start,
+    private async Task ProcessCurrentArea(List<FiberPointResponse> fibers, (double X, double Y) start,
         (double X, double Y) currentOffset, int j, int k, bool canIterate, CancellationToken cancellationToken, bool tokenAlreadyRenewed = false)
     {
         var httpResponse = await client.GetAsync($"api/eligibilite/zoneAdresse?" +
@@ -75,17 +77,17 @@ public class FiberApi
         }
     }
 
-    private static void AddDebugMarker(List<FiberPoint> fibers, (double X, double Y) startPoint, int j, int k, double currentOffsetY, double currentOffsetX, int squareSize, double modul, string zoneSize)
+    private static void AddDebugMarker(List<FiberPointResponse> fibers, (double X, double Y) startPoint, int j, int k, double currentOffsetY, double currentOffsetX, int squareSize, double modul, string zoneSize)
     {
         lock(fibers)
         {
-            fibers.Add(new FiberPoint()
+            fibers.Add(new()
             {
                 Address = new()
                 {
-                    BestCoords = new BestCoords()
+                    BestCoords = new()
                     {
-                        Coord = new Coord()
+                        Coord = new()
                         {
                             X = startPoint.X + k * currentOffsetX,
                             Y = startPoint.Y + j * currentOffsetY

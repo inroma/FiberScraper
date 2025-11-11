@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { ISnackbarColor } from '@/models/SnackbarInterface';
 import AutoRefreshInput from '@/models/AutoRefreshInput';
-import AutoRefreshService from '@/services/AutoRefreshService';
 import { useToastStore } from '@/store/ToastStore';
 import { useDisplay } from 'vuetify';
 import type { OlFeature } from "vue3-openlayers/map";
@@ -11,6 +10,7 @@ import type { OlGeomMultiPolygon } from "vue3-openlayers/geometries";
 import type { OlStyle, OlStyleStroke, OlStyleFill } from "vue3-openlayers/styles";
 import { storeToRefs } from 'pinia';
 import { useMapStore } from '@/store/mapStore';
+import { autoRefreshService } from '@/services/AutoRefreshService';
 
 //#region Public Properties
 const loading = ref(false);
@@ -56,7 +56,7 @@ onMounted(() => {
 
 function getAutoRefreshInputs() {
     loading.value = true;
-    AutoRefreshService.getAll()
+    autoRefreshService.getAll()
     .then((response) => autoRefreshItems.value = response.data)
     .catch((errors) => toastStore.createToastMessage({ color: ISnackbarColor.Error, message: errors }))
     .finally(() => loading.value = false);
@@ -86,7 +86,7 @@ function getRectangleFromInput(item: AutoRefreshInput, cityOffset: boolean = fal
 
 function addItem(item: AutoRefreshInput) {
     loading.value = true;
-    AutoRefreshService.add(item)
+    autoRefreshService.add(item)
     .then((response) => {
         toastStore.createToastMessage({ color: ISnackbarColor.Success, message: `${response.data} zone créée avec succès` });
         getAutoRefreshInputs();
@@ -99,7 +99,7 @@ function addItem(item: AutoRefreshInput) {
 
 function updateItem(item: AutoRefreshInput) {
     loading.value = true;
-    AutoRefreshService.update(item)
+    autoRefreshService.update(item)
     .then((response) => {
         toastStore.createToastMessage({ color: ISnackbarColor.Success, message: `${response.data} zone mise à jour avec succès` });
     })
@@ -120,7 +120,7 @@ function deleteItem(item: AutoRefreshInput) {
         }
     } else {
         loading.value = true;
-        AutoRefreshService.delete(item.id)
+        autoRefreshService.delete(item.id)
         .then((response) => {
             toastStore.createToastMessage({ color: ISnackbarColor.Success, message: `${response.data} zone supprimée avec succès` });
             removeItem(item);
@@ -175,7 +175,7 @@ function editItem(point: AutoRefreshInput) {
 }
 
 function runAll() {
-    AutoRefreshService.runAll()
+    autoRefreshService.runAll()
     .then(() => {
         toastStore.createToastMessage({ message: "Refresh manuel des zones lancé", color: ISnackbarColor.Success });
     })

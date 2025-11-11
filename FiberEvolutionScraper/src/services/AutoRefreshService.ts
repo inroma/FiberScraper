@@ -1,27 +1,33 @@
 import AutoRefreshInput from '@/models/AutoRefreshInput';
-import axios, { type AxiosPromise, type AxiosResponse } from 'axios';
+import  { type AxiosPromise, type AxiosResponse } from 'axios';
+import { AbstractApiService } from './AbstractApiService';
 
-export default class AutoRefreshService {
+class AutoRefreshService extends AbstractApiService {
 
-    private static readonly endpoint = '/api/v1/autorefresh/';
+    constructor() {
+        super();
+        this.url = '/api/v1/autorefresh/';
+    }
 
-    static getAll(): AxiosPromise<AutoRefreshInput[]> {
-        return axios.get<AutoRefreshInput[]>(`${this.endpoint}GetAll`);
+    getAll(): AxiosPromise<AutoRefreshInput[]> {
+        return this.httpClient.get<AutoRefreshInput[]>(`${this.url}GetAll`);
     }
     
-    static add(refreshInput: AutoRefreshInput): AxiosPromise<number> {
-        return axios.post<AutoRefreshInput, AxiosResponse<number>>(`${this.endpoint}Add`, refreshInput);
+    add(refreshInput: AutoRefreshInput): AxiosPromise<number> {
+        return this.httpClient.post<AutoRefreshInput, AxiosResponse<number>>(`${this.url}Add`, refreshInput);
     }
     
-    static update(refreshInput: AutoRefreshInput): AxiosPromise<number> {
-        return axios.patch<AutoRefreshInput, AxiosResponse<number>>(`${this.endpoint}Update`, refreshInput);
+    update(refreshInput: AutoRefreshInput): AxiosPromise<number> {
+        return this.httpClient.patch<AutoRefreshInput, AxiosResponse<number>>(`${this.url}Update`, refreshInput);
     }
 
-    static delete(inputId: number): AxiosPromise<number> {
-        return axios.delete<number>(`${this.endpoint}Delete`, { params: { inputId: inputId }});
+    delete(inputId: number): AxiosPromise<number> {
+        return this.httpClient.delete<number>(`${this.url}Delete`, { params: { inputId: inputId }});
     }
 
-    static runAll(): AxiosPromise {
-        return axios.post(`${this.endpoint}RunAll`);
+    runAll(): AxiosPromise {
+        return this.httpClient.post(`${this.url}RunAll`);
     }
 }
+
+export const autoRefreshService = new AutoRefreshService();

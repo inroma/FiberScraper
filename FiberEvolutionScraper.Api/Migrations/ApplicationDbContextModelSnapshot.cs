@@ -17,7 +17,7 @@ namespace FiberEvolutionScraper.Api.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "7.0.11")
+                .HasAnnotation("ProductVersion", "9.0.10")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -39,6 +39,9 @@ namespace FiberEvolutionScraper.Api.Migrations
                     b.Property<double>("CoordY")
                         .HasColumnType("double precision");
 
+                    b.Property<DateTime>("Created")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<bool>("Enabled")
                         .HasColumnType("boolean");
 
@@ -48,12 +51,20 @@ namespace FiberEvolutionScraper.Api.Migrations
                     b.Property<DateTime?>("LastRun")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<DateTime>("LastUpdated")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("integer");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("UserId");
 
                     b.ToTable("AutoRefreshInput");
                 });
 
-            modelBuilder.Entity("FiberEvolutionScraper.Api.Models.EligibiliteFtthDTO", b =>
+            modelBuilder.Entity("FiberEvolutionScraper.Api.Models.EligibiliteFtth", b =>
                 {
                     b.Property<string>("CodeImb")
                         .HasColumnType("text");
@@ -73,6 +84,9 @@ namespace FiberEvolutionScraper.Api.Migrations
                     b.Property<DateTime?>("DateDebutEligibilite")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<int>("Id")
+                        .HasColumnType("integer");
+
                     b.Property<DateTime>("LastUpdated")
                         .HasColumnType("timestamp with time zone");
 
@@ -83,13 +97,16 @@ namespace FiberEvolutionScraper.Api.Migrations
                     b.ToTable("EligibiliteFtth");
                 });
 
-            modelBuilder.Entity("FiberEvolutionScraper.Api.Models.FiberPointDTO", b =>
+            modelBuilder.Entity("FiberEvolutionScraper.Api.Models.FiberPoint", b =>
                 {
                     b.Property<string>("Signature")
                         .HasColumnType("text");
 
                     b.Property<DateTime>("Created")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("Id")
+                        .HasColumnType("integer");
 
                     b.Property<DateTime>("LastUpdated")
                         .HasColumnType("timestamp with time zone");
@@ -111,9 +128,45 @@ namespace FiberEvolutionScraper.Api.Migrations
                     b.ToTable("FiberPoint");
                 });
 
-            modelBuilder.Entity("FiberEvolutionScraper.Api.Models.EligibiliteFtthDTO", b =>
+            modelBuilder.Entity("FiberEvolutionScraper.Api.Models.User.UserModel", b =>
                 {
-                    b.HasOne("FiberEvolutionScraper.Api.Models.FiberPointDTO", "FiberPoint")
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("Created")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("LastUpdated")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("UId")
+                        .HasColumnType("text");
+
+                    b.Property<string>("UserName")
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Users");
+                });
+
+            modelBuilder.Entity("FiberEvolutionScraper.Api.Models.AutoRefreshInput", b =>
+                {
+                    b.HasOne("FiberEvolutionScraper.Api.Models.User.UserModel", "User")
+                        .WithMany("AutoRefreshs")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("FiberEvolutionScraper.Api.Models.EligibiliteFtth", b =>
+                {
+                    b.HasOne("FiberEvolutionScraper.Api.Models.FiberPoint", "FiberPoint")
                         .WithMany("EligibilitesFtth")
                         .HasForeignKey("FiberPointDTOSignature")
                         .OnDelete(DeleteBehavior.SetNull)
@@ -122,9 +175,14 @@ namespace FiberEvolutionScraper.Api.Migrations
                     b.Navigation("FiberPoint");
                 });
 
-            modelBuilder.Entity("FiberEvolutionScraper.Api.Models.FiberPointDTO", b =>
+            modelBuilder.Entity("FiberEvolutionScraper.Api.Models.FiberPoint", b =>
                 {
                     b.Navigation("EligibilitesFtth");
+                });
+
+            modelBuilder.Entity("FiberEvolutionScraper.Api.Models.User.UserModel", b =>
+                {
+                    b.Navigation("AutoRefreshs");
                 });
 #pragma warning restore 612, 618
         }

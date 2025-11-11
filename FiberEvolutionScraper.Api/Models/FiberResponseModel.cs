@@ -26,10 +26,10 @@ public class Result
     public string ZoneSize { get; set; }
 
     [JsonPropertyName("results")]
-    public List<FiberPoint> Results { get; set; } = [];
+    public List<FiberPointResponse> Results { get; set; } = [];
 }
 
-public class FiberPoint
+public class FiberPointResponse
 {
     [JsonPropertyName("address")]
     public Address Address { get; set; }

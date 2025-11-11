@@ -6,7 +6,7 @@ namespace FiberEvolutionScraper.Api.Models;
 
 [Table("EligibiliteFtth")]
 [PrimaryKey(nameof(CodeImb), nameof(EtapeFtth), nameof(FiberPointDTOSignature))]
-public class EligibiliteFtthDTO : BaseModelDTO
+public class EligibiliteFtth : BaseModel
 {
     public string Batiment { get; set; }
 
@@ -18,7 +18,7 @@ public class EligibiliteFtthDTO : BaseModelDTO
 
     [ForeignKey(nameof(FiberPointDTOSignature))]
     [JsonIgnore]
-    public FiberPointDTO FiberPoint { get; set; }
+    public FiberPoint FiberPoint { get; set; }
 
     public string FiberPointDTOSignature { get; set; }
 }

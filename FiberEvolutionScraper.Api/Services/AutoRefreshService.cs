@@ -1,4 +1,5 @@
-﻿using Quartz;
+﻿using FiberEvolutionScraper.Api.Managers;
+using Quartz;
 
 namespace FiberEvolutionScraper.Api.Services;
 
@@ -18,8 +19,6 @@ public class AutoRefreshService : BackgroundService, IJob
     }
 
     public async Task Execute(IJobExecutionContext context) => await ExecuteAsync();
-
-    public async Task StartRefresh() => await ExecuteAsync();
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken = default)
     {

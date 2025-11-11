@@ -3,9 +3,8 @@ using FiberEvolutionScraper.Api.Api;
 using FiberEvolutionScraper.Api.Data;
 using FiberEvolutionScraper.Api.Models;
 using Microsoft.EntityFrameworkCore;
-using System.Globalization;
 
-namespace FiberEvolutionScraper.Api.Services;
+namespace FiberEvolutionScraper.Api.Managers;
 
 public class FiberManager
 {
@@ -20,43 +19,39 @@ public class FiberManager
         mapper = serviceProvider.GetRequiredService<IMapper>();
     }
 
-    internal async Task<IList<FiberPointDTO>> GetFibersForLocAsync(double coordX, double coordY, int squareSize = 3, bool canIterate = true)
+    internal async Task<IList<FiberPoint>> GetFibersForLocAsync(double coordX, double coordY, int squareSize = 3, bool canIterate = true)
     {
         var fibers = await fiberApi.GetFibersForLocAsync(coordX, coordY, squareSize, canIterate);
-        var mapped = mapper.Map<IList<FiberPointDTO>>(fibers).ToList();
+        var mapped = mapper.Map<IList<FiberPoint>>(fibers).ToList();
         mapped = [.. mapped.DistinctBy(m => m.Signature)];
 
         return mapped;
     }
 
-    internal IList<FiberPointDTO> GetDbFibersForLoc(double coordX, double coordY)
+    internal IList<FiberPoint> GetDbFibersForLoc(double minX, double minY, double maxX, double maxY)
     {
         var result = context.FiberPoints.Include(f => f.EligibilitesFtth.OrderByDescending(e => e.LastUpdated))
-            .GroupBy(e => e.Signature).Select(g => g.First()).ToList()
-            .GroupBy(x => Math.Pow((coordX - x.X), 2) + Math.Pow(coordY - x.Y, 2))
-            .OrderBy(x => x.Key).SelectMany(g => g.ToList()).Take(1500);
+            .Where(f => f.X >= minX && f.Y >= minY && f.X <= maxX && f.Y <= maxY)
+            .GroupBy(e => e.Signature).Select(g => g.First())
+            .Take(1500);
 
         return [.. result];
     }
 
-    internal FiberPointDTO GetSameSignaturePoints(string signature)
+    internal FiberPoint GetSameSignaturePoints(string signature)
     {
         var result = context.FiberPoints.Include(f => f.EligibilitesFtth.OrderByDescending(e => e.LastUpdated)).First(s => s.Signature == signature);
         return result;
     }
 
-    internal IList<FiberPointDTO> GetNewestPoints(string parameters)
+    internal IList<FiberPoint> GetNewestPoints(double minX, double minY, double maxX, double maxY)
     {
-        var latlng = parameters.Split(",").Select(s => double.Parse(s, CultureInfo.InvariantCulture)).ToList();
-
         var result = context.FiberPoints.Include(f => f.EligibilitesFtth.OrderByDescending(e => e.LastUpdated))
-            .Where(f => f.X >= latlng[0] && f.Y >= latlng[1] && f.X <= latlng[2] && f.Y <= latlng[3])
+            .Where(f => f.X >= minX && f.Y >= minY && f.X <= maxX && f.Y <= maxY).ToList()
             .Where(f => f.EligibilitesFtth.Any(e => e.Created >= DateTime.UtcNow.AddDays(-6) || e.LastUpdated >= DateTime.UtcNow.AddDays(-3))
-                    || f.EligibilitesFtth.Count == 0 && f.Created >= DateTime.UtcNow.AddDays(-6) || f.LastUpdated >= DateTime.UtcNow.AddDays(-3))
-            .ToList();
+                    || f.EligibilitesFtth.Count == 0 && f.Created >= DateTime.UtcNow.AddDays(-6) || f.LastUpdated >= DateTime.UtcNow.AddDays(-3));
 
-        return [.. result
-            .GroupBy(x => x.Signature).Select(a => a.OrderBy(a => a.LastUpdated).First()).Take(2000)];
+        return [.. result.GroupBy(x => x.Signature).Select(a => a.OrderBy(a => a.LastUpdated).First()).Take(2000)];
     }
 
     internal async Task<int> UpdateDbFibers(double coordX, double coordY, int squareSize = 5)
@@ -66,7 +61,7 @@ public class FiberManager
         return await SaveToDB([.. fibers]);
     }
 
-    public async Task<int> SaveToDB(List<FiberPointDTO> fiberPoints)
+    public async Task<int> SaveToDB(List<FiberPoint> fiberPoints)
     {
         try
         {
@@ -118,7 +113,7 @@ public class FiberManager
         }
     }
 
-    private static void AddOrUpdateEligibiliteFtth(FiberPointDTO dbFiber, FiberPointDTO fiberPoint)
+    private static void AddOrUpdateEligibiliteFtth(FiberPoint dbFiber, FiberPoint fiberPoint)
     {
         foreach (var item in fiberPoint.EligibilitesFtth)
         {
