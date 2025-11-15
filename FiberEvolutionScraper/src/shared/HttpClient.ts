@@ -4,6 +4,7 @@ import router from "@/router";
 import { useUserStore } from "@/store/userStore";
 
 let httpClient: Axios = axios.create({
+  baseURL: import.meta.env.VITE_BACKEND_URL, 
   headers: {
     "Content-Type": "application/json"
   }

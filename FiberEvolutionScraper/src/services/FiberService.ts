@@ -7,7 +7,7 @@ class FiberService extends AbstractApiService {
 
     constructor() {
         super();
-        this.url = '/api/v1/fiber/';
+        this.url = 'fiber/';
     }
 
     getCloseAreaFibers(coord: Array<number>): AxiosPromise<FiberPointDTO[]> {

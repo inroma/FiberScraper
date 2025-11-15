@@ -1,4 +1,3 @@
-version: '3'
 services:
   fiberscraper-api:
     container_name: fiberscraper-api

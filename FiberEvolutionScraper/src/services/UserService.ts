@@ -6,7 +6,7 @@ class UserService extends AbstractApiService {
 
     constructor() {
         super();
-        this.url = '/api/v1/user/';
+        this.url = 'user/';
     }
     
     syncUser(): AxiosPromise<UserModel> {

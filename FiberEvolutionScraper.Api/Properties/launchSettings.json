@@ -26,7 +26,8 @@
       "publishAllPorts": true,
       "useSSL": true,
       "httpPort": 5003,
-      "sslPort": 5001
+      "sslPort": 5001,
+      "containerName": "fiberscraper-api"
     }
   },
   "$schema": "https://json.schemastore.org/launchsettings.json",

@@ -120,7 +120,10 @@ public class Program
         app.UsePathBase(new("/api/"));
         app.UseRateLimiter();
         app.UseHttpsRedirection()
-            .UseCors()
+             .UseCors(builder => builder
+                 .AllowAnyOrigin()
+                 .AllowAnyMethod()
+                 .AllowAnyHeader())
             .UseAuthentication()
             .UseAuthorization();
         app.UseRouting();

@@ -6,7 +6,7 @@ class AutoRefreshService extends AbstractApiService {
 
     constructor() {
         super();
-        this.url = '/api/v1/autorefresh/';
+        this.url = 'autorefresh/';
     }
 
     getAll(): AxiosPromise<AutoRefreshInput[]> {
