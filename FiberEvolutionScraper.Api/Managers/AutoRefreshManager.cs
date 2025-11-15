@@ -68,7 +68,7 @@ public class AutoRefreshManager
     public async Task RefreshAll(UserModel user = null)
     {
         logger.LogInformation("Refreshing all areas");
-        var areas = unitOfWork.GetRepository<AutoRefreshInput>().Get(a => a.Enabled && a.LastRun < DateTime.Now.AddHours(-1));
+        var areas = unitOfWork.GetRepository<AutoRefreshInput>().Get(a => a.Enabled && a.LastRun < DateTime.UtcNow.AddHours(-1));
         if (user != null)
         {
             areas = areas.Where(a => a.UserId == user.Id);
