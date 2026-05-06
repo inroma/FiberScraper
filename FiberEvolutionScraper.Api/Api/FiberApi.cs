@@ -24,6 +24,7 @@ public class FiberApi
         client.DefaultRequestHeaders.Accept.Add(new("application/json"));
         client.DefaultRequestHeaders.Accept.Add(new("text/plain"));
         client.DefaultRequestHeaders.Accept.Add(new("*/*"));
+        client.DefaultRequestHeaders.UserAgent.Add(new("azerty", "1"));
         client.BaseAddress = new("https://couverture-eligibilite.orange.fr/");
     }
 
@@ -107,7 +108,7 @@ public class FiberApi
         {
             if (tokenParser.Token == null || tokenParser.TokenAge < DateTime.Now.AddHours(-1))
             {
-                tokenParser.GetToken(GetOrangeToken(tokenParser.GenerateAppId()));
+                tokenParser.GetToken(GetOrangeToken());
             }
             if (client.DefaultRequestHeaders.Contains("AppAuthorization"))
             {
@@ -117,11 +118,13 @@ public class FiberApi
         }
     }
 
-    public string GetOrangeToken(string appId)
+    public string GetOrangeToken()
     {
         var httpClient = new HttpClient();
-        httpClient.DefaultRequestHeaders.Add("appId", appId);
-        var result = httpClient.GetAsync("https://couverture-eligibilite.orange.fr/api/appConfig.json").Result;
+        var request = new HttpRequestMessage(HttpMethod.Get, "https://couverture-eligibilite.orange.fr/api/appConfig.json");
+        request.Headers.Add("Appid", Guid.NewGuid().ToString());
+        request.Headers.UserAgent.Add(new("azerty", "1"));
+        var result = httpClient.Send(request);
         return result.Headers.GetValues("Token").FirstOrDefault();
     }
 }

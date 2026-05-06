@@ -60,39 +60,4 @@ public class TokenParser
 
         return Token;
     }
-
-    ///  function aB(e, n, t) {
-    ///  var r = (e = e || {}).random || (e.rng || eB)();
-    ///  if (r[6] = 15 & r[6] | 64,
-    ///  r[8] = 63 & r[8] | 128,
-    ///  n) {
-    ///     t = t || 0;
-    ///     for (var i = 0; i< 16; ++i)
-    ///         n[t + i] = r[i];
-    ///         return n
-    ///  }
-    ///  return function iB(e) {
-    ///  t = (Sn[e[n + 0]] + Sn[e[n + 1]] + Sn[e[n + 2]] + Sn[e[n + 3]] + "-" + Sn[e[n + 4]] + Sn[e[n + 5]] + "-" + Sn[e[n + 6]] + Sn[e[n + 7]] + "-" + Sn[e[n + 8]] + Sn[e[n + 9]] + "-" + Sn[e[n + 10]] + Sn[e[n + 11]] + Sn[e[n + 12]] + Sn[e[n + 13]] + Sn[e[n + 14]] + Sn[e[n + 15]]).toLowerCase();
-    ///  return t
-    ///  }
-    ///  (r)
-    ///  
-    ///  
-    /// Sn = [00, 01, 02, fe, ff]
-    /// (Sn[e[n + 0]] + Sn[e[n + 1]] + Sn[e[n + 2]] + Sn[e[n + 3]] + "-" + Sn[e[n + 4]] + Sn[e[n + 5]] + "-" + Sn[e[n + 6]] + Sn[e[n + 7]] + "-" + Sn[e[n + 8]] + Sn[e[n + 9]] + "-" + Sn[e[n + 10]] + Sn[e[n + 11]] + Sn[e[n + 12]] + Sn[e[n + 13]] + Sn[e[n + 14]] + Sn[e[n + 15]]).toLowerCase()
-    /// e = uint8array
-
-    public string GenerateAppId()
-    {
-        var uint8array = Guid.NewGuid().ToByteArray();
-
-        var result = Convert.ToHexString(uint8array.Take(4).ToArray()) + "-" + 
-            Convert.ToHexString(uint8array.Take(2).ToArray()) + "-" + 
-            Convert.ToHexString(uint8array.Take(2).ToArray()) + "-" + 
-            Convert.ToHexString(uint8array.Take(2).ToArray()) + "-" + 
-            Convert.ToHexString(uint8array.Take(6).ToArray());
-
-
-        return result.ToLower();
-    }
 }
