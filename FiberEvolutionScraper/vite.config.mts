@@ -4,6 +4,7 @@ import AutoImport from 'unplugin-auto-import/vite';
 import Components from 'unplugin-vue-components/vite';
 import Vuetify from 'vite-plugin-vuetify';
 import Vue from '@vitejs/plugin-vue';
+import mkcert from 'vite-plugin-mkcert'
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
@@ -16,23 +17,24 @@ export default defineConfig(({ mode }) => {
                     {
                         'vue-router/auto': ['useRoute', 'useRouter'],
                     }
-                    ],
-                    dts: 'src/auto-imports.d.ts',
-                    eslintrc: {
-                        enabled: true,
-                    },
-                    vueTemplate: true,
-                }),
-                Components({
-                  dts: 'src/components.d.ts',
-                }),
-                Vue(),
-                Vuetify({
-                    autoImport: true,
-                    styles: {
-                        configFile: 'src/styles/settings.scss',
-                    },
-                }),
+                ],
+                dts: 'src/auto-imports.d.ts',
+                eslintrc: {
+                    enabled: true,
+                },
+                vueTemplate: true,
+            }),
+            Components({
+                dts: 'src/components.d.ts',
+            }),
+            Vue(),
+            Vuetify({
+                autoImport: true,
+                styles: {
+                    configFile: 'src/styles/settings.scss',
+                },
+            }),
+            mkcert()
         ],
         resolve: {
             alias: {
